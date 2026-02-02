@@ -1,0 +1,126 @@
+models:
+
+  User:
+    name: string
+    email: string unique
+    password: string
+    role: enum:student,instructor,admin
+    avatar: string nullable
+    timestamps: true
+
+  Category:
+    name: string
+    slug: string unique
+    timestamps: true
+
+  Course:
+    instructor_id: id foreign:users
+    title: string
+    slug: string unique
+    description: text
+    thumbnail: string nullable
+    type: enum:free,paid
+    price: decimal:10,2 nullable
+    level: enum:beginner,intermediate,advanced
+    status: enum:draft,published
+    timestamps: true
+
+  CourseCategory:
+    course_id: id foreign:courses
+    category_id: id foreign:categories
+    indexes:
+      - unique: course_id,category_id
+
+  Module:
+    course_id: id foreign:courses
+    title: string
+    sort_order: integer
+    timestamps: true
+
+  Material:
+    module_id: id foreign:modules
+    title: string
+    description: text
+    sort_order: integer
+    is_preview: boolean default:false
+    timestamps: true
+
+  MaterialContent:
+    material_id: id foreign:materials
+    type: enum:video,text,quiz,file,ppt
+    title: string
+    content_url: text nullable
+    content_text: longtext nullable
+    duration: integer nullable
+    sort_order: integer
+    timestamps: true
+
+  Enrollment:
+    user_id: id foreign:users
+    course_id: id foreign:courses
+    enrolled_at: timestamp
+    indexes:
+      - unique: user_id,course_id
+
+  Order:
+    user_id: id foreign:users
+    total_price: decimal:10,2
+    status: enum:pending,paid,failed,expired
+    timestamps: true
+
+  OrderItem:
+    order_id: id foreign:orders
+    course_id: id foreign:courses
+    price: decimal:10,2
+
+  PaymentProvider:
+    name: string
+    code: string unique
+    is_active: boolean default:true
+    timestamps: true
+
+  Payment:
+    order_id: id foreign:orders
+    provider_id: id foreign:payment_providers
+    reference: string
+    amount: decimal:10,2
+    currency: string default:IDR
+    status: enum:pending,paid,failed,expired,refunded
+    payment_url: text nullable
+    paid_at: timestamp nullable
+    timestamps: true
+
+  PaymentMethod:
+    provider_id: id foreign:payment_providers
+    name: string
+    code: string
+    timestamps: true
+
+  PaymentLog:
+    payment_id: id foreign:payments
+    event: string
+    payload: json
+    timestamps: true
+
+  Refund:
+    payment_id: id foreign:payments
+    amount: decimal:10,2
+    reason: text nullable
+    status: enum:pending,success,failed
+    refunded_at: timestamp nullable
+    timestamps: true
+
+  Review:
+    user_id: id foreign:users
+    course_id: id foreign:courses
+    rating: integer
+    comment: text nullable
+    timestamps: true
+
+  MaterialProgress:
+    user_id: id foreign:users
+    material_id: id foreign:materials
+    is_completed: boolean default:false
+    completed_at: timestamp nullable
+    indexes:
+      - unique: user_id,material_id
