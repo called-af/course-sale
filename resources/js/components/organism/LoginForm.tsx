@@ -38,15 +38,25 @@ export default function LoginForm() {
         onChange={(e) => setData("password", e.target.value)}
       />
 
-      <div>
+      <div className="flex justify-between text-sm">
         <Link href="/forgot-password" className="hover:text-blue-600">
-          Forgot Password ?
+          Forgot your password?
+        </Link>
+
+        <Link href="/register" className="hover:text-blue-600">
+          Create an account
         </Link>
       </div>
 
-      <Button type="submit" disabled={processing}>
-        Login
+      <Button type="submit" disabled={processing} widthFull>
+        Sign in
       </Button>
+
+      <div className="text-center text-sm">
+        <Link href="/" className="hover:text-blue-600">
+          Back to home
+        </Link>
+      </div>
     </form>
   )
 }

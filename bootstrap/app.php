@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     $middleware->alias([
         'role' => \App\Http\Middleware\RoleMiddleware::class,
+        'role.selected' => \App\Http\Middleware\EnsureRoleSelected::class,
     ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

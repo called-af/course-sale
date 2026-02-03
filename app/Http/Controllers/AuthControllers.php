@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
 class AuthControllers extends Controller
@@ -11,6 +13,11 @@ class AuthControllers extends Controller
     public function show()
     {
         return Inertia::render('auth/login');
+    }
+
+    public function showRegister()
+    {
+        return Inertia::render('auth/register');
     }
 
     public function store(Request $request)
@@ -28,9 +35,29 @@ class AuthControllers extends Controller
 
         $request->session()->regenerate();
 
-        // BIAR MIDDLEWARE YANG NENTUIN
         return redirect()->intended('/');
     }
+    
+public function register(Request $request)
+{
+    $validated = $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'email', 'unique:users,email'],
+        'password' => ['required', 'confirmed', 'min:8'],
+    ]);
+
+    $user = User::create([
+        'name' => $validated['name'],
+        'email' => $validated['email'],
+        'password' => bcrypt($validated['password']),
+        'role' => null, // BELUM ditentukan
+    ]);
+
+    Auth::login($user);
+
+    return redirect('/choose-role');
+}
+
 
     public function logout(Request $request)
     {

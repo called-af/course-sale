@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password');
-            $table->enum('role', ["student","instructor","admin"]);
+            $table->enum('role', ["student","instructor","admin"])->nullable();
             $table->string('avatar')->nullable();
             $table->timestamps();
         });
