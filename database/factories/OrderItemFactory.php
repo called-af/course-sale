@@ -16,7 +16,8 @@ class OrderItemFactory extends Factory
         return [
             'order_id' => Order::factory(),
             'course_id' => Course::factory(),
-            'price' => fake()->randomFloat(2, 0, 99999999.99),
+            'course_title' => fake()->word(),
+            'course_price' => fake()->randomFloat(2, 0, 99999999.99),
         ];
     }
 }

@@ -14,12 +14,11 @@ class EnsureRoleSelected
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle($request, Closure $next)
-{
-    if (auth()->check() && auth()->user()->role === null) {
-        return redirect('/choose-role');
+    {
+        if (auth()->check() && auth()->user()->role === null) {
+            return redirect('/choose-role');
+        }
+
+        return $next($request);
     }
-
-    return $next($request);
-}
-
 }

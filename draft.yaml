@@ -14,7 +14,7 @@ models:
     timestamps: true
 
   Course:
-    instructor_id: id foreign:users
+    creator_id: id foreign:users
     title: string
     slug: string unique
     description: text
@@ -22,7 +22,10 @@ models:
     type: enum:free,paid
     price: decimal:10,2 nullable
     level: enum:beginner,intermediate,advanced
-    status: enum:draft,published
+    status: enum:draft,review,published,archived
+    published_at: timestamp nullable
+    rating_avg: decimal:3,2 default:0
+    rating_count: integer default:0
     timestamps: true
 
   CourseCategory:
@@ -58,6 +61,7 @@ models:
   Enrollment:
     user_id: id foreign:users
     course_id: id foreign:courses
+    status: enum:active,revoked,expired default:active
     enrolled_at: timestamp
     indexes:
       - unique: user_id,course_id
@@ -71,12 +75,19 @@ models:
   OrderItem:
     order_id: id foreign:orders
     course_id: id foreign:courses
-    price: decimal:10,2
+    course_title: string
+    course_price: decimal:10,2
 
   PaymentProvider:
     name: string
     code: string unique
     is_active: boolean default:true
+    timestamps: true
+
+  PaymentMethod:
+    provider_id: id foreign:payment_providers
+    name: string
+    code: string
     timestamps: true
 
   Payment:
@@ -88,12 +99,6 @@ models:
     status: enum:pending,paid,failed,expired,refunded
     payment_url: text nullable
     paid_at: timestamp nullable
-    timestamps: true
-
-  PaymentMethod:
-    provider_id: id foreign:payment_providers
-    name: string
-    code: string
     timestamps: true
 
   PaymentLog:

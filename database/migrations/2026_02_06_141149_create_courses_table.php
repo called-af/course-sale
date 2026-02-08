@@ -15,7 +15,7 @@ return new class extends Migration
 
         Schema::create('courses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('instructor_id')->constrained('users');
+            $table->foreignId('creator_id')->constrained('users');
             $table->string('title');
             $table->string('slug')->unique();
             $table->text('description');
@@ -23,7 +23,10 @@ return new class extends Migration
             $table->enum('type', ["free","paid"]);
             $table->decimal('price', 10, 2)->nullable();
             $table->enum('level', ["beginner","intermediate","advanced"]);
-            $table->enum('status', ["draft","published"]);
+            $table->enum('status', ["draft","review","published","archived"]);
+            $table->timestamp('published_at')->nullable();
+            $table->decimal('rating_avg', 3, 2)->default(0);
+            $table->integer('rating_count')->default(0);
             $table->timestamps();
         });
 

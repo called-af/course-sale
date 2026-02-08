@@ -5,18 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Course extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
-        'instructor_id',
+        'creator_id',
         'title',
         'slug',
         'description',
@@ -25,24 +21,66 @@ class Course extends Model
         'price',
         'level',
         'status',
+        'published_at',
+        'rating_avg',
+        'rating_count',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
-            'id' => 'integer',
-            'instructor_id' => 'integer',
-            'price' => 'decimal:2',
+            'id'            => 'integer',
+            'creator_id'    => 'integer',
+            'price'         => 'decimal:2',
+            'published_at'  => 'datetime',
+            'rating_avg'    => 'decimal:2',
         ];
     }
 
-    public function instructor(): BelongsTo
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONS
+    |--------------------------------------------------------------------------
+    */
+
+    public function creator(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'creator_id');
+    }
+
+    public function modules(): HasMany
+    {
+        return $this->hasMany(Module::class);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | HELPERS (BUSINESS LOGIC)
+    |--------------------------------------------------------------------------
+    */
+
+    public function canBePublished(): bool
+    {
+        return
+            filled($this->title) &&
+            filled($this->description) &&
+            filled($this->level) &&
+            filled($this->thumbnail) &&
+            $this->modules()->exists();
+    }
+
+    public function isPublished(): bool
+    {
+        return $this->status === 'published';
+    }
+
+    public function isDraft(): bool
+    {
+        return $this->status === 'draft';
+    }
+
+    public function isPaid(): bool
+    {
+        return $this->type === 'paid';
     }
 }

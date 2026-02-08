@@ -37,26 +37,26 @@ class AuthControllers extends Controller
 
         return redirect()->intended('/');
     }
-    
-public function register(Request $request)
-{
-    $validated = $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'email' => ['required', 'email', 'unique:users,email'],
-        'password' => ['required', 'confirmed', 'min:8'],
-    ]);
 
-    $user = User::create([
-        'name' => $validated['name'],
-        'email' => $validated['email'],
-        'password' => bcrypt($validated['password']),
-        'role' => null, // BELUM ditentukan
-    ]);
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'unique:users,email'],
+            'password' => ['required', 'confirmed', 'min:8'],
+        ]);
 
-    Auth::login($user);
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => bcrypt($validated['password']),
+            'role' => null, // BELUM ditentukan
+        ]);
 
-    return redirect('/choose-role');
-}
+        Auth::login($user);
+
+        return redirect('/choose-role');
+    }
 
 
     public function logout(Request $request)

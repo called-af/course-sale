@@ -13,11 +13,13 @@ return new class extends Migration
     {
         Schema::disableForeignKeyConstraints();
 
-        Schema::create('order_items', function (Blueprint $table) {
+        Schema::create('enrollments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->constrained();
+            $table->foreignId('user_id')->constrained();
             $table->foreignId('course_id')->constrained();
-            $table->decimal('price', 10, 2);
+            $table->enum('status', ["active","revoked","expired"])->default('active');
+            $table->timestamp('enrolled_at');
+            $table->unique(['user_id', 'course_id']);
             $table->timestamps();
         });
 
@@ -29,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('order_items');
+        Schema::dropIfExists('enrollments');
     }
 };

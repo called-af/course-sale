@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import DashboardLayout from "@/components/templates/DashboardLayout"
+import AdminLayout from "@/components/templates/AdminLayout"
 
 export default function Dashboard() {
   return (
@@ -11,5 +11,5 @@ export default function Dashboard() {
 
 
 Dashboard.layout = (page: React.ReactNode) => (
-  <DashboardLayout>{page}</DashboardLayout>
+  <AdminLayout>{page}</AdminLayout>
 )

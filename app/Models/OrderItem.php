@@ -18,7 +18,8 @@ class OrderItem extends Model
     protected $fillable = [
         'order_id',
         'course_id',
-        'price',
+        'course_title',
+        'course_price',
     ];
 
     /**
@@ -32,7 +33,7 @@ class OrderItem extends Model
             'id' => 'integer',
             'order_id' => 'integer',
             'course_id' => 'integer',
-            'price' => 'decimal:2',
+            'course_price' => 'decimal:2',
         ];
     }
 

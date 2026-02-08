@@ -1,71 +1,75 @@
-import { Link } from "@inertiajs/react"
+import { Link, usePage } from "@inertiajs/react"
 import {
   LayoutDashboard,
   BookOpen,
   GraduationCap,
-  Users,
 } from "lucide-react"
+import clsx from "clsx"
 
 interface SidebarProps {
-  role: "admin" | "instructor" | "student"
+  role: "instructor" | "student"
+}
+
+const menuByRole = {
+  instructor: [
+    { label: "Dashboard", href: "/instructor", icon: LayoutDashboard },
+    { label: "My Courses", href: "/instructor/courses", icon: BookOpen },
+    { label: "Students", href: "/instructor/students", icon: GraduationCap },
+  ],
+  student: [
+    { label: "Dashboard", href: "/student", icon: LayoutDashboard },
+    { label: "My Learning", href: "/student/courses", icon: GraduationCap },
+    { label: "Explore Courses", href: "/courses", icon: BookOpen },
+  ],
 }
 
 export default function Sidebar({ role }: SidebarProps) {
+  const { url } = usePage()
+
   return (
-    <aside className="w-64 min-h-screen border-r bg-white hidden md:block">
-      <nav className="p-4 space-y-2">
+    <aside className="hidden md:flex w-72 min-h-screen flex-col bg-slate-950 text-slate-200 border-r border-white/5">
+      {/* Logo */}
+      <div className="h-16 flex items-center px-6 text-lg font-semibold tracking-wide">
+        <span className="text-indigo-400">●</span>
+        <span className="ml-2">CourseSale</span>
+      </div>
 
-        <SidebarLink
-          href="/"
-          icon={<LayoutDashboard size={18} />}
-          label="Dashboard"
-        />
+      {/* Menu */}
+      <nav className="flex-1 px-4 py-6 space-y-1">
+        {menuByRole[role].map((item) => {
+          const Icon = item.icon
+          const active = url.startsWith(item.href)
 
-        {role === "instructor" && (
-          <SidebarLink
-            href="/instructor/courses"
-            icon={<BookOpen size={18} />}
-            label="My Courses"
-          />
-        )}
-
-        {role === "student" && (
-          <SidebarLink
-            href="/student/courses"
-            icon={<GraduationCap size={18} />}
-            label="My Learning"
-          />
-        )}
-
-        {role === "admin" && (
-          <SidebarLink
-            href="/admin/users"
-            icon={<Users size={18} />}
-            label="Manage Users"
-          />
-        )}
-
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={clsx(
+                "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition-all",
+                active
+                  ? "bg-white/10 text-white shadow-inner"
+                  : "text-slate-400 hover:text-white hover:bg-white/5"
+              )}
+            >
+              <Icon
+                size={18}
+                className={clsx(
+                  "transition",
+                  active
+                    ? "text-indigo-400"
+                    : "group-hover:text-indigo-300"
+                )}
+              />
+              {item.label}
+            </Link>
+          )
+        })}
       </nav>
-    </aside>
-  )
-}
 
-function SidebarLink({
-  href,
-  icon,
-  label,
-}: {
-  href: string
-  icon: React.ReactNode
-  label: string
-}) {
-  return (
-    <Link
-      href={href}
-      className="flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-100 text-sm"
-    >
-      {icon}
-      {label}
-    </Link>
+      {/* Footer */}
+      <div className="px-6 py-4 text-xs text-slate-500 border-t border-white/5">
+        Logged as <span className="capitalize">{role}</span>
+      </div>
+    </aside>
   )
 }
