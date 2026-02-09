@@ -3,7 +3,7 @@ import AdminLayout from "@/components/templates/AdminLayout"
 import Button from "@/components/atoms/Button"
 import Modal from "@/components/atoms/Modal"
 import { useState } from "react"
-import CourseForm from "@/components/organism/CourseForm"
+import CourseAdd from "@/components/organism/CourseAdd"
 
 export default function Course() {
   const [open, setOpen] = useState(false)
@@ -17,7 +17,7 @@ export default function Course() {
       </div>
 
       <Modal open={open} onClose={() => setOpen(false)} title="Add Course">
-        <CourseForm onSuccess={() => setOpen(false)} />
+        <CourseAdd onSuccess={() => setOpen(false)} />
       </Modal>
     </>
   )

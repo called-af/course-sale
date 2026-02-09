@@ -47,12 +47,10 @@ class CourseService
   {
     return DB::transaction(function () use ($course, $data) {
 
-      // 1. Kalau title berubah → regenerate slug
       if (isset($data['title']) && $data['title'] !== $course->title) {
         $data['slug'] = $this->generateUniqueSlug($data['title']);
       }
 
-      // 2. Kalau mau publish → cek kelengkapan
       if (
         isset($data['status']) &&
         $data['status'] === 'published'
@@ -66,7 +64,6 @@ class CourseService
         $data['published_at'] = now();
       }
 
-      // 3. Kalau type free → price NULL
       if (
         isset($data['type']) &&
         $data['type'] === 'free'
@@ -74,7 +71,6 @@ class CourseService
         $data['price'] = null;
       }
 
-      // 4. Update data
       $course->update($data);
 
       return $course->refresh();

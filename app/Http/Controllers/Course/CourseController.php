@@ -48,9 +48,13 @@ class CourseController extends Controller
             $request->user()->id
         );
 
-        return redirect()
-            ->route('courses.edit', $course)
-            ->with('success', 'Course berhasil dibuat');
+        return match ($request->user()->role) {
+            'admin' => redirect()
+                ->route('admin.courses.show', $course->slug),
+            'instructor' => redirect()
+                ->route('instructor.courses.show', $course->slug),
+            default => abort(403),
+        };
     }
 
     /**
