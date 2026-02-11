@@ -9,8 +9,15 @@ use DomainException;
 
 class CourseService
 {
+  /**
+   * Fungsi untuk membuat course
+   * @param array $data
+   * @param int $userId
+   * @return Course
+   */
   public function create(array $data, int $userId): Course
   {
+    // melakukan db transkaski
     return DB::transaction(function () use ($data, $userId) {
 
       $title = $data['title'];

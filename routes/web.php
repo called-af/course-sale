@@ -1,15 +1,15 @@
 <?php
 
+use App\Http\Controllers\AuthControllers;
+use App\Http\Controllers\Course\CourseController;
+use App\Http\Controllers\RoleController;
+use App\Models\Course;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-use App\Http\Controllers\AuthControllers;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\Course\CourseController;
-use App\Models\Course;
-
 Route::get('/', function () {
-    return auth()->check()
+    return Auth::check()
         ? redirect()->route('home.redirect')
         : Inertia::render('welcome');
 })->name('home');
@@ -29,51 +29,60 @@ Route::post('/logout', [AuthControllers::class, 'logout'])
 Route::middleware(['auth', 'role'])->group(function () {
 
     Route::get('/home', function () {
-        return match (auth()->user()->role) {
-            'admin'      => redirect()->route('admin.dashboard'),
+        return match (Auth::user()->role) {
+            'admin' => redirect()->route('admin.dashboard'),
             'instructor' => redirect()->route('instructor.dashboard'),
-            'student'    => redirect()->route('student.dashboard'),
-            default      => redirect('/choose-role'),
+            'student' => redirect()->route('student.dashboard'),
+            default => redirect('/choose-role'),
         };
     })->name('home.redirect');
 
     Route::get('/choose-role', [RoleController::class, 'show'])->name('choose-role');
     Route::post('/choose-role', [RoleController::class, 'store']);
 
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC COURSES (CATALOG)
+    |--------------------------------------------------------------------------
+    */
     Route::prefix('courses')->name('courses.')->group(function () {
-        Route::get(
-            '/',
-            fn() =>
-            Inertia::render('pages/courses/page')
-        )->name('index');
+
+        Route::get('/', function () {
+            return Inertia::render('courses/page', [
+                'courses' => Course::where('status', 'published')
+                    ->latest()
+                    ->get(),
+            ]);
+        })->name('index');
 
         Route::get('/{course:slug}', [CourseController::class, 'show'])
             ->name('show');
     });
 
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN
+    |--------------------------------------------------------------------------
+    */
     Route::middleware('role:admin')
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
 
-            Route::get(
-                '/dashboard',
-                fn() =>
-                Inertia::render('admin/Dashboard')
+            Route::get('/dashboard', fn () => Inertia::render('admin/Dashboard')
             )->name('dashboard');
 
-            Route::get(
-                '/courses',
-                fn() =>
-                Inertia::render('admin/course/page')
+            Route::get('/courses', fn () => Inertia::render('admin/course/page', [
+                'courses' => Course::with('creator:id,name')
+                    ->latest()
+                    ->get()
+                    ->append('thumbnail_url'),
+            ])
             )->name('courses.index');
 
-            Route::get(
-                '/courses/{course:slug}',
-                fn(Course $course) =>
-                Inertia::render('admin/course/[slug]/page', [
-                    'course' => $course,
-                ])
+            Route::get('/courses/{course:slug}', fn (Course $course) => Inertia::render('admin/course/[slug]/page', [
+                'course' => $course->load('creator:id,name'),
+            ])
             )->name('courses.show');
 
             Route::post('/courses', [CourseController::class, 'store'])
@@ -86,57 +95,54 @@ Route::middleware(['auth', 'role'])->group(function () {
                 ->name('courses.destroy');
         });
 
-
+    /*
+    |--------------------------------------------------------------------------
+    | INSTRUCTOR
+    |--------------------------------------------------------------------------
+    */
     Route::middleware('role:instructor')
         ->prefix('instructor')
         ->name('instructor.')
         ->group(function () {
 
-            Route::get(
-                '/dashboard',
-                fn() =>
-                Inertia::render('instructor/Dashboard')
+            Route::get('/dashboard', fn () => Inertia::render('instructor/Dashboard')
             )->name('dashboard');
 
-            Route::get(
-                '/courses',
-                fn() =>
-                Inertia::render('instructor/course/page')
+            Route::get('/courses', fn () => Inertia::render('instructor/course/page', [
+                'courses' => Course::where('creator_id', Auth::id())
+                    ->latest()
+                    ->get(),
+            ])
             )->name('courses.index');
 
-            Route::get(
-                '/courses/{course:slug}',
-                fn($course) =>
-                Inertia::render('instructor/course/[slug]/page', [
-                    'slug' => $course,
-                ])
+            Route::get('/courses/{course:slug}', fn (Course $course) => Inertia::render('instructor/course/[slug]/page', [
+                'course' => $course,
+            ])
             )->name('courses.show');
 
             Route::post('/courses', [CourseController::class, 'store'])
                 ->name('courses.store');
 
-            Route::put('/courses/{course}', [CourseController::class, 'update'])
+            Route::put('/courses/{course:slug}', [CourseController::class, 'update'])
                 ->name('courses.update');
         });
 
-
+    /*
+    |--------------------------------------------------------------------------
+    | STUDENT
+    |--------------------------------------------------------------------------
+    */
     Route::middleware('role:student')
         ->prefix('student')
         ->name('student.')
         ->group(function () {
 
-            Route::get(
-                '/dashboard',
-                fn() =>
-                Inertia::render('student/Dashboard')
+            Route::get('/dashboard', fn () => Inertia::render('student/Dashboard')
             )->name('dashboard');
 
-            Route::get(
-                '/courses/{course:slug}',
-                fn($course) =>
-                Inertia::render('student/course/[slug]/page', [
-                    'slug' => $course,
-                ])
+            Route::get('/courses/{course:slug}', fn (Course $course) => Inertia::render('student/course/[slug]/page', [
+                'course' => $course,
+            ])
             )->name('courses.show');
         });
 });

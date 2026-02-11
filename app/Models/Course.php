@@ -29,11 +29,11 @@ class Course extends Model
     protected function casts(): array
     {
         return [
-            'id'            => 'integer',
-            'creator_id'    => 'integer',
-            'price'         => 'decimal:2',
-            'published_at'  => 'datetime',
-            'rating_avg'    => 'decimal:2',
+            'id' => 'integer',
+            'creator_id' => 'integer',
+            'price' => 'decimal:2',
+            'published_at' => 'datetime',
+            'rating_avg' => 'decimal:2',
         ];
     }
 
@@ -82,5 +82,14 @@ class Course extends Model
     public function isPaid(): bool
     {
         return $this->type === 'paid';
+    }
+
+    public function getThumbnailUrlAttribute(): string
+    {
+        if ($this->thumbnail) {
+            return asset('storage/'.$this->thumbnail);
+        }
+
+        return asset('assets/landscape.jpeg');
     }
 }

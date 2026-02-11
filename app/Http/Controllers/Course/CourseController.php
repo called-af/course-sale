@@ -7,6 +7,7 @@ use App\Http\Requests\Course\StoreCourseRequest;
 use App\Http\Requests\Course\UpdateCourseRequest;
 use App\Models\Course;
 use App\Services\CourseService;
+use Illuminate\Support\Facades\Auth;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -87,8 +88,10 @@ class CourseController extends Controller
 
         $course->delete();
 
-        return redirect()
-            ->route('courses.index')
-            ->with('success', 'Course berhasil dihapus');
+        return match (Auth::user()->role) {
+            'admin' => redirect()->route('admin.courses.index'),
+            'instructor' => redirect()->route('instructor.courses.index'),
+            default => redirect()->route('home'),
+        };
     }
 }

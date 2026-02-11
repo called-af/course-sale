@@ -49,4 +49,12 @@ class UpdateCourseRequest extends FormRequest
             ])],
         ];
     }
+
+    // public function messages()
+    // {
+    //     return [
+    //         "title.max" => "Maksimal 255 kata",
+    //         "level.in" => "level tidak ada dalam database"
+    //     ];
+    // }
 }
