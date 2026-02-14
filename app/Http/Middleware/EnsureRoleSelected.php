@@ -17,7 +17,10 @@ class EnsureRoleSelected
     public function handle($request, Closure $next)
     {
         if (Auth::check() && Auth::user()->role === null) {
-            return redirect('/choose-role');
+
+            if (! $request->is('choose-role')) {
+                return redirect('/choose-role');
+            }
         }
 
         return $next($request);

@@ -3,7 +3,7 @@ import DashboardLayout from "@/components/templates/DashboardLayout"
 import Button from "@/components/atoms/Button"
 import Modal from "@/components/atoms/Modal"
 import { useState } from "react"
-import CourseAdd from "@/components/organism/CourseAdd"
+import CourseAdd from "@/components/organism/Course/CourseAdd"
 
 export default function Course() {
   const [open, setOpen] = useState(false)

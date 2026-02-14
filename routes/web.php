@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthControllers;
 use App\Http\Controllers\Course\CourseController;
+use App\Http\Controllers\Course\ModuleController;
 use App\Http\Controllers\RoleController;
 use App\Models\Course;
 use Illuminate\Support\Facades\Auth;
@@ -48,7 +49,7 @@ Route::middleware(['auth', 'role'])->group(function () {
     Route::prefix('courses')->name('courses.')->group(function () {
 
         Route::get('/', function () {
-            return Inertia::render('courses/page', [
+            return Inertia::render('course/page', [
                 'courses' => Course::where('status', 'published')
                     ->latest()
                     ->get(),
@@ -81,9 +82,13 @@ Route::middleware(['auth', 'role'])->group(function () {
             )->name('courses.index');
 
             Route::get('/courses/{course:slug}', fn (Course $course) => Inertia::render('admin/course/[slug]/page', [
-                'course' => $course->load('creator:id,name'),
-            ])
-            )->name('courses.show');
+                'course' => $course
+                    ->load([
+                        'creator:id,name',
+                        'modules:id,course_id,title,sort_order',
+                    ])
+                    ->append('thumbnail_url'),
+            ]))->name('courses.show');
 
             Route::post('/courses', [CourseController::class, 'store'])
                 ->name('courses.store');
@@ -93,6 +98,17 @@ Route::middleware(['auth', 'role'])->group(function () {
 
             Route::delete('/courses/{course:slug}', [CourseController::class, 'destroy'])
                 ->name('courses.destroy');
+
+            Route::post('/modules', [ModuleController::class, 'store'])
+                ->name('modules.store');
+
+            Route::put('/modules/{module}/move', [ModuleController::class, 'move']);
+
+            Route::put('/modules/{module}', [ModuleController::class, 'update'])
+                ->name('modules.update');
+
+            Route::delete('/modules/{module}', [ModuleController::class, 'destroy'])
+                ->name('modules.destroy');
         });
 
     /*
@@ -105,17 +121,17 @@ Route::middleware(['auth', 'role'])->group(function () {
         ->name('instructor.')
         ->group(function () {
 
-            Route::get('/dashboard', fn () => Inertia::render('instructor/Dashboard')
+            Route::get('/dashboard', fn () => Inertia::render('user/Dashboard')
             )->name('dashboard');
 
-            Route::get('/courses', fn () => Inertia::render('instructor/course/page', [
+            Route::get('/courses', fn () => Inertia::render('user/course/page', [
                 'courses' => Course::where('creator_id', Auth::id())
                     ->latest()
                     ->get(),
             ])
             )->name('courses.index');
 
-            Route::get('/courses/{course:slug}', fn (Course $course) => Inertia::render('instructor/course/[slug]/page', [
+            Route::get('/courses/{course:slug}', fn (Course $course) => Inertia::render('user/course/[slug]/page', [
                 'course' => $course,
             ])
             )->name('courses.show');
@@ -137,10 +153,10 @@ Route::middleware(['auth', 'role'])->group(function () {
         ->name('student.')
         ->group(function () {
 
-            Route::get('/dashboard', fn () => Inertia::render('student/Dashboard')
+            Route::get('/dashboard', fn () => Inertia::render('user/Dashboard')
             )->name('dashboard');
 
-            Route::get('/courses/{course:slug}', fn (Course $course) => Inertia::render('student/course/[slug]/page', [
+            Route::get('/courses/{course:slug}', fn (Course $course) => Inertia::render('user/course/[slug]/page', [
                 'course' => $course,
             ])
             )->name('courses.show');

@@ -28,7 +28,7 @@ class CourseController extends Controller
     {
         $this->authorize('view', $course);
 
-        return Inertia::render('Courses/Show', [
+        return Inertia::render('course/page', [
             'course' => $course->load([
                 'creator:id,name',
                 'modules',

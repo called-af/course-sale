@@ -3,8 +3,8 @@ import AdminLayout from "@/components/templates/AdminLayout"
 import Button from "@/components/atoms/Button"
 import Modal from "@/components/atoms/Modal"
 import { useState } from "react"
-import CourseAdd from "@/components/organism/CourseAdd"
-import CourseGrid from "@/components/organism/CourseGrid"
+import CourseAdd from "@/components/organism/Course/CourseAdd"
+import CourseGrid from "@/components/organism/Course/CourseGrid"
 
 export default function Course() {
   const [open, setOpen] = useState(false)

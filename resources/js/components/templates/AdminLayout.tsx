@@ -1,24 +1,52 @@
 import { usePage } from "@inertiajs/react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Navbar from "@/components/molecules/Admin/Navbar"
 import Sidebar from "@/components/molecules/Admin/Sidebar"
 
-export default function DashboardLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   const { auth } = usePage().props as any
-  const [open, setOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = ""
+    }
+
+    return () => {
+      document.body.style.overflow = ""
+    }
+  }, [sidebarOpen])
 
   return (
-    <div className="min-h-screen flex">
-      <Sidebar role={auth.user.role} />
-      <div className="flex-1">
-        <Navbar onToggleSidebar={() => setOpen(!open)} />
-        <main className="p-6 bg-gray-50 min-h-[calc(100vh-56px)]">
+    <div className="h-screen flex bg-slate-100 overflow-hidden">
+
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+        />
+      )}
+
+      <Sidebar
+        role={auth.user.role}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
+
+      <div className="flex-1 flex flex-col overflow-hidden">
+
+        <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+
+        <main className="flex-1 overflow-y-auto p-6">
           {children}
         </main>
+
       </div>
     </div>
   )

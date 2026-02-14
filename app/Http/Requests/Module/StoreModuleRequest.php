@@ -11,7 +11,7 @@ class StoreModuleRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,9 @@ class StoreModuleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'course_id' => ['required', 'integer', 'exists:courses,id'],
+            'title' => ['required', 'string', 'max:255'],
+            'sort_order' => ['nullable', 'integer', 'min:1'],
         ];
     }
 }

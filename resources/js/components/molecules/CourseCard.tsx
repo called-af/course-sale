@@ -3,8 +3,8 @@ import { router, usePage } from "@inertiajs/react"
 
 import Badge from "@/components/atoms/Badge"
 import Button from "@/components/atoms/Button"
-import Modal from "@/components/atoms/Modal"
 import Title from "@/components/atoms/Title"
+import ConfirmationDelete from "@/components/molecules/ConfirmationDelete"
 
 interface CourseCardProps {
   course: {
@@ -25,18 +25,21 @@ export default function CourseCard({ course }: CourseCardProps) {
   const { auth } = usePage().props as any
 
   const [openDelete, setOpenDelete] = useState(false)
-  const [processing, setProcessing] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const visitCourse = () => {
     router.visit(`/${auth.user.role}/courses/${course.slug}`)
   }
 
   const handleConfirmDelete = () => {
+    setIsDeleting(true)
+
     router.delete(`/${auth.user.role}/courses/${course.slug}`, {
       preserveScroll: true,
-      onStart: () => setProcessing(true),
-      onFinish: () => setProcessing(false),
-      onSuccess: () => setOpenDelete(false),
+      onFinish: () => {
+        setIsDeleting(false)
+        setOpenDelete(false)
+      },
     })
   }
 
@@ -94,7 +97,6 @@ export default function CourseCard({ course }: CourseCardProps) {
         <div className="pt-2">
           <Button
             variant="danger"
-            disabled={processing}
             onClick={(e) => {
               e.preventDefault()
               e.stopPropagation()
@@ -104,46 +106,16 @@ export default function CourseCard({ course }: CourseCardProps) {
             Hapus
           </Button>
         </div>
-
-        {processing && (
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-sm rounded-2xl flex items-center justify-center text-sm">
-            Menghapus...
-          </div>
-        )}
       </div>
 
-      <Modal
+      <ConfirmationDelete
         open={openDelete}
         onClose={() => setOpenDelete(false)}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
         title="Hapus Course"
-        footer={
-          <>
-            <Button
-              variant="secondary"
-              disabled={processing}
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                setOpenDelete(false)
-              }}
-            >
-              Batal
-            </Button>
-
-            <Button
-              variant="danger"
-              disabled={processing}
-              onClick={handleConfirmDelete}
-            >
-              {processing ? "Menghapus..." : "Ya, Hapus"}
-            </Button>
-          </>
-        }
-      >
-        <p>
-          Yakin mau hapus course <b>{course.title}</b> ?
-        </p>
-      </Modal>
+        message={`Course "${course.title}" akan dihapus permanen.`}
+      />
     </>
   )
 }
