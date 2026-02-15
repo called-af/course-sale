@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthControllers;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Course\CourseController;
 use App\Http\Controllers\Course\ModuleController;
 use App\Http\Controllers\RoleController;
@@ -109,6 +110,19 @@ Route::middleware(['auth', 'role'])->group(function () {
 
             Route::delete('/modules/{module}', [ModuleController::class, 'destroy'])
                 ->name('modules.destroy');
+
+            Route::get('/categories', fn () => Inertia::render('admin/category/page', [
+                'categories' => \App\Models\Category::latest()->get(),
+            ]))->name('categories.index');
+
+            Route::post('/categories', [CategoryController::class, 'store'])
+                ->name('categories.store');
+
+            Route::put('/categories/{category}', [CategoryController::class, 'update'])
+                ->name('categories.update');
+
+            Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])
+                ->name('categories.destroy');
         });
 
     /*
