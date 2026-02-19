@@ -1,35 +1,19 @@
 import InputField from "@/components/molecules/InputField"
 import Button from "@/components/atoms/Button"
-import { useForm, usePage } from "@inertiajs/react"
-import { useRoute } from "ziggy-js"
-
-interface CourseAddData {
-  title: string
-}
+import { useCourse } from "@/hooks/useCourse"
 
 export default function CourseAdd({ onSuccess }: { onSuccess?: () => void }) {
-  const route = useRoute()
-  const { auth } = usePage().props as any
-
-  const { data, setData, post, processing } = useForm<CourseAddData>({
-    title: "",
-  })
-
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    const routeName =
-      auth.user.role === "admin"
-        ? "admin.courses.store"
-        : "instructor.courses.store"
-
-    post(route(routeName), {
-      onSuccess: () => onSuccess?.(),
-    })
-  }
+  const { data, setData, save, processing, errors } = useCourse()
 
   return (
-    <form onSubmit={submit} className="space-y-4">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        save()
+        onSuccess?.()
+      }}
+      className="space-y-4"
+    >
       <InputField
         label="Title"
         name="title"
@@ -37,7 +21,11 @@ export default function CourseAdd({ onSuccess }: { onSuccess?: () => void }) {
         onChange={(e) => setData("title", e.target.value)}
       />
 
-      <Button type="submit" disabled={processing} variant="primary">
+      {errors.title && (
+        <p className="text-xs text-red-500">{errors.title}</p>
+      )}
+
+      <Button type="submit" disabled={processing}>
         Save Course
       </Button>
     </form>

@@ -50,7 +50,7 @@ class AuthControllers extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
-            'role' => null, // BELUM ditentukan
+            'role' => null,
         ]);
 
         Auth::login($user);

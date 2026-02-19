@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -82,6 +83,19 @@ class Course extends Model
     public function isPaid(): bool
     {
         return $this->type === 'paid';
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Course $course) {
+
+           
+            if ($course->thumbnail) {
+                Storage::disk('public')->delete($course->thumbnail);
+            }
+
+            $course->modules()->delete();
+        });
     }
 
     public function getThumbnailUrlAttribute(): string

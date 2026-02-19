@@ -1,70 +1,34 @@
 created:
-    - database/factories/UserFactory.php
-    - database/factories/CategoryFactory.php
-    - database/factories/CourseFactory.php
-    - database/factories/CourseCategoryFactory.php
-    - database/factories/ModuleFactory.php
-    - database/factories/MaterialFactory.php
-    - database/factories/MaterialContentFactory.php
-    - database/factories/EnrollmentFactory.php
-    - database/factories/OrderFactory.php
-    - database/factories/OrderItemFactory.php
-    - database/factories/PaymentProviderFactory.php
-    - database/factories/PaymentMethodFactory.php
-    - database/factories/PaymentFactory.php
-    - database/factories/PaymentLogFactory.php
-    - database/factories/RefundFactory.php
-    - database/factories/ReviewFactory.php
-    - database/factories/MaterialProgressFactory.php
-    - database/migrations/2026_02_06_141147_create_users_table.php
-    - database/migrations/2026_02_06_141148_create_categories_table.php
-    - database/migrations/2026_02_06_141149_create_courses_table.php
-    - database/migrations/2026_02_06_141150_create_course_categories_table.php
-    - database/migrations/2026_02_06_141151_create_modules_table.php
-    - database/migrations/2026_02_06_141152_create_materials_table.php
-    - database/migrations/2026_02_06_141153_create_material_contents_table.php
-    - database/migrations/2026_02_06_141154_create_enrollments_table.php
-    - database/migrations/2026_02_06_141155_create_orders_table.php
-    - database/migrations/2026_02_06_141156_create_order_items_table.php
-    - database/migrations/2026_02_06_141157_create_payment_providers_table.php
-    - database/migrations/2026_02_06_141158_create_payment_methods_table.php
-    - database/migrations/2026_02_06_141159_create_payments_table.php
-    - database/migrations/2026_02_06_141200_create_payment_logs_table.php
-    - database/migrations/2026_02_06_141201_create_refunds_table.php
-    - database/migrations/2026_02_06_141202_create_reviews_table.php
-    - database/migrations/2026_02_06_141203_create_material_progress_table.php
-    - app/Models/User.php
-    - app/Models/Category.php
-    - app/Models/Course.php
-    - app/Models/CourseCategory.php
-    - app/Models/Module.php
-    - app/Models/Material.php
-    - app/Models/MaterialContent.php
-    - app/Models/Enrollment.php
-    - app/Models/Order.php
-    - app/Models/OrderItem.php
-    - app/Models/PaymentProvider.php
-    - app/Models/PaymentMethod.php
-    - app/Models/Payment.php
-    - app/Models/PaymentLog.php
-    - app/Models/Refund.php
-    - app/Models/Review.php
-    - app/Models/MaterialProgress.php
+    - database/factories/QuizQuestionFactory.php
+    - database/factories/QuizOptionFactory.php
+    - database/factories/QuizAttemptFactory.php
+    - database/factories/QuizAnswerFactory.php
+    - database/migrations/2026_02_19_042011_create_quiz_questions_table.php
+    - database/migrations/2026_02_19_042012_create_quiz_options_table.php
+    - database/migrations/2026_02_19_042013_create_quiz_attempts_table.php
+    - database/migrations/2026_02_19_042014_create_quiz_answers_table.php
+    - app/Models/QuizQuestion.php
+    - app/Models/QuizOption.php
+    - app/Models/QuizAttempt.php
+    - app/Models/QuizAnswer.php
 models:
-    User: { name: string, email: 'string unique', password: string, role: 'enum:student,instructor,admin', avatar: 'string nullable', timestamps: timestamps }
-    Category: { name: string, slug: 'string unique', timestamps: timestamps }
-    Course: { creator_id: 'id foreign:users', title: string, slug: 'string unique', description: text, thumbnail: 'string nullable', type: 'enum:free,paid', price: 'decimal:10,2 nullable', level: 'enum:beginner,intermediate,advanced', status: 'enum:draft,review,published,archived', published_at: 'timestamp nullable', rating_avg: 'decimal:3,2 default:0', rating_count: 'integer default:0', timestamps: timestamps }
-    CourseCategory: { course_id: 'id foreign:courses', category_id: 'id foreign:categories', indexes: [{ unique: 'course_id,category_id' }] }
-    Module: { course_id: 'id foreign:courses', title: string, sort_order: integer, timestamps: timestamps }
-    Material: { module_id: 'id foreign:modules', title: string, description: text, sort_order: integer, is_preview: 'boolean default:false', timestamps: timestamps }
-    MaterialContent: { material_id: 'id foreign:materials', type: 'enum:video,text,quiz,file,ppt', title: string, content_url: 'text nullable', content_text: 'longtext nullable', duration: 'integer nullable', sort_order: integer, timestamps: timestamps }
-    Enrollment: { user_id: 'id foreign:users', course_id: 'id foreign:courses', status: 'enum:active,revoked,expired default:active', enrolled_at: timestamp, indexes: [{ unique: 'user_id,course_id' }] }
-    Order: { user_id: 'id foreign:users', total_price: 'decimal:10,2', status: 'enum:pending,paid,failed,expired', timestamps: timestamps }
-    OrderItem: { order_id: 'id foreign:orders', course_id: 'id foreign:courses', course_title: string, course_price: 'decimal:10,2' }
-    PaymentProvider: { name: string, code: 'string unique', is_active: 'boolean default:true', timestamps: timestamps }
-    Payment: { order_id: 'id foreign:orders', provider_id: 'id foreign:payment_providers', reference: string, amount: 'decimal:10,2', currency: 'string default:IDR', status: 'enum:pending,paid,failed,expired,refunded', payment_url: 'text nullable', paid_at: 'timestamp nullable', timestamps: timestamps }
-    PaymentMethod: { provider_id: 'id foreign:payment_providers', name: string, code: string, timestamps: timestamps }
-    PaymentLog: { payment_id: 'id foreign:payments', event: string, payload: json, timestamps: timestamps }
-    Refund: { payment_id: 'id foreign:payments', amount: 'decimal:10,2', reason: 'text nullable', status: 'enum:pending,success,failed', refunded_at: 'timestamp nullable', timestamps: timestamps }
-    Review: { user_id: 'id foreign:users', course_id: 'id foreign:courses', rating: integer, comment: 'text nullable', timestamps: timestamps }
-    MaterialProgress: { user_id: 'id foreign:users', material_id: 'id foreign:materials', is_completed: 'boolean default:false', completed_at: 'timestamp nullable', indexes: [{ unique: 'user_id,material_id' }] }
+    Category: { name: string, slug: string }
+    Course: { creator_id: 'biginteger unsigned', title: string, slug: string, description: 'text nullable default:NULL', thumbnail: 'string nullable default:NULL', type: "enum:'free','paid' nullable default:NULL", price: 'decimal:10,2 nullable default:NULL', level: "enum:'beginner','intermediate','advanced' nullable default:NULL", status: "enum:'draft','review','published','archived' default:'draft'", published_at: 'timestamp nullable default:NULL', rating_avg: 'decimal:3,2 default:0.00', rating_count: integer }
+    CourseCategory: { course_id: 'biginteger unsigned', category_id: 'biginteger unsigned' }
+    Enrollment: { user_id: 'biginteger unsigned', course_id: 'biginteger unsigned', status: "enum:'active','revoked','expired' default:'active'", enrolled_at: timestamp }
+    Material: { module_id: 'biginteger unsigned', title: string, description: text, sort_order: integer, is_preview: boolean }
+    MaterialProgress: { user_id: 'biginteger unsigned', material_id: 'biginteger unsigned', is_completed: boolean, completed_at: 'timestamp nullable default:NULL' }
+    Module: { course_id: 'biginteger unsigned', title: string, sort_order: integer }
+    Order: { user_id: 'biginteger unsigned', total_price: 'decimal:10,2', status: "enum:'pending','paid','failed','expired'" }
+    OrderItem: { order_id: 'biginteger unsigned', course_id: 'biginteger unsigned', course_title: string, course_price: 'decimal:10,2' }
+    Payment: { order_id: 'biginteger unsigned', provider_id: 'biginteger unsigned', reference: string, amount: 'decimal:10,2', currency: "string default:'IDR'", status: "enum:'pending','paid','failed','expired','refunded'", payment_url: 'text nullable default:NULL', paid_at: 'timestamp nullable default:NULL' }
+    PaymentLog: { payment_id: 'biginteger unsigned', event: string, payload: longtext }
+    PaymentMethod: { provider_id: 'biginteger unsigned', name: string, code: string }
+    PaymentProvider: { name: string, code: string, is_active: 'boolean default:1' }
+    Refund: { payment_id: 'biginteger unsigned', amount: 'decimal:10,2', reason: 'text nullable default:NULL', status: "enum:'pending','success','failed'", refunded_at: 'timestamp nullable default:NULL' }
+    Review: { user_id: 'biginteger unsigned', course_id: 'biginteger unsigned', rating: integer, comment: 'text nullable default:NULL' }
+    User: { name: string, email: string, password: string, role: "enum:'student','instructor','admin' nullable default:NULL", avatar: 'string nullable default:NULL' }
+    QuizQuestion: { material_content_id: 'id foreign:material_contents', question: text, sort_order: integer, timestamps: timestamps }
+    QuizOption: { quiz_question_id: 'id foreign:quiz_questions', option_text: string, is_correct: 'boolean default:false', timestamps: timestamps }
+    QuizAttempt: { user_id: 'id foreign:users', material_content_id: 'id foreign:material_contents', started_at: timestamp, finished_at: 'timestamp nullable', time_spent: 'integer nullable', score: 'decimal:5,2 nullable', status: 'enum:in_progress,completed,expired', timestamps: timestamps, indexes: [{ index: user_id }, { index: material_content_id }] }
+    QuizAnswer: { quiz_attempt_id: 'id foreign:quiz_attempts', quiz_question_id: 'id foreign:quiz_questions', quiz_option_id: 'id foreign:quiz_options nullable', answer_text: 'text nullable', is_correct: 'boolean nullable', timestamps: timestamps, indexes: [{ index: quiz_attempt_id }] }

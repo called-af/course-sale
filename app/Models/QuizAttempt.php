@@ -1,0 +1,54 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class QuizAttempt extends Model
+{
+    use HasFactory;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'user_id',
+        'material_content_id',
+        'started_at',
+        'finished_at',
+        'time_spent',
+        'score',
+        'status',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'id' => 'integer',
+            'user_id' => 'integer',
+            'material_content_id' => 'integer',
+            'started_at' => 'timestamp',
+            'finished_at' => 'timestamp',
+            'score' => 'decimal:2',
+        ];
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function materialContent(): BelongsTo
+    {
+        return $this->belongsTo(MaterialContent::class);
+    }
+}

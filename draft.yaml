@@ -1,131 +1,38 @@
 models:
 
-  User:
-    name: string
-    email: string unique
-    password: string
-    role: enum:student,instructor,admin
-    avatar: string nullable
-    timestamps: true
-
-  Category:
-    name: string
-    slug: string unique
-    timestamps: true
-
-  Course:
-    creator_id: id foreign:users
-    title: string
-    slug: string unique
-    description: text
-    thumbnail: string nullable
-    type: enum:free,paid
-    price: decimal:10,2 nullable
-    level: enum:beginner,intermediate,advanced
-    status: enum:draft,review,published,archived
-    published_at: timestamp nullable
-    rating_avg: decimal:3,2 default:0
-    rating_count: integer default:0
-    timestamps: true
-
-  CourseCategory:
-    course_id: id foreign:courses
-    category_id: id foreign:categories
-    indexes:
-      - unique: course_id,category_id
-
-  Module:
-    course_id: id foreign:courses
-    title: string
+  QuizQuestion:
+    material_content_id: id foreign:material_contents
+    question: text
     sort_order: integer
     timestamps: true
 
-  Material:
-    module_id: id foreign:modules
-    title: string
-    description: text
-    sort_order: integer
-    is_preview: boolean default:false
+  QuizOption:
+    quiz_question_id: id foreign:quiz_questions
+    option_text: string
+    is_correct: boolean default:false
     timestamps: true
 
-  MaterialContent:
-    material_id: id foreign:materials
-    type: enum:video,text,quiz,file,ppt
-    title: string
-    content_url: text nullable
-    content_text: longtext nullable
-    duration: integer nullable
-    sort_order: integer
-    timestamps: true
-
-  Enrollment:
+  QuizAttempt:
     user_id: id foreign:users
-    course_id: id foreign:courses
-    status: enum:active,revoked,expired default:active
-    enrolled_at: timestamp
+    material_content_id: id foreign:material_contents
+    started_at: timestamp
+    finished_at: timestamp nullable
+    time_spent: integer nullable
+    score: decimal:5,2 nullable
+    status: enum:in_progress,completed,expired
+    timestamps: true
+
     indexes:
-      - unique: user_id,course_id
+      - index: user_id
+      - index: material_content_id
 
-  Order:
-    user_id: id foreign:users
-    total_price: decimal:10,2
-    status: enum:pending,paid,failed,expired
+  QuizAnswer:
+    quiz_attempt_id: id foreign:quiz_attempts
+    quiz_question_id: id foreign:quiz_questions
+    quiz_option_id: id foreign:quiz_options nullable
+    answer_text: text nullable
+    is_correct: boolean nullable
     timestamps: true
 
-  OrderItem:
-    order_id: id foreign:orders
-    course_id: id foreign:courses
-    course_title: string
-    course_price: decimal:10,2
-
-  PaymentProvider:
-    name: string
-    code: string unique
-    is_active: boolean default:true
-    timestamps: true
-
-  PaymentMethod:
-    provider_id: id foreign:payment_providers
-    name: string
-    code: string
-    timestamps: true
-
-  Payment:
-    order_id: id foreign:orders
-    provider_id: id foreign:payment_providers
-    reference: string
-    amount: decimal:10,2
-    currency: string default:IDR
-    status: enum:pending,paid,failed,expired,refunded
-    payment_url: text nullable
-    paid_at: timestamp nullable
-    timestamps: true
-
-  PaymentLog:
-    payment_id: id foreign:payments
-    event: string
-    payload: json
-    timestamps: true
-
-  Refund:
-    payment_id: id foreign:payments
-    amount: decimal:10,2
-    reason: text nullable
-    status: enum:pending,success,failed
-    refunded_at: timestamp nullable
-    timestamps: true
-
-  Review:
-    user_id: id foreign:users
-    course_id: id foreign:courses
-    rating: integer
-    comment: text nullable
-    timestamps: true
-
-  MaterialProgress:
-    user_id: id foreign:users
-    material_id: id foreign:materials
-    is_completed: boolean default:false
-    completed_at: timestamp nullable
     indexes:
-      - unique: user_id,material_id
+      - index: quiz_attempt_id

@@ -1,9 +1,9 @@
-import { useForm } from "@inertiajs/react"
-import { useState } from "react"
+import { useCategory } from "@/hooks/useCategory"
 
 import AdminLayout from "@/components/templates/AdminLayout"
 import InputField from "@/components/molecules/InputField"
 import Button from "@/components/atoms/Button"
+import ConfirmationDelete from "@/components/molecules/ConfirmationDelete"
 
 interface Category {
   id: number
@@ -16,42 +16,24 @@ interface CategoryPageProps {
 }
 
 export default function CategoryPage({ categories }: CategoryPageProps) {
-  const [editingId, setEditingId] = useState<number | null>(null)
+  const {
+    data,
+    setData,
+    processing,
 
-  const form = useForm({
-    name: "",
-  })
+    editingId,
+    deleteTarget,
 
-  const { data, setData, post, put, delete: destroy, processing, reset } = form
+    startEdit,
+    cancelEdit,
 
-  const startEdit = (category: Category) => {
-    setEditingId(category.id)
-    setData("name", category.name)
-  }
+    submitCreate,
+    submitUpdate,
 
-  const cancelEdit = () => {
-    setEditingId(null)
-    reset()
-  }
-
-  const submitCreate = () => {
-    if (!data.name.trim()) return
-
-    post("/admin/categories", {
-      onSuccess: () => reset(),
-    })
-  }
-
-  const submitUpdate = (id: number) => {
-    if (!data.name.trim()) return
-
-    put(`/admin/categories/${id}`, {
-      onSuccess: () => {
-        setEditingId(null)
-        reset()
-      },
-    })
-  }
+    openDeleteModal,
+    closeDeleteModal,
+    confirmDelete,
+  } = useCategory()
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
@@ -83,7 +65,6 @@ export default function CategoryPage({ categories }: CategoryPageProps) {
               className="p-4 border rounded-xl flex items-center gap-4"
             >
               <div className="flex-1">
-
                 <InputField
                   label="Name"
                   value={isEditing ? data.name : category.name}
@@ -94,7 +75,6 @@ export default function CategoryPage({ categories }: CategoryPageProps) {
                 <p className="text-xs text-neutral-500 mt-1">
                   /{category.slug}
                 </p>
-
               </div>
 
               {!isEditing ? (
@@ -105,9 +85,7 @@ export default function CategoryPage({ categories }: CategoryPageProps) {
 
                   <Button
                     variant="danger"
-                    onClick={() =>
-                      destroy(`/admin/categories/${category.id}`)
-                    }
+                    onClick={() => openDeleteModal(category)}
                   >
                     Delete
                   </Button>
@@ -115,7 +93,9 @@ export default function CategoryPage({ categories }: CategoryPageProps) {
               ) : (
                 <>
                   <Button
-                    onClick={() => submitUpdate(category.id)}
+                    onClick={() =>
+                      submitUpdate(category.id, category.name)
+                    }
                     disabled={!hasChanges || processing}
                   >
                     Save
@@ -130,6 +110,19 @@ export default function CategoryPage({ categories }: CategoryPageProps) {
           )
         })}
       </div>
+
+      <ConfirmationDelete
+        open={!!deleteTarget}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        isLoading={processing}
+        title="Delete Category"
+        message={
+          deleteTarget
+            ? `Category "${deleteTarget.name}" will be permanently deleted.`
+            : undefined
+        }
+      />
 
     </div>
   )
