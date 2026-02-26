@@ -4,6 +4,7 @@ import AdminLayout from "@/components/templates/AdminLayout"
 import InputField from "@/components/molecules/InputField"
 import Button from "@/components/atoms/Button"
 import ConfirmationDelete from "@/components/molecules/ConfirmationDelete"
+import { Head } from "@inertiajs/react"
 
 interface Category {
   id: number
@@ -36,6 +37,8 @@ export default function CategoryPage({ categories }: CategoryPageProps) {
   } = useCategory()
 
   return (
+    <>
+    <Head title="Category"/>
     <div className="max-w-5xl mx-auto space-y-8">
 
       <div className="space-y-3">
@@ -125,6 +128,7 @@ export default function CategoryPage({ categories }: CategoryPageProps) {
       />
 
     </div>
+    </>
   )
 }
 

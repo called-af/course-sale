@@ -7,9 +7,9 @@ use App\Http\Requests\Course\StoreCourseRequest;
 use App\Http\Requests\Course\UpdateCourseRequest;
 use App\Models\Course;
 use App\Services\CourseService;
-use Illuminate\Support\Facades\Auth;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -22,17 +22,34 @@ class CourseController extends Controller
     }
 
     /**
+     * List courses (admin)
+     */
+    public function index(): Response
+    {
+        $this->authorize('viewAny', Course::class);
+
+        return Inertia::render('admin/course/page', [
+            'courses' => Course::with('creator:id,name')
+                ->latest()
+                ->get()
+                ->append('thumbnail_url'),
+        ]);
+    }
+
+    /**
      * View single course
      */
     public function show(Course $course): Response
     {
         $this->authorize('view', $course);
 
-        return Inertia::render('course/page', [
-            'course' => $course->load([
-                'creator:id,name',
-                'modules',
-            ]),
+        return Inertia::render('admin/course/[slug]/page', [
+            'course' => $course
+                ->load([
+                    'creator:id,name',
+                    'modules:id,course_id,title,sort_order',
+                ])
+                ->append('thumbnail_url'),
         ]);
     }
 
@@ -42,20 +59,36 @@ class CourseController extends Controller
     public function store(
         StoreCourseRequest $request
     ): RedirectResponse {
+
         $this->authorize('create', Course::class);
 
-        $course = $this->courseService->create(
-            $request->validated(),
-            $request->user()->id
-        );
+        try {
 
-        return match ($request->user()->role) {
-            'admin' => redirect()
-                ->route('admin.courses.show', $course->slug),
-            'instructor' => redirect()
-                ->route('instructor.courses.show', $course->slug),
-            default => abort(403),
-        };
+            $course = $this->courseService->create(
+                $request->validated(),
+                $request->user()->id
+            );
+
+            return match ($request->user()->role) {
+
+                'admin' => redirect()
+                    ->route('admin.courses.show', $course->slug)
+                    ->with('success', 'Course berhasil dibuat'),
+
+                'instructor' => redirect()
+                    ->route('instructor.courses.show', $course->slug)
+                    ->with('success', 'Course berhasil dibuat'),
+
+                default => abort(403),
+            };
+
+        } catch (DomainException $e) {
+
+            return back()->with(
+                'error',
+                $e->getMessage()
+            );
+        }
     }
 
     /**
@@ -65,18 +98,26 @@ class CourseController extends Controller
         UpdateCourseRequest $request,
         Course $course
     ): RedirectResponse {
+
         try {
-            $course = $this->courseService->update(
+
+            $this->courseService->update(
                 $course,
                 $request->validated()
             );
-        } catch (DomainException $e) {
-            return back()->withErrors([
-                'status' => $e->getMessage(),
-            ]);
-        }
 
-        return back()->with('success', 'Course berhasil diperbarui');
+            return back()->with(
+                'success',
+                'Course berhasil diperbarui'
+            );
+
+        } catch (DomainException $e) {
+
+            return back()->with(
+                'error',
+                $e->getMessage()
+            );
+        }
     }
 
     /**
@@ -89,9 +130,18 @@ class CourseController extends Controller
         $course->delete();
 
         return match (Auth::user()->role) {
-            'admin' => redirect()->route('admin.courses.index'),
-            'instructor' => redirect()->route('instructor.courses.index'),
-            default => redirect()->route('home'),
+
+            'admin' => redirect()
+                ->route('admin.courses.index')
+                ->with('success', 'Course berhasil dihapus'),
+
+            'instructor' => redirect()
+                ->route('instructor.courses.index')
+                ->with('success', 'Course berhasil dihapus'),
+
+            default => redirect()
+                ->route('home')
+                ->with('success', 'Course berhasil dihapus'),
         };
     }
 }

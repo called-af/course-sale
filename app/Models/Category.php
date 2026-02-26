@@ -30,4 +30,12 @@ class Category extends Model
             'id' => 'integer',
         ];
     }
+
+    public function courses()
+    {
+        return $this->belongsToMany(
+            Course::class,
+            'course_categories'
+        );
+    }
 }

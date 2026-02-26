@@ -25,4 +25,13 @@ class StoreCourseRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'title.required' => 'Judul course wajib diisi.',
+            'title.string' => 'Judul course harus berupa teks.',
+            'title.max' => 'Judul course maksimal 255 karakter.',
+        ];
+    }
 }

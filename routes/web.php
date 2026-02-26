@@ -3,8 +3,10 @@
 use App\Http\Controllers\AuthControllers;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Course\CourseController;
+use App\Http\Controllers\Course\MaterialController;
 use App\Http\Controllers\Course\ModuleController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
 use App\Models\Course;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -74,22 +76,11 @@ Route::middleware(['auth', 'role'])->group(function () {
             Route::get('/dashboard', fn () => Inertia::render('admin/Dashboard')
             )->name('dashboard');
 
-            Route::get('/courses', fn () => Inertia::render('admin/course/page', [
-                'courses' => Course::with('creator:id,name')
-                    ->latest()
-                    ->get()
-                    ->append('thumbnail_url'),
-            ])
-            )->name('courses.index');
+            Route::get('/courses', [CourseController::class, 'index'])
+                ->name('courses.index');
 
-            Route::get('/courses/{course:slug}', fn (Course $course) => Inertia::render('admin/course/[slug]/page', [
-                'course' => $course
-                    ->load([
-                        'creator:id,name',
-                        'modules:id,course_id,title,sort_order',
-                    ])
-                    ->append('thumbnail_url'),
-            ]))->name('courses.show');
+            Route::get('/courses/{course:slug}', [CourseController::class, 'show'])
+                ->name('courses.show');
 
             Route::post('/courses', [CourseController::class, 'store'])
                 ->name('courses.store');
@@ -100,16 +91,42 @@ Route::middleware(['auth', 'role'])->group(function () {
             Route::delete('/courses/{course:slug}', [CourseController::class, 'destroy'])
                 ->name('courses.destroy');
 
-            Route::post('/modules', [ModuleController::class, 'store'])
-                ->name('modules.store');
+            Route::prefix('courses/{course:slug}')->group(function () {
 
-            Route::put('/modules/{module}/move', [ModuleController::class, 'move']);
+                /*
+                |--------------------------------------------------------------------------
+                | MODULES
+                |--------------------------------------------------------------------------
+                */
 
-            Route::put('/modules/{module}', [ModuleController::class, 'update'])
-                ->name('modules.update');
+                Route::post('/modules', [ModuleController::class, 'store'])
+                    ->name('modules.store');
 
-            Route::delete('/modules/{module}', [ModuleController::class, 'destroy'])
-                ->name('modules.destroy');
+                Route::get('/modules/{module}', [ModuleController::class, 'show'])
+                    ->name('modules.show');
+
+                Route::put('/modules/{module}', [ModuleController::class, 'update'])
+                    ->name('modules.update');
+
+                Route::delete('/modules/{module}', [ModuleController::class, 'destroy'])
+                    ->name('modules.destroy');
+
+                Route::put('/modules/{module}/move', [ModuleController::class, 'move']);
+
+                /*
+                |--------------------------------------------------------------------------
+                | MATERIALS
+                |--------------------------------------------------------------------------
+                */
+                Route::post('/modules/{module}/materials', [MaterialController::class, 'store'])
+                    ->name('materials.store');
+
+                Route::put('/modules/{module}/materials/{material}', [MaterialController::class, 'update'])
+                    ->name('materials.update');
+
+                Route::delete('/modules/{module}/materials/{material}', [MaterialController::class, 'destroy'])
+                    ->name('materials.destroy');
+            });
 
             Route::get('/categories', fn () => Inertia::render('admin/category/page', [
                 'categories' => \App\Models\Category::latest()->get(),
@@ -123,6 +140,10 @@ Route::middleware(['auth', 'role'])->group(function () {
 
             Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])
                 ->name('categories.destroy');
+
+            Route::resource('users', UserController::class)
+                ->except(['create', 'edit', 'show', 'delete']);
+
         });
 
     /*

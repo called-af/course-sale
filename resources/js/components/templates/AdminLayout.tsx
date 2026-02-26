@@ -2,6 +2,8 @@ import { usePage } from "@inertiajs/react"
 import { useState, useEffect } from "react"
 import Navbar from "@/components/molecules/Admin/Navbar"
 import Sidebar from "@/components/molecules/Admin/Sidebar"
+import { ToastContainer } from "react-toastify"
+import { useInertiaToast } from "@/hooks/useInertiaToast"
 
 export default function AdminLayout({
   children,
@@ -10,6 +12,8 @@ export default function AdminLayout({
 }) {
   const { auth } = usePage().props as any
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  useInertiaToast()
 
   useEffect(() => {
     if (sidebarOpen) {
@@ -46,8 +50,15 @@ export default function AdminLayout({
         <main className="flex-1 overflow-y-auto p-6">
           {children}
         </main>
-
       </div>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={4000}
+        newestOnTop
+        pauseOnHover
+        closeOnClick
+      />
     </div>
   )
 }

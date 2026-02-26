@@ -29,7 +29,7 @@ class UpdateCourseRequest extends FormRequest
             'level' => ['sometimes', Rule::in([
                 'beginner',
                 'intermediate',
-                'advanced'
+                'advanced',
             ])],
 
             'type' => ['sometimes', Rule::in(['free', 'paid'])],
@@ -45,16 +45,31 @@ class UpdateCourseRequest extends FormRequest
             'status' => ['sometimes', Rule::in([
                 'draft',
                 'review',
-                'published'
+                'published',
             ])],
         ];
     }
 
-    // public function messages()
-    // {
-    //     return [
-    //         "title.max" => "Maksimal 255 kata",
-    //         "level.in" => "level tidak ada dalam database"
-    //     ];
-    // }
+    public function messages(): array
+    {
+        return [
+            'title.string' => 'Judul course harus berupa teks.',
+            'title.max' => 'Judul course maksimal 255 karakter.',
+
+            'description.string' => 'Deskripsi harus berupa teks.',
+
+            'level.in' => 'Level course tidak valid.',
+
+            'type.in' => 'Tipe course tidak valid.',
+
+            'price.required' => 'Harga wajib diisi untuk course berbayar.',
+            'price.numeric' => 'Harga harus berupa angka.',
+            'price.min' => 'Harga tidak boleh negatif.',
+
+            'thumbnail.image' => 'Thumbnail harus berupa gambar.',
+            'thumbnail.max' => 'Ukuran thumbnail maksimal 2MB.',
+
+            'status.in' => 'Status course tidak valid.',
+        ];
+    }
 }

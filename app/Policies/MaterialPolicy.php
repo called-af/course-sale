@@ -7,5 +7,18 @@ use App\Models\User;
 
 class MaterialPolicy
 {
-    
+    public function create(User $user): bool
+    {
+        return $user->hasRole(['admin', 'instructor']);
+    }
+
+    public function update(User $user, Material $material): bool
+    {
+        return $user->hasRole(['admin', 'instructor']);
+    }
+
+    public function delete(User $user, Material $material): bool
+    {
+        return $user->hasRole(['admin', 'instructor']);
+    }
 }

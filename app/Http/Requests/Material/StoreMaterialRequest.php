@@ -22,7 +22,14 @@ class StoreMaterialRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "title"
+            'title' => ['required', 'string', 'max:255'],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'module_id' => $this->route('module')->id,
+        ]);
     }
 }

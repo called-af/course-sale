@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Course extends Model
 {
@@ -54,6 +54,14 @@ class Course extends Model
         return $this->hasMany(Module::class);
     }
 
+    public function categories()
+    {
+        return $this->belongsToMany(
+            Category::class,
+            'course_categories'
+        );
+    }
+
     /*
     |--------------------------------------------------------------------------
     | HELPERS (BUSINESS LOGIC)
@@ -89,7 +97,6 @@ class Course extends Model
     {
         static::deleting(function (Course $course) {
 
-           
             if ($course->thumbnail) {
                 Storage::disk('public')->delete($course->thumbnail);
             }

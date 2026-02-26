@@ -1,119 +1,50 @@
-import { useState } from "react"
-import { router } from "@inertiajs/react"
+import { ArrowDown, ArrowUp } from "lucide-react"
+import { Module } from "@/types/modules"
+import { useModulesCrud } from "@/hooks/useModules"
 
 import Modal from "@/components/atoms/Modal"
 import Button from "@/components/atoms/Button"
 import InputField from "@/components/molecules/InputField"
 import ConfirmationDelete from "@/components/molecules/ConfirmationDelete"
 
-import { ArrowDown, ArrowUp } from "lucide-react"
-
-import { Module } from "@/types"
-
 interface ModulesCrudProps {
-  courseId: number
+  course: {
+    slug: string
+  }
   modules: Module[]
 }
 
-export default function ModulesCrud({ courseId, modules }: ModulesCrudProps) {
-  const [open, setOpen] = useState(false)
-  const [editingModule, setEditingModule] = useState<Module | null>(null)
-  const [title, setTitle] = useState("")
+export default function ModulesCrud({ course, modules }: ModulesCrudProps) {
 
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const [selectedModule, setSelectedModule] = useState<Module | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
-
-  function openCreateModal() {
-    setEditingModule(null)
-    setTitle("")
-    setOpen(true)
-  }
-
-  function openEditModal(module: Module) {
-    setEditingModule(module)
-    setTitle(module.title)
-    setOpen(true)
-  }
-
-  function handleSubmit() {
-    if (!title.trim()) return
-
-    if (editingModule) {
-      router.put(`/admin/modules/${editingModule.id}`, { title })
-    } else {
-      router.post(`/admin/modules`, {
-        course_id: courseId,
-        title,
-      })
-    }
-
-    setOpen(false)
-  }
-
-  function openDeleteModal(module: Module) {
-    setSelectedModule(module)
-    setDeleteModalOpen(true)
-  }
-
-  function handleConfirmDelete() {
-    if (!selectedModule) return
-
-    setIsDeleting(true)
-
-    router.delete(`/admin/modules/${selectedModule.id}`, {
-      preserveScroll: true,
-      onFinish: () => {
-        setIsDeleting(false)
-        setDeleteModalOpen(false)
-        setSelectedModule(null)
-      },
-    })
-  }
-
-  function moveModule(module: Module, direction: "up" | "down") {
-    router.put(
-      `/admin/modules/${module.id}/move`,
-      { direction },
-      { preserveScroll: true }
-    )
-  }
-
-  function openMaterials(module: Module) {
-    router.visit(`/admin/modules/${module.id}`)
-    // atau:
-    // router.visit(`/admin/modules/${module.id}/materials`)
-  }
-
-  const sortedModules = [...modules].sort(
-    (a, b) => a.sort_order - b.sort_order
-  )
+  const crud = useModulesCrud(course.slug, modules)
 
   return (
     <>
       <div className="bg-white rounded-2xl p-4 shadow-sm">
+
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-medium">Modules</h2>
 
-          <Button onClick={openCreateModal}>
+          <Button onClick={crud.openCreateModal}>
             Add Module
           </Button>
         </div>
 
-        {sortedModules.length === 0 ? (
+        {crud.sortedModules.length === 0 ? (
           <p className="text-sm text-neutral-500">
             No modules yet
           </p>
         ) : (
           <div className="space-y-2">
-            {sortedModules.map((module, index) => {
+            {crud.sortedModules.map((module, index) => {
+
               const isFirst = index === 0
-              const isLast = index === sortedModules.length - 1
+              const isLast = index === crud.sortedModules.length - 1
 
               return (
                 <div
                   key={module.id}
-                  onClick={() => openMaterials(module)}
+                  onClick={() => crud.visitMaterials(module)}
                   className="border rounded-xl p-3 text-sm flex items-center justify-between cursor-pointer hover:bg-neutral-50 transition"
                 >
                   <div>
@@ -127,7 +58,7 @@ export default function ModulesCrud({ courseId, modules }: ModulesCrudProps) {
                     <Button
                       variant="outline"
                       disabled={isFirst}
-                      onClick={() => moveModule(module, "up")}
+                      onClick={() => crud.moveModule(module, "up")}
                     >
                       <ArrowUp className="h-4" />
                     </Button>
@@ -135,21 +66,21 @@ export default function ModulesCrud({ courseId, modules }: ModulesCrudProps) {
                     <Button
                       variant="outline"
                       disabled={isLast}
-                      onClick={() => moveModule(module, "down")}
+                      onClick={() => crud.moveModule(module, "down")}
                     >
                       <ArrowDown className="h-4" />
                     </Button>
 
                     <Button
                       variant="secondary"
-                      onClick={() => openEditModal(module)}
+                      onClick={() => crud.openEditModal(module)}
                     >
                       Edit
                     </Button>
 
                     <Button
                       variant="danger"
-                      onClick={() => openDeleteModal(module)}
+                      onClick={() => crud.openDeleteModal(module)}
                     >
                       Delete
                     </Button>
@@ -162,36 +93,35 @@ export default function ModulesCrud({ courseId, modules }: ModulesCrudProps) {
       </div>
 
       <Modal
-        open={open}
-        onClose={() => setOpen(false)}
-        title={editingModule ? "Edit Module" : "Add Module"}
+        open={crud.open}
+        onClose={() => crud.setOpen(false)}
+        title={crud.editingModule ? "Edit Module" : "Add Module"}
         footer={
           <>
-            <Button variant="secondary" onClick={() => setOpen(false)}>
+            <Button variant="secondary" onClick={() => crud.setOpen(false)}>
               Cancel
             </Button>
 
-            <Button onClick={handleSubmit}>
-              {editingModule ? "Update" : "Create"}
+            <Button onClick={crud.handleSubmit}>
+              {crud.editingModule ? "Update" : "Create"}
             </Button>
           </>
         }
       >
         <InputField
           label="Module Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Enter module title"
+          value={crud.title}
+          onChange={(e) => crud.setTitle(e.target.value)}
         />
       </Modal>
 
       <ConfirmationDelete
-        open={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        onConfirm={handleConfirmDelete}
-        isLoading={isDeleting}
+        open={crud.deleteModalOpen}
+        onClose={() => crud.setOpen(false)}
+        onConfirm={crud.handleConfirmDelete}
+        isLoading={crud.isDeleting}
         title="Delete Module"
-        message={`Module "${selectedModule?.title}" will be deleted permanently.`}
+        message={`Module "${crud.selectedModule?.title}" will be deleted permanently.`}
       />
     </>
   )

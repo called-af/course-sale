@@ -42,4 +42,9 @@ class User extends Authenticatable
             'id' => 'integer',
         ];
     }
+
+    public function hasRole($roles): bool
+    {
+        return in_array($this->role, (array) $roles);
+    }
 }
