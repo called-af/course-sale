@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Services\UserService;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
+use App\Models\User;
+use App\Services\UserService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -22,6 +22,13 @@ class UserController extends Controller
     {
         return Inertia::render('admin/user/page', [
             'users' => User::latest()->get(),
+        ]);
+    }
+
+    public function show(User $user): Response
+    {
+        return Inertia::render('admin/user/[id]/page', [
+            'user' => $user,
         ]);
     }
 

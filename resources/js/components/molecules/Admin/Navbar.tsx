@@ -14,7 +14,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
   return (
     <header className="sticky top-0 z-30 bg-white/70 backdrop-blur-md border-b border-white/20">
       <div className="h-16 flex items-center justify-between px-5">
-        
+
         <div className="flex items-center gap-3">
           <button
             onClick={onToggleSidebar}
@@ -30,8 +30,18 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
 
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
-              {auth?.user?.name?.charAt(0)}
+            <div className="h-9 w-9 rounded-full overflow-hidden bg-slate-100">
+              {auth?.user?.avatar_url ? (
+                <img
+                  src={auth.user.avatar_url}
+                  alt={auth.user.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-indigo-500 to-purple-600 text-white text-sm font-semibold">
+                  {auth?.user?.name?.charAt(0)}
+                </div>
+              )}
             </div>
 
             <div className="hidden sm:block text-sm leading-tight">

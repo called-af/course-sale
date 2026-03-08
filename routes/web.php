@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthControllers;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Course\CourseController;
+use App\Http\Controllers\Course\MaterialContentController;
 use App\Http\Controllers\Course\MaterialController;
 use App\Http\Controllers\Course\ModuleController;
 use App\Http\Controllers\RoleController;
@@ -126,6 +127,31 @@ Route::middleware(['auth', 'role'])->group(function () {
 
                 Route::delete('/modules/{module}/materials/{material}', [MaterialController::class, 'destroy'])
                     ->name('materials.destroy');
+
+                Route::post(
+                    '/modules/{module}/materials/{material}/contents',
+                    [MaterialContentController::class, 'store']
+                )->name('contents.store');
+
+                Route::get(
+                    '/modules/{module}/materials/{material}/contents/{content}',
+                    [MaterialContentController::class, 'show']
+                )->name('contents.show');
+
+                Route::put(
+                    '/modules/{module}/materials/{material}/contents/{content}',
+                    [MaterialContentController::class, 'update']
+                )->name('contents.update');
+
+                Route::delete(
+                    '/modules/{module}/materials/{material}/contents/{content}',
+                    [MaterialContentController::class, 'destroy']
+                )->name('contents.destroy');
+
+                Route::get(
+                    '/modules/{module}/materials/{material}/contents/{content}/edit',
+                    [MaterialContentController::class, 'edit']
+                )->name('contents.edit');
             });
 
             Route::get('/categories', fn () => Inertia::render('admin/category/page', [
@@ -142,7 +168,7 @@ Route::middleware(['auth', 'role'])->group(function () {
                 ->name('categories.destroy');
 
             Route::resource('users', UserController::class)
-                ->except(['create', 'edit', 'show', 'delete']);
+                ->except(['create', 'edit', 'delete']);
 
         });
 

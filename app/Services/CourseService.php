@@ -5,8 +5,8 @@ namespace App\Services;
 use App\Models\Course;
 use DomainException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
-
 use Illuminate\Support\Str;
 
 class CourseService
@@ -67,7 +67,19 @@ class CourseService
                 $data['slug'] = $this->generateUniqueSlug($data['title']);
             }
 
-            if (isset($data['status']) && $data['status'] === 'published') {
+            /*
+            |--------------------------------------------------------------------------
+            | AUTHORIZATION PUBLISH (FIXED)
+            |--------------------------------------------------------------------------
+            */
+            if (($data['status'] ?? null) === 'published') {
+
+                if ($course->isPublished()) {
+                    throw new DomainException('Course sudah dipublish');
+                }
+
+                Gate::authorize('publish', $course);
+
                 if (! $course->canBePublished()) {
                     throw new DomainException('Course belum lengkap untuk dipublish');
                 }
@@ -80,6 +92,15 @@ class CourseService
             }
 
             $course->update($data);
+
+            /*
+            |--------------------------------------------------------------------------
+            | CATEGORY SYNC
+            |--------------------------------------------------------------------------
+            */
+            if (array_key_exists('category_ids', $data)) {
+                $course->categories()->sync($data['category_ids'] ?? []);
+            }
 
             return $course->refresh();
         });

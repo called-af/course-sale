@@ -11,6 +11,7 @@ import UserTable from "@/components/organism/UserTable"
 import UserFormModal from "@/components/organism/UserFormModal"
 import ConfirmationDelete from "@/components/molecules/ConfirmationDelete"
 import { Head } from "@inertiajs/react"
+import BreadCrumb from "@/components/atoms/BreadCrumb"
 
 export default function UserPage({ users }: { users: User[] }) {
   const {
@@ -63,7 +64,16 @@ export default function UserPage({ users }: { users: User[] }) {
   return (
     <>
       <Head title="User Management" />
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-8xl mx-auto space-y-6">
+        
+        <BreadCrumb
+          items={[
+            {
+              label: "User",
+              href: "/admin/users",
+            }
+          ]}
+        />
 
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">Users</h1>

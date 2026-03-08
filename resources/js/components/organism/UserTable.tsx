@@ -1,5 +1,7 @@
 import Badge from "@/components/atoms/Badge"
 import Button from "@/components/atoms/Button"
+import { router } from "@inertiajs/react"
+import { route } from "ziggy-js"
 
 function roleVariant(role: string) {
   switch (role) {
@@ -67,7 +69,9 @@ export default function UserTable({
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
-                    onClick={() => onEdit(user)}
+                    onClick={() =>
+                      router.visit(route("admin.users.show", user.id))
+                    }
                   >
                     Edit
                   </Button>

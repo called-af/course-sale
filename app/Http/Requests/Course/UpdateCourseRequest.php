@@ -39,6 +39,8 @@ class UpdateCourseRequest extends FormRequest
                 'min:0',
                 Rule::requiredIf($this->type === 'paid'),
             ],
+            'category_ids' => ['sometimes', 'array'],
+            'category_ids.*' => ['exists:categories,id'],
 
             'thumbnail' => ['sometimes', 'image', 'max:2048'],
 

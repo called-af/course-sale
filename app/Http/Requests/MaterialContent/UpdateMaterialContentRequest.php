@@ -3,6 +3,7 @@
 namespace App\Http\Requests\MaterialContent;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateMaterialContentRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class UpdateMaterialContentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +23,16 @@ class UpdateMaterialContentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'title' => ['sometimes', 'string', 'max:255'],
+
+            'type' => [
+                'required',
+                Rule::in(['video', 'text', 'quiz', 'file', 'ppt']),
+            ],
+
+            'content_url' => ['nullable', 'string'],
+            'content_text' => ['nullable', 'string'],
+            'duration' => ['nullable', 'integer', 'min:1'],
         ];
     }
 }

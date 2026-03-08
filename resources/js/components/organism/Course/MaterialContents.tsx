@@ -1,0 +1,197 @@
+import { useMaterialContents } from "@/hooks/useMaterialContents"
+import { MaterialContent } from "@/types"
+
+import Modal from "@/components/atoms/Modal"
+import Button from "@/components/atoms/Button"
+import InputField from "@/components/molecules/InputField"
+import TextAreaField from "@/components/molecules/TextAreaField"
+import { SetStateAction } from "react"
+
+interface Props {
+  courseSlug: string
+  moduleId: number
+  materialId: number
+  contents: MaterialContent[]
+  editId?: number | null
+}
+
+export default function MaterialContents({
+  courseSlug,
+  moduleId,
+  materialId,
+  contents,
+  editId,
+}: Props) {
+  const crud = useMaterialContents(
+    courseSlug,
+    moduleId,
+    materialId,
+    contents,
+    editId
+  )
+
+  return (
+    <div className="space-y-6">
+
+      {/* EDIT PANEL */}
+
+      {crud.editing && (
+        <div className="border rounded-xl p-6 bg-white space-y-4">
+
+          <h2 className="text-lg font-semibold">
+            Edit Content
+          </h2>
+
+          <InputField
+            label="Title"
+            value={crud.title}
+            onChange={e => crud.setTitle(e.target.value)}
+          />
+
+          <div className="space-y-1">
+            <label className="text-sm">Type</label>
+
+            <select
+              value={crud.type}
+              onChange={e => crud.setType(e.target.value as any)}
+              className="border rounded p-2 w-full"
+            >
+              <option value="video">Video</option>
+              <option value="text">Text</option>
+              <option value="quiz">Quiz</option>
+              <option value="file">File</option>
+              <option value="ppt">PPT</option>
+            </select>
+          </div>
+
+          {(crud.type === "video" || crud.type === "file" || crud.type === "ppt") && (
+            <InputField
+              label="Content URL"
+              value={crud.contentUrl}
+              onChange={e => crud.setContentUrl(e.target.value)}
+            />
+          )}
+
+          {crud.type === "text" && (
+            <TextAreaField
+              label="Content Text"
+              value={crud.contentText}
+              onChange={(e: { target: { value: SetStateAction<string> } }) => crud.setContentText(e.target.value)}
+            />
+          )}
+
+          {crud.type === "video" && (
+            <InputField
+              label="Duration (seconds)"
+              type="number"
+              value={crud.duration}
+              onChange={e => crud.setDuration(Number(e.target.value))}
+            />
+          )}
+
+          <div className="flex gap-2">
+            <Button onClick={crud.update}>
+              Save
+            </Button>
+
+            <Button
+              variant="secondary"
+              onClick={() => history.back()}
+            >
+              Cancel
+            </Button>
+          </div>
+
+        </div>
+      )}
+
+      {/* LIST */}
+
+      <div className="border rounded-xl p-4 bg-neutral-50">
+
+        <div className="flex justify-between mb-3">
+
+          <h4 className="text-sm font-medium">
+            Contents
+          </h4>
+
+          <Button onClick={crud.openCreate}>
+            Add Content
+          </Button>
+
+        </div>
+
+        {crud.sorted.length === 0 && (
+          <p className="text-xs text-neutral-500">
+            No content yet
+          </p>
+        )}
+
+        <div className="space-y-2">
+
+          {crud.sorted.map((item, i) => (
+
+            <div
+              key={item.id}
+              className="flex justify-between text-xs bg-white p-2 border rounded-lg"
+            >
+
+              <div>
+                {i + 1}. {item.title}
+                <span className="ml-2 text-neutral-400">
+                  ({item.type})
+                </span>
+              </div>
+
+              <div className="flex gap-2">
+
+                <Button
+                  variant="secondary"
+                  onClick={() => crud.editPage(item.id)}
+                >
+                  Edit
+                </Button>
+
+                <Button
+                  variant="danger"
+                  onClick={() => crud.destroy(item.id)}
+                >
+                  Delete
+                </Button>
+
+              </div>
+
+            </div>
+
+          ))}
+
+        </div>
+      </div>
+
+      {/* CREATE MODAL */}
+
+      <Modal
+        open={crud.open}
+        onClose={() => crud.setOpen(false)}
+        title="Add Content"
+      >
+
+        <div className="space-y-4">
+
+          <InputField
+            label="Title"
+            value={crud.title}
+            onChange={e => crud.setTitle(e.target.value)}
+          />
+
+          <Button onClick={crud.create}>
+            Create
+          </Button>
+
+        </div>
+
+      </Modal>
+
+    </div>
+  )
+}

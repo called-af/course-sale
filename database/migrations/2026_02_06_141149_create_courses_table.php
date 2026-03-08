@@ -20,14 +20,15 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->string('thumbnail')->nullable();
-            $table->enum('type', ["free","paid"])->nullable();
+            $table->enum('type', ['free', 'paid'])->nullable();
             $table->decimal('price', 10, 2)->nullable();
-            $table->enum('level', ["beginner","intermediate","advanced"])->nullable();
-            $table->enum('status', ["draft","review","published","archived"])->default("draft");
+            $table->enum('level', ['beginner', 'intermediate', 'advanced'])->nullable();
+            $table->enum('status', ['draft', 'review', 'published', 'archived'])->default('draft');
             $table->timestamp('published_at')->nullable();
             $table->decimal('rating_avg', 3, 2)->default(0);
             $table->integer('rating_count')->default(0);
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::enableForeignKeyConstraints();

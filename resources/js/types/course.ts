@@ -9,8 +9,16 @@ export interface Course {
   level: string | null
   type: string
   status: string
+  price?: number | null
+
   creator?: {
     name: string
   }
+
   modules: Module[]
+
+  categories: {
+    id: number
+    name: string
+  }[]
 }

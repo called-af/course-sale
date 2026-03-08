@@ -39,7 +39,7 @@ export default function CategoryPage({ categories }: CategoryPageProps) {
   return (
     <>
     <Head title="Category"/>
-    <div className="max-w-5xl mx-auto space-y-8">
+    <div className="max-w-7xl mx-auto space-y-8">
 
       <div className="space-y-3">
         <h1 className="text-xl font-semibold">Categories</h1>

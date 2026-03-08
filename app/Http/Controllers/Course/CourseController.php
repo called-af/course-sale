@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Course;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Course\StoreCourseRequest;
 use App\Http\Requests\Course\UpdateCourseRequest;
+use App\Models\Category;
 use App\Models\Course;
 use App\Services\CourseService;
 use DomainException;
@@ -47,9 +48,25 @@ class CourseController extends Controller
             'course' => $course
                 ->load([
                     'creator:id,name',
-                    'modules:id,course_id,title,sort_order',
+                    'categories:id,name',
+                    'modules' => function ($moduleQuery) {
+                        $moduleQuery
+                            ->select('id', 'course_id', 'title', 'sort_order')
+                            ->orderBy('sort_order')
+                            ->with([
+                                'materials' => function ($materialQuery) {
+                                    $materialQuery
+                                        ->orderBy('sort_order')
+                                        ->with([
+                                            'contents' => fn ($contentQuery) => $contentQuery->orderBy('sort_order'),
+                                        ]);
+                                },
+                            ]);
+                    },
                 ])
                 ->append('thumbnail_url'),
+
+            'categories' => Category::select('id', 'name')->get(),
         ]);
     }
 
@@ -126,6 +143,8 @@ class CourseController extends Controller
     public function destroy(Course $course): RedirectResponse
     {
         $this->authorize('delete', $course);
+
+        $course->categories()->detach();
 
         $course->delete();
 

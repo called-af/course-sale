@@ -20,7 +20,7 @@ class ModuleController extends Controller
     {
         $this->moduleService->create([
             ...$request->validated(),
-            'course_id' => $course->id, // ← FIX UTAMA
+            'course_id' => $course->id,
         ]);
 
         return back()->with('success', 'Module created');
@@ -37,18 +37,6 @@ class ModuleController extends Controller
         $this->moduleService->move($module, request('direction'));
 
         return back();
-    }
-
-    public function show(Course $course, Module $module)
-    {
-        abort_if($module->course_id !== $course->id, 404);
-
-        return Inertia::render('admin/course/[modules]/page', [
-            'module' => $module->load([
-                'course',
-                'materials' => fn ($q) => $q->orderBy('sort_order'),
-            ]),
-        ]);
     }
 
     public function update(UpdateModuleRequest $request, Course $course, Module $module)

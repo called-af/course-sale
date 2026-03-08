@@ -21,13 +21,13 @@ export default function CourseCard({ course }: CourseCardProps) {
     <>
       <div
         onClick={() => visit(course.slug)}
-        className="group bg-white rounded-2xl p-3 space-y-3 cursor-pointer shadow-sm hover:shadow-xl"
+        className="group bg-white p-4 space-y-4 cursor-pointer shadow-sm hover:shadow-lg transition"
       >
-        <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-neutral-100">
+        <div className="relative w-full aspect-video overflow-hidden bg-neutral-100">
 
           <img
             src={course.thumbnail_url}
-            className="w-full h-full object-cover group-hover:scale-105 transition"
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
 
           <div className="absolute top-2 left-2 flex gap-2">
@@ -36,23 +36,34 @@ export default function CourseCard({ course }: CourseCardProps) {
               {course.type.toUpperCase()}
             </Badge>
           </div>
+
         </div>
 
-        <Title as="h2">{course.title}</Title>
+        <div className="space-y-1">
+          <Title as="h2" className="text-base leading-snug line-clamp-2">
+            {course.title}
+          </Title>
 
-        <Label>
-          By {course.creator?.name}
+          <Label className="text-xs text-neutral-500">
+            By {course.creator?.name}
+          </Label>
+        </div>
+
+        <Label className="text-sm text-neutral-600 line-clamp-3">
+          {course.description}
         </Label>
 
-        <Button
-          variant="danger"
-          onClick={(e) => {
-            e.stopPropagation()
-            setOpenDelete(true)
-          }}
-        >
-          Hapus
-        </Button>
+        <div className="pt-2">
+          <Button
+            variant="danger"
+            onClick={(e) => {
+              e.stopPropagation()
+              setOpenDelete(true)
+            }}
+          >
+            Hapus
+          </Button>
+        </div>
       </div>
 
       <ConfirmationDelete

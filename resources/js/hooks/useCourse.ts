@@ -1,6 +1,5 @@
 import { useForm, router, usePage } from "@inertiajs/react"
 import { useEffect, useState } from "react"
-import { useRoute } from "ziggy-js"
 import { Course } from "@/types"
 
 interface CourseFormData {
@@ -11,10 +10,10 @@ interface CourseFormData {
   status: string
   price: string | number
   thumbnail: File | null
+  category_ids: number[]
 }
 
-export function useCourse(course?: Course) {
-  const route = useRoute()
+export function useCourse(course?: Course, courses: Course[] = []) {
   const { auth } = usePage().props as any
 
   const isEdit = !!course
@@ -30,6 +29,21 @@ export function useCourse(course?: Course) {
 
   /*
   |--------------------------------------------------------------------------
+  | SEARCH
+  |--------------------------------------------------------------------------
+  */
+
+  const [search, setSearch] = useState("")
+
+  const filteredCourses = courses.filter((course) =>
+    course.title.toLowerCase().includes(search.toLowerCase()) ||
+    (course.creator?.name ?? "")
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  )
+
+  /*
+  |--------------------------------------------------------------------------
   | FORM
   |--------------------------------------------------------------------------
   */
@@ -41,6 +55,7 @@ export function useCourse(course?: Course) {
     status: course?.status ?? "draft",
     price: (course as any)?.price ?? "",
     thumbnail: null,
+    category_ids: course?.categories?.map((c) => c.id) ?? [],
   })
 
   const { data, setData, processing, errors, reset } = form
@@ -77,12 +92,14 @@ export function useCourse(course?: Course) {
       data.status !== course.status ||
       data.type !== course.type ||
       data.price !== ((course as any)?.price ?? "") ||
-      data.thumbnail !== null
+      data.thumbnail !== null ||
+      JSON.stringify(data.category_ids) !==
+        JSON.stringify(course.categories?.map((c) => c.id) ?? [])
     : data.title.trim() !== ""
 
   /*
   |--------------------------------------------------------------------------
-  | SAVE (CREATE / UPDATE)
+  | SAVE
   |--------------------------------------------------------------------------
   */
   const save = () => {
@@ -103,6 +120,13 @@ export function useCourse(course?: Course) {
         payload.price = data.price
       if (data.thumbnail) payload.thumbnail = data.thumbnail
 
+      if (
+        JSON.stringify(data.category_ids) !==
+        JSON.stringify(course.categories?.map((c) => c.id) ?? [])
+      ) {
+        payload.category_ids = data.category_ids
+      }
+
       form.transform(() => payload)
 
       form.put(`/${rolePrefix}/courses/${course.slug}`, {
@@ -120,7 +144,7 @@ export function useCourse(course?: Course) {
 
   /*
   |--------------------------------------------------------------------------
-  | DELETE
+  | DELETE / VISIT
   |--------------------------------------------------------------------------
   */
   const destroy = (slug: string) => {
@@ -128,11 +152,6 @@ export function useCourse(course?: Course) {
     router.delete(`/${rolePrefix}/courses/${slug}`)
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | VISIT
-  |--------------------------------------------------------------------------
-  */
   const visit = (slug: string) => {
     const rolePrefix = auth.user.role
     router.visit(`/${rolePrefix}/courses/${slug}`)
@@ -153,5 +172,10 @@ export function useCourse(course?: Course) {
     save,
     destroy,
     visit,
+
+    /* SEARCH */
+    search,
+    setSearch,
+    filteredCourses,
   }
 }

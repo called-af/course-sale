@@ -2,8 +2,7 @@ import { useState } from "react"
 import { router } from "@inertiajs/react"
 import { Module } from "@/types/modules"
 
-export function useModulesCrud(courseSlug: string, modules: Module[]) {
-
+export function useModules(courseSlug: string, modules: Module[]) {
   const [open, setOpen] = useState(false)
   const [editingModule, setEditingModule] = useState<Module | null>(null)
   const [title, setTitle] = useState("")
@@ -11,6 +10,8 @@ export function useModulesCrud(courseSlug: string, modules: Module[]) {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [selectedModule, setSelectedModule] = useState<Module | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+
+  const [expandedModule, setExpandedModule] = useState<number | null>(null)
 
   const sortedModules = [...modules].sort(
     (a, b) => a.sort_order - b.sort_order
@@ -34,12 +35,14 @@ export function useModulesCrud(courseSlug: string, modules: Module[]) {
     if (editingModule) {
       router.put(
         `/admin/courses/${courseSlug}/modules/${editingModule.id}`,
-        { title }
+        { title },
+        { preserveScroll: true }
       )
     } else {
       router.post(
         `/admin/courses/${courseSlug}/modules`,
-        { title }
+        { title },
+        { preserveScroll: true }
       )
     }
 
@@ -64,7 +67,7 @@ export function useModulesCrud(courseSlug: string, modules: Module[]) {
           setIsDeleting(false)
           setDeleteModalOpen(false)
           setSelectedModule(null)
-        },
+        }
       }
     )
   }
@@ -77,12 +80,15 @@ export function useModulesCrud(courseSlug: string, modules: Module[]) {
     )
   }
 
-  function visitMaterials(module: Module) {
-    router.visit(`/admin/courses/${courseSlug}/modules/${module.id}`)
+  function toggleExpand(moduleId: number | string) {
+    const id = Number(moduleId)
+
+    setExpandedModule(prev =>
+      prev === id ? null : id
+    )
   }
 
   return {
-    /* state */
     open,
     setOpen,
     editingModule,
@@ -90,18 +96,19 @@ export function useModulesCrud(courseSlug: string, modules: Module[]) {
     setTitle,
 
     deleteModalOpen,
+    setDeleteModalOpen,
     selectedModule,
     isDeleting,
 
     sortedModules,
+    expandedModule,
 
-    /* actions */
     openCreateModal,
     openEditModal,
     handleSubmit,
     openDeleteModal,
     handleConfirmDelete,
     moveModule,
-    visitMaterials,
+    toggleExpand,
   }
 }

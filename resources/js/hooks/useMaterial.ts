@@ -1,93 +1,93 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { router } from "@inertiajs/react"
 import { Material } from "@/types"
 
-export function useMaterialsCrud(
+export function useMaterials(
   courseSlug: string,
   moduleId: number,
   materials: Material[]
 ) {
   const [open, setOpen] = useState(false)
-  const [editingMaterial, setEditingMaterial] = useState<Material | null>(null)
+  const [editing, setEditing] = useState<Material | null>(null)
 
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [isPreview, setIsPreview] = useState(false)
 
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [selected, setSelected] = useState<Material | null>(null)
+  const [loadingDelete, setLoadingDelete] = useState(false)
 
-  const sortedMaterials = [...materials].sort(
-    (a, b) => a.sort_order - b.sort_order
-  )
+  const baseUrl = `/admin/courses/${courseSlug}/modules/${moduleId}/materials`
 
-  function openCreateModal() {
-    setEditingMaterial(null)
+  const sorted = useMemo(() => {
+    return [...materials].sort((a, b) => a.sort_order - b.sort_order)
+  }, [materials])
+
+  function reset() {
     setTitle("")
     setDescription("")
     setIsPreview(false)
+  }
+
+  function openCreate() {
+    setEditing(null)
+    reset()
     setOpen(true)
   }
 
-  function openEditModal(material: Material) {
-    setEditingMaterial(material)
+  function openEdit(material: Material) {
+    setEditing(material)
     setTitle(material.title)
     setDescription(material.description ?? "")
     setIsPreview(material.is_preview)
     setOpen(true)
   }
 
-  function handleSubmit() {
+  function submit() {
     if (!title.trim()) return
 
-    if (editingMaterial) {
-      router.put(
-        `/admin/courses/${courseSlug}/modules/${moduleId}/materials/${editingMaterial.id}`,
-        {
-          title,
-          description,
-          is_preview: isPreview,
-        }
-      )
-    } else {
-      router.post(
-        `/admin/courses/${courseSlug}/modules/${moduleId}/materials`,
-        { title }
-      )
+    const data = {
+      title,
+      description,
+      is_preview: isPreview,
     }
 
-    setOpen(false)
+    if (editing) {
+      router.put(`${baseUrl}/${editing.id}`, data, {
+        onSuccess: () => setOpen(false),
+      })
+    } else {
+      router.post(baseUrl, { title }, {
+        onSuccess: () => setOpen(false),
+      })
+    }
   }
 
-  function openDeleteModal(material: Material) {
-    setSelectedMaterial(material)
-    setDeleteModalOpen(true)
+  function openDelete(material: Material) {
+    setSelected(material)
+    setDeleteOpen(true)
   }
 
-  function handleConfirmDelete() {
-    if (!selectedMaterial) return
+  function confirmDelete() {
+    if (!selected) return
 
-    setIsDeleting(true)
+    setLoadingDelete(true)
 
-    router.delete(
-      `/admin/courses/${courseSlug}/modules/${moduleId}/materials/${selectedMaterial.id}`,
-      {
-        preserveScroll: true,
-        onFinish: () => {
-          setIsDeleting(false)
-          setDeleteModalOpen(false)
-          setSelectedMaterial(null)
-        },
-      }
-    )
+    router.delete(`${baseUrl}/${selected.id}`, {
+      preserveScroll: true,
+      onFinish: () => {
+        setLoadingDelete(false)
+        setDeleteOpen(false)
+        setSelected(null)
+      },
+    })
   }
 
   return {
-    /* state */
     open,
     setOpen,
-    editingMaterial,
+    editing,
 
     title,
     setTitle,
@@ -98,18 +98,17 @@ export function useMaterialsCrud(
     isPreview,
     setIsPreview,
 
-    deleteModalOpen,
-    selectedMaterial,
-    isDeleting,
-    setDeleteModalOpen,
+    deleteOpen,
+    setDeleteOpen,
+    selected,
+    loadingDelete,
 
-    sortedMaterials,
+    sorted,
 
-    /* actions */
-    openCreateModal,
-    openEditModal,
-    handleSubmit,
-    openDeleteModal,
-    handleConfirmDelete,
+    openCreate,
+    openEdit,
+    submit,
+    openDelete,
+    confirmDelete,
   }
 }
