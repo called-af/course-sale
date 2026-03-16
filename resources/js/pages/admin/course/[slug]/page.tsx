@@ -5,6 +5,8 @@ import InputField from "@/components/molecules/InputField"
 import TextAreaField from "@/components/molecules/TextAreaField"
 import SelectField from "@/components/molecules/SelectField"
 import MultiSelectField from "@/components/molecules/MultiSelectField"
+import ChooseFile from "@/components/molecules/ChooseFile"
+
 import BreadCrumb from "@/components/atoms/BreadCrumb"
 import ModulesTree from "@/components/organism/Course/ModulesTree"
 
@@ -49,22 +51,16 @@ export default function CourseSlug({ course, categories }: CourseSlugProps) {
 
           <div className="space-y-3">
 
-            <div className="w-full aspect-video overflow-hidden bg-neutral-100">
-              <img src={preview} className="w-full h-full object-cover" />
-            </div>
-
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) =>
-                e.target.files && handleThumbnailChange(e.target.files[0])
-              }
+            <ChooseFile
+              label="Thumbnail"
+              aspect="video"
+              value={preview}
+              onChange={(file) => file && handleThumbnailChange(file)}
             />
 
             {errors.thumbnail && (
               <p className="text-xs text-red-500">{errors.thumbnail}</p>
             )}
-
 
             <MultiSelectField
               label="Categories"
@@ -134,6 +130,7 @@ export default function CourseSlug({ course, categories }: CourseSlugProps) {
                   onChange={(e) => setData("price", e.target.value)}
                 />
               )}
+
             </div>
 
             <TextAreaField

@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Course;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class CoursePolicy
 {
@@ -21,6 +20,10 @@ class CoursePolicy
      */
     public function view(User $user, Course $course): bool
     {
+        if (! $user) {
+            return $course->status === 'published';
+        }
+
         if ($user->role === 'admin') {
             return true;
         }

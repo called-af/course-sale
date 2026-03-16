@@ -19,7 +19,7 @@ class CourseController extends Controller
     public function __construct(
         protected CourseService $courseService
     ) {
-        $this->middleware('auth');
+        $this->middleware('auth')->except(['show']);
     }
 
     /**
@@ -66,7 +66,7 @@ class CourseController extends Controller
                 ])
                 ->append('thumbnail_url'),
 
-            'categories' => Category::select('id', 'name')->get(),
+            'categories' => Category::select('id', 'name', 'img', 'desc')->get(),
         ]);
     }
 

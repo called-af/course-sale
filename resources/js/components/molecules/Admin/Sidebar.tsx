@@ -1,89 +1,265 @@
-import { Link, usePage } from "@inertiajs/react"
+import { Link, usePage, router } from "@inertiajs/react"
 import {
   LayoutDashboard,
   BookOpen,
   Users,
   Layers,
-  CreditCard,
   X,
+  ChevronDown,
+  LogOut,
+  Settings,
+  ExternalLink,
 } from "lucide-react"
 import clsx from "clsx"
+import { useState } from "react"
 
 interface SidebarProps {
-  role: "admin"
   open: boolean
   onClose: () => void
 }
 
-const menuByRole = {
-  admin: [
-    { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-    { label: "Users", href: "/admin/users", icon: Users },
-    { label: "Courses", href: "/admin/courses", icon: BookOpen },
-    { label: "Categories", href: "/admin/categories", icon: Layers },
-    { label: "Payments", href: "/admin/payments", icon: CreditCard },
-  ],
+interface MenuItem {
+  label: string
+  href?: string
+  icon: any
+  badge?: string
+  children?: { label: string; href: string }[]
 }
 
-export default function Sidebar({ role, open, onClose }: SidebarProps) {
-  const { url } = usePage()
+const menus: MenuItem[] = [
+  {
+    label: "Dashboard",
+    href: "/admin/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    label: "Courses",
+    icon: BookOpen,
+    children: [
+      { label: "All Courses",  href: "/admin/courses"     },
+      { label: "Categories",   href: "/admin/categories"  },
+    ],
+  },
+  {
+    label: "Users",
+    href: "/admin/users",
+    icon: Users,
+  },
+]
+
+export default function Sidebar({ open, onClose }: SidebarProps) {
+  const { url, props } = usePage()
+  const auth = (props as any).auth
+
+  const [expanded, setExpanded] = useState<string | null>(() => {
+    const active = menus.find(
+      (m) => m.children?.some((c) => url.startsWith(c.href))
+    )
+    return active?.label ?? null
+  })
+
+  const toggle = (label: string) =>
+    setExpanded((prev) => (prev === label ? null : label))
+
+  const logout = () => {
+    router.post("/logout")
+  }
 
   return (
-    <aside
-      className={clsx(
-        "fixed lg:static inset-y-0 left-0 w-72 h-screen bg-slate-950 text-slate-200 border-r border-white/5 z-50 transform transition-transform duration-300 overflow-hidden",
-        open ? "translate-x-0" : "-translate-x-full",
-        "lg:translate-x-0"
+    <>
+      {open && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+          onClick={onClose}
+        />
       )}
-    >
-      <div className="h-16 flex items-center justify-between px-6 text-lg font-semibold">
-        <div>
-          <span className="text-indigo-400">●</span>
-          <span className="ml-2">CourseSale</span>
+
+      <aside
+        className={clsx(
+          "fixed lg:static inset-y-0 left-0 w-64 h-screen z-50 flex flex-col transform transition-transform duration-300",
+          open ? "translate-x-0" : "-translate-x-full",
+          "lg:translate-x-0"
+        )}
+        style={{ background: "#0f0f0f" }}
+      >
+        <div className="absolute top-0 left-0 right-0 h-px bg-line-to-r from-transparent via-purple-500/50 to-transparent" />
+
+        <div className="h-16 flex items-center justify-between px-5 shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+          <Link href="/" className="flex items-center gap-2 group">
+            <img src="/images/logo.png" alt="Logo" className="h-7 w-auto" />
+          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              target="_blank"
+              className="p-1.5 text-white/20 hover:text-white/60 transition-colors"
+              title="View site"
+            >
+              <ExternalLink size={14} />
+            </Link>
+            <button
+              onClick={onClose}
+              className="lg:hidden p-1.5 text-white/20 hover:text-white transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
-        <button
-          onClick={onClose}
-          className="lg:hidden p-2 rounded-lg hover:bg-white/10"
-        >
-          <X size={20} />
-        </button>
-      </div>
+        <nav className="flex-1 px-3 py-5 overflow-y-auto scrollbar-hide space-y-5">
 
-      <nav className="px-4 py-6 space-y-1">
-        {menuByRole[role].map((item) => {
-          const Icon = item.icon
-          const active = url.startsWith(item.href)
+          <div>
+            <p className="text-[10px] font-semibold text-white/20 uppercase tracking-[0.15em] px-3 mb-2">
+              Main
+            </p>
+            <div className="space-y-0.5">
+              {menus.map((item) => {
+                const Icon = item.icon
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onClose}
-              className={clsx(
-                "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition-all",
-                active
-                  ? "bg-white/10 text-white"
-                  : "text-slate-400 hover:text-white hover:bg-white/5"
-              )}
-            >
-              <Icon
-                size={18}
+                if (!item.children) {
+                  const active = url.startsWith(item.href!)
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href!}
+                      onClick={onClose}
+                      className={clsx(
+                        "flex items-center gap-3 px-3 py-2.5 text-sm transition-all duration-150 group relative",
+                        active
+                          ? "text-white"
+                          : "text-white/40 hover:text-white/80"
+                      )}
+                    >
+                      {active && (
+                        <span className="absolute inset-0 bg-white/8 rounded-none" style={{ background: "rgba(255,255,255,0.06)" }} />
+                      )}
+                      {active && (
+                        <span className="absolute left-0 top-1 bottom-1 w-0.5 bg-purple-500" />
+                      )}
+                      <Icon
+                        size={15}
+                        className={clsx(
+                          "shrink-0 transition-colors",
+                          active ? "text-purple-400" : "text-white/25 group-hover:text-white/50"
+                        )}
+                      />
+                      <span className="relative">{item.label}</span>
+                      {item.badge && (
+                        <span className="ml-auto text-[10px] bg-purple-500/20 text-purple-400 px-1.5 py-0.5 font-medium">
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  )
+                }
+
+                const isOpen = expanded === item.label
+                const groupActive = item.children.some((c) => url.startsWith(c.href))
+
+                return (
+                  <div key={item.label}>
+                    <button
+                      onClick={() => toggle(item.label)}
+                      className={clsx(
+                        "w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-all duration-150 group",
+                        groupActive ? "text-white/80" : "text-white/40 hover:text-white/70"
+                      )}
+                    >
+                      <Icon
+                        size={15}
+                        className={clsx(
+                          "shrink-0 transition-colors",
+                          groupActive ? "text-purple-400" : "text-white/25 group-hover:text-white/50"
+                        )}
+                      />
+                      {item.label}
+                      <ChevronDown
+                        size={13}
+                        className={clsx(
+                          "ml-auto text-white/20 transition-transform duration-200",
+                          isOpen && "rotate-180"
+                        )}
+                      />
+                    </button>
+
+                    <div
+                      className={clsx(
+                        "overflow-hidden transition-all duration-200",
+                        isOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+                      )}
+                    >
+                      <div className="ml-6 pl-4 py-1 space-y-0.5" style={{ borderLeft: "1px solid rgba(255,255,255,0.06)" }}>
+                        {item.children.map((child) => {
+                          const childActive = url.startsWith(child.href)
+                          return (
+                            <Link
+                              key={child.href}
+                              href={child.href}
+                              onClick={onClose}
+                              className={clsx(
+                                "block px-2 py-2 text-xs transition-colors",
+                                childActive
+                                  ? "text-purple-400 font-medium"
+                                  : "text-white/35 hover:text-white/70"
+                              )}
+                            >
+                              {child.label}
+                            </Link>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[10px] font-semibold text-white/20 uppercase tracking-[0.15em] px-3 mb-2">
+              System
+            </p>
+            <div className="space-y-0.5">
+              <Link
+                href="/admin/settings"
                 className={clsx(
-                  active
-                    ? "text-indigo-400"
-                    : "group-hover:text-indigo-300"
+                  "flex items-center gap-3 px-3 py-2.5 text-sm transition-all group",
+                  url.startsWith("/admin/settings")
+                    ? "text-white"
+                    : "text-white/40 hover:text-white/80"
                 )}
-              />
-              {item.label}
-            </Link>
-          )
-        })}
-      </nav>
+              >
+                <Settings size={15} className="text-white/25 group-hover:text-white/50 transition-colors" />
+                Settings
+              </Link>
+            </div>
+          </div>
 
-      <div className="mt-auto px-6 py-4 text-xs text-slate-500 border-t border-white/5">
-        Logged as <span className="capitalize">{role}</span>
-      </div>
-    </aside>
+        </nav>
+
+        <div className="px-3 py-3 shrink-0 bg-zinc-900" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+          <div className="flex items-center gap-3 px-2 py-2.5">
+            <div className="w-8 h-8 shrink-0 flex items-center justify-center text-xs font-bold text-purple-300" style={{ background: "rgba(139,92,246,0.15)" }}>
+              {auth?.user?.name?.[0]?.toUpperCase() ?? "A"}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-white/80 truncate">
+                {auth?.user?.name}
+              </p>
+              <p className="text-[10px] text-white/25 truncate">
+                {auth?.user?.email}
+              </p>
+            </div>
+            <button
+              onClick={logout}
+              className="p-1.5 text-white/20 hover:text-red-400 transition-colors shrink-0"
+              title="Logout"
+            >
+              <LogOut size={14} />
+            </button>
+          </div>
+        </div>
+      </aside>
+    </>
   )
 }

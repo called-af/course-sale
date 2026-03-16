@@ -1,4 +1,4 @@
-import { ButtonHTMLAttributes } from "react"
+import { ButtonHTMLAttributes, ReactNode } from "react"
 import clsx from "clsx"
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "danger"
@@ -7,6 +7,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
   widthFull?: boolean
   isLoading?: boolean
+  leftIcon?: ReactNode
+  rightIcon?: ReactNode
 }
 
 export default function Button({
@@ -15,6 +17,8 @@ export default function Button({
   variant = "primary",
   isLoading = false,
   disabled,
+  leftIcon,
+  rightIcon,
   className,
   ...props
 }: ButtonProps) {
@@ -22,8 +26,8 @@ export default function Button({
     <button
       disabled={disabled || isLoading}
       className={clsx(
-        "inline-flex items-center justify-center font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 py-2",
-        widthFull ? "w-full px-3" : "px-3",
+        "inline-flex items-center justify-center gap-2 font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 py-2",
+        widthFull ? "w-full px-4" : "px-4",
         {
           "bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500":
             variant === "primary",
@@ -39,7 +43,15 @@ export default function Button({
       )}
       {...props}
     >
-      {isLoading ? "Loading..." : children}
+      {isLoading ? (
+        "Loading..."
+      ) : (
+        <>
+          {leftIcon && <span className="flex items-center">{leftIcon}</span>}
+          {children}
+          {rightIcon && <span className="flex items-center">{rightIcon}</span>}
+        </>
+      )}
     </button>
   )
 }

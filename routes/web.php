@@ -6,6 +6,7 @@ use App\Http\Controllers\Course\CourseController;
 use App\Http\Controllers\Course\MaterialContentController;
 use App\Http\Controllers\Course\MaterialController;
 use App\Http\Controllers\Course\ModuleController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Models\Course;
@@ -13,11 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Auth::check()
-        ? redirect()->route('home.redirect')
-        : Inertia::render('welcome');
-})->name('home');
+Route::get('/', [LandingController::class, 'show'])->name('home');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthControllers::class, 'show'])->name('login');

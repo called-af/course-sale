@@ -5,46 +5,25 @@ import Sidebar from "@/components/molecules/Admin/Sidebar"
 import { ToastContainer } from "react-toastify"
 import { useInertiaToast } from "@/hooks/useInertiaToast"
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const { auth } = usePage().props as any
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useInertiaToast()
 
   useEffect(() => {
-    if (sidebarOpen) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = ""
-    }
-
-    return () => {
-      document.body.style.overflow = ""
-    }
+    document.body.style.overflow = sidebarOpen ? "hidden" : ""
+    return () => { document.body.style.overflow = "" }
   }, [sidebarOpen])
 
   return (
-    <div className="h-screen flex bg-slate-100 overflow-hidden">
-
-      {sidebarOpen && (
-        <div
-          onClick={() => setSidebarOpen(false)}
-          className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
-        />
-      )}
+    <div className="h-screen flex overflow-hidden bg-neutral-50">
 
       <Sidebar
-        role={auth.user.role}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-
         <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
         <main className="flex-1 overflow-y-auto p-6">

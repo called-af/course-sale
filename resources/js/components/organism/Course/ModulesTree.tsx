@@ -7,6 +7,7 @@ import Modal from "@/components/atoms/Modal"
 import Button from "@/components/atoms/Button"
 import InputField from "@/components/molecules/InputField"
 import ConfirmationDelete from "@/components/molecules/ConfirmationDelete"
+import Title from "@/components/atoms/Title"
 
 interface Props {
   course: {
@@ -22,11 +23,10 @@ export default function ModulesTree({ course, modules }: Props) {
     <>
       <div className="bg-white shadow-sm p-6 space-y-5">
 
-        {/* HEADER */}
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-lg">
+          <Title as="h1" className="font-semibold text-lg">
             Course Structure
-          </h2>
+          </Title>
 
           <Button onClick={crud.openCreateModal}>
             Add Module
@@ -48,10 +48,8 @@ export default function ModulesTree({ course, modules }: Props) {
               return (
                 <div key={module.id} className="relative">
 
-                  {/* TREE LINE */}
                   <div className="absolute left-3 top-0 bottom-0 w-px bg-neutral-200"></div>
 
-                  {/* MODULE HEADER */}
                   <div
                     className="flex items-center justify-between pl-8 py-3 hover:bg-neutral-50"
                   >
@@ -106,7 +104,6 @@ export default function ModulesTree({ course, modules }: Props) {
                     </div>
                   </div>
 
-                  {/* MATERIALS CHILD */}
                   {isOpen && (
                     <div className="pl-12 pr-4 pb-4">
                       <div className="border-l border-neutral-200 pl-6">
@@ -128,7 +125,6 @@ export default function ModulesTree({ course, modules }: Props) {
         )}
       </div>
 
-      {/* MODAL CREATE / EDIT */}
       <Modal
         open={crud.open}
         onClose={() => crud.setOpen(false)}
@@ -155,7 +151,6 @@ export default function ModulesTree({ course, modules }: Props) {
         />
       </Modal>
 
-      {/* DELETE CONFIRMATION */}
       <ConfirmationDelete
         open={crud.deleteModalOpen}
         onClose={() => crud.setDeleteModalOpen(false)}

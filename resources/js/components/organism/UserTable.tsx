@@ -20,9 +20,9 @@ export default function UserTable({
   onDelete,
 }: any) {
   return (
-    <div className="border rounded-xl overflow-hidden">
+    <div className="border border-zinc-400 overflow-hidden">
       <table className="w-full text-sm">
-        <thead className="bg-neutral-50 border-b">
+        <thead className="border-zinc-400 border-b">
           <tr className="text-left">
             <th className="px-4 py-3">User</th>
             <th className="px-4 py-3">Email</th>
@@ -33,7 +33,7 @@ export default function UserTable({
 
         <tbody>
           {users.map((user: any) => (
-            <tr key={user.id} className="border-b last:border-none">
+            <tr key={user.id} className="border-b border-zinc-400 last:border-none">
               <td className="px-4 py-3">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-lg bg-neutral-100 overflow-hidden">

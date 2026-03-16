@@ -1,4 +1,4 @@
-import { useForm, usePage } from "@inertiajs/react"
+import { router, usePage } from "@inertiajs/react"
 import { LogOut, Menu } from "lucide-react"
 
 interface NavbarProps {
@@ -6,61 +6,42 @@ interface NavbarProps {
 }
 
 export default function Navbar({ onToggleSidebar }: NavbarProps) {
-  const { post } = useForm()
   const { auth } = usePage().props as any
-
-  const logout = () => post("/logout")
+  const logout = () => router.post("/logout")
 
   return (
-    <header className="sticky top-0 z-30 bg-white/70 backdrop-blur-md border-b border-white/20">
-      <div className="h-16 flex items-center justify-between px-5">
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onToggleSidebar}
-            className="lg:hidden p-2 rounded-lg hover:bg-slate-100"
-          >
-            <Menu size={20} />
-          </button>
-
-          <h1 className="font-semibold text-slate-800">
-            Dashboard
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full overflow-hidden bg-slate-100">
-              {auth?.user?.avatar_url ? (
-                <img
-                  src={auth.user.avatar_url}
-                  alt={auth.user.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-indigo-500 to-purple-600 text-white text-sm font-semibold">
-                  {auth?.user?.name?.charAt(0)}
-                </div>
-              )}
-            </div>
-
-            <div className="hidden sm:block text-sm leading-tight">
-              <div className="font-medium text-slate-700">
-                {auth?.user?.name}
-              </div>
-              <div className="text-xs text-slate-400 capitalize">
-                {auth?.user?.role}
-              </div>
-            </div>
+    <header className="sticky top-0 z-30 h-16 bg-white border-b border-neutral-100 flex items-center justify-between px-5">
+      <button
+        onClick={onToggleSidebar}
+        className="lg:hidden p-2 text-neutral-400 hover:text-neutral-700 transition-colors"
+      >
+        <Menu size={19} />
+      </button>
+      <div className="flex items-center gap-3 ml-auto">
+        <div className="flex items-center gap-2.5">
+          <div className="hidden sm:block text-right leading-tight">
+            <p className="text-xs font-medium text-neutral-700">{auth?.user?.name}</p>
+            <p className="text-[10px] text-neutral-400 capitalize">{auth?.user?.role}</p>
           </div>
 
-          <button
-            onClick={logout}
-            className="p-2 rounded-lg text-red-600 hover:bg-red-50"
-          >
-            <LogOut size={18} />
-          </button>
+          <div className="w-8 h-8 bg-purple-100 shrink-0 flex items-center justify-center text-xs font-bold text-purple-600 overflow-hidden">
+            {auth?.user?.avatar_url ? (
+              <img src={auth.user.avatar_url} alt={auth.user.name} className="w-full h-full object-cover" />
+            ) : (
+              auth?.user?.name?.charAt(0)?.toUpperCase()
+            )}
+          </div>
         </div>
+
+        <div className="w-px h-5 bg-neutral-200" />
+
+        <button
+          onClick={logout}
+          className="p-1.5 text-neutral-400 hover:text-red-500 transition-colors"
+          title="Logout"
+        >
+          <LogOut size={16} />
+        </button>
       </div>
     </header>
   )

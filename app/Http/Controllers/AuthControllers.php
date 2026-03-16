@@ -35,7 +35,7 @@ class AuthControllers extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended('/');
+        return redirect()->intended(route('home.redirect'));
     }
 
     public function register(Request $request)

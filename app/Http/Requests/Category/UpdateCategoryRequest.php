@@ -28,6 +28,17 @@ class UpdateCategoryRequest extends FormRequest
                 'max:255',
                 'unique:categories,name,'.$this->category->id,
             ],
+            'desc' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+            'img' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:2048',
+            ],
         ];
     }
 }

@@ -1,4 +1,5 @@
 import { SetStateAction, useState } from "react"
+import { ChevronRight, ChevronDown } from "lucide-react"
 import { useMaterials } from "@/hooks/useMaterial"
 import { Material } from "@/types"
 
@@ -32,8 +33,10 @@ export default function MaterialsCrud({
     <>
       <div className="space-y-4">
 
-        <div className="flex justify-between">
-          <h3 className="font-semibold">Materials</h3>
+        <div className="flex justify-between items-center">
+          <h3 className="font-semibold text-sm">
+            Materials
+          </h3>
 
           <Button onClick={crud.openCreate}>
             Add
@@ -41,58 +44,76 @@ export default function MaterialsCrud({
         </div>
 
         {crud.sorted.length === 0 && (
-          <div className="border rounded-xl p-4 text-xs text-neutral-500">
+          <div className="text-xs text-neutral-500 py-2">
             No materials yet
           </div>
         )}
 
-        <div className="divide-y border rounded-xl bg-white">
+        <div className="space-y-1">
+
           {crud.sorted.map((material, i) => {
             const open = expanded === material.id
 
             return (
-              <div key={material.id} className="p-4">
+              <div key={material.id} className="relative">
 
-                <div className="flex justify-between">
+                <div className="absolute left-2 top-0 bottom-0 w-px bg-neutral-200"></div>
 
-                  <div
-                    className="cursor-pointer flex-1"
-                    onClick={() => toggle(material.id)}
-                  >
-                    {i + 1}. {material.title}
+                <div className="pl-6 py-2">
+
+                  <div className="flex justify-between items-center">
+
+                    <div
+                      className="flex items-center gap-2 cursor-pointer flex-1 text-sm"
+                      onClick={() => toggle(material.id)}
+                    >
+                      {open ? (
+                        <ChevronDown className="w-4 h-4" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4" />
+                      )}
+
+                      <span>
+                        {i + 1}. {material.title}
+                      </span>
+                    </div>
+
+                    <div className="flex gap-2">
+
+                      <Button
+                        variant="secondary"
+                        onClick={() => crud.openEdit(material)}
+                      >
+                        Edit
+                      </Button>
+
+                      <Button
+                        variant="danger"
+                        onClick={() => crud.openDelete(material)}
+                      >
+                        Delete
+                      </Button>
+
+                    </div>
+
                   </div>
 
-                  <div className="flex gap-2">
+                  {open && (
+                    <div className="mt-3 ml-4 border-l border-neutral-200 pl-4">
+                      <MaterialContents
+                        courseSlug={courseSlug}
+                        moduleId={moduleId}
+                        materialId={material.id}
+                        contents={material.contents ?? []}
+                      />
+                    </div>
+                  )}
 
-                    <Button
-                      variant="secondary"
-                      onClick={() => crud.openEdit(material)}
-                    >
-                      Edit
-                    </Button>
-
-                    <Button
-                      variant="danger"
-                      onClick={() => crud.openDelete(material)}
-                    >
-                      Delete
-                    </Button>
-
-                  </div>
                 </div>
-
-                {open && (
-                  <MaterialContents
-                    courseSlug={courseSlug}
-                    moduleId={moduleId}
-                    materialId={material.id}
-                    contents={material.contents ?? []}
-                  />
-                )}
-
               </div>
             )
           })}
+
         </div>
       </div>
 
@@ -115,7 +136,9 @@ export default function MaterialsCrud({
               <TextAreaField
                 label="Description"
                 value={crud.description}
-                onChange={(e: { target: { value: SetStateAction<string> } }) => crud.setDescription(e.target.value)}
+                onChange={(e: { target: { value: SetStateAction<string> } }) =>
+                  crud.setDescription(e.target.value)
+                }
               />
 
               <label className="flex gap-2 text-sm">

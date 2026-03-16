@@ -4,6 +4,9 @@ import { useState } from "react"
 
 import Button from "@/components/atoms/Button"
 import InputField from "@/components/molecules/InputField"
+import SelectField from "@/components/molecules/SelectField"
+import ChooseFile from "@/components/molecules/ChooseFile"
+
 import type { User } from "@/types/user"
 
 interface Props {
@@ -11,6 +14,7 @@ interface Props {
 }
 
 export default function UserProfile({ user }: Props) {
+
   const [preview, setPreview] = useState<string | null>(null)
 
   const { data, setData, put, processing, errors } = useForm({
@@ -41,47 +45,32 @@ export default function UserProfile({ user }: Props) {
       onSubmit={handleSubmit}
       className="grid md:grid-cols-3 gap-8"
     >
+
       {/* LEFT - AVATAR */}
       <div className="bg-white border rounded-2xl p-6 space-y-4">
+
         <div className="text-sm font-medium text-neutral-600">
           Avatar
         </div>
 
         <div className="flex flex-col items-center gap-4">
-          <div className="w-32 h-32 rounded-xl overflow-hidden bg-neutral-100">
-            {preview ? (
-              <img
-                src={preview}
-                className="w-full h-full object-cover"
-              />
-            ) : user.avatar_url ? (
-              <img
-                src={user.avatar_url}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-neutral-400">
-                No Image
-              </div>
-            )}
-          </div>
 
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) =>
-              handleAvatarChange(
-                e.target.files?.[0] || null
-              )
-            }
-          />
+          <div className="w-32">
+            <ChooseFile
+              aspect="square"
+              value={preview ?? user.avatar_url ?? null}
+              onChange={(file) => handleAvatarChange(file)}
+            />
+          </div>
 
           {errors.avatar && (
             <p className="text-sm text-red-500">
               {errors.avatar}
             </p>
           )}
+
         </div>
+
       </div>
 
       {/* RIGHT - FORM */}
@@ -89,6 +78,7 @@ export default function UserProfile({ user }: Props) {
 
         {/* ACCOUNT INFO */}
         <div className="bg-white border rounded-2xl p-6 space-y-4">
+
           <div className="text-sm font-medium text-neutral-600">
             Account Information
           </div>
@@ -109,36 +99,33 @@ export default function UserProfile({ user }: Props) {
             }
           />
 
-          <div className="space-y-1">
-            <label className="text-sm font-medium">
-              Role
-            </label>
+          <SelectField
+            label="Role"
+            value={data.role}
+            onChange={(e) =>
+              setData(
+                "role",
+                e.target.value as User["role"]
+              )
+            }
+            options={[
+              { label: "Student", value: "student" },
+              { label: "Instructor", value: "instructor" },
+              { label: "Admin", value: "admin" },
+            ]}
+          />
 
-            <select
-              value={data.role}
-              onChange={(e) =>
-                setData(
-                  "role",
-                  e.target.value as User["role"]
-                )
-              }
-              className="w-full border rounded-lg px-3 py-2"
-            >
-              <option value="student">Student</option>
-              <option value="instructor">Instructor</option>
-              <option value="admin">Admin</option>
-            </select>
+          {errors.role && (
+            <p className="text-sm text-red-500">
+              {errors.role}
+            </p>
+          )}
 
-            {errors.role && (
-              <p className="text-sm text-red-500">
-                {errors.role}
-              </p>
-            )}
-          </div>
         </div>
 
         {/* SECURITY */}
         <div className="bg-white border rounded-2xl p-6 space-y-4">
+
           <div className="text-sm font-medium text-neutral-600">
             Security
           </div>
@@ -152,19 +139,23 @@ export default function UserProfile({ user }: Props) {
               setData("password", e.target.value)
             }
           />
+
         </div>
 
         {/* ACTION */}
         <div className="flex justify-end">
+
           <Button
             type="submit"
             disabled={processing}
           >
             {processing ? "Saving..." : "Save Changes"}
           </Button>
+
         </div>
 
       </div>
+
     </form>
   )
 }

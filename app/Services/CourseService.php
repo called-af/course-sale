@@ -98,9 +98,9 @@ class CourseService
             | CATEGORY SYNC
             |--------------------------------------------------------------------------
             */
-            if (array_key_exists('category_ids', $data)) {
-                $course->categories()->sync($data['category_ids'] ?? []);
-            }
+            $course->categories()->sync(
+                $data['category_ids'] ?? []
+            );
 
             return $course->refresh();
         });

@@ -33,10 +33,8 @@ export default function MaterialContents({
   return (
     <div className="space-y-6">
 
-      {/* EDIT PANEL */}
-
       {crud.editing && (
-        <div className="border rounded-xl p-6 bg-white space-y-4">
+        <div className="bg-white p-6 space-y-4">
 
           <h2 className="text-lg font-semibold">
             Edit Content
@@ -54,7 +52,7 @@ export default function MaterialContents({
             <select
               value={crud.type}
               onChange={e => crud.setType(e.target.value as any)}
-              className="border rounded p-2 w-full"
+              className="p-2 w-full bg-white"
             >
               <option value="video">Video</option>
               <option value="text">Text</option>
@@ -76,7 +74,9 @@ export default function MaterialContents({
             <TextAreaField
               label="Content Text"
               value={crud.contentText}
-              onChange={(e: { target: { value: SetStateAction<string> } }) => crud.setContentText(e.target.value)}
+              onChange={(e: { target: { value: SetStateAction<string> } }) =>
+                crud.setContentText(e.target.value)
+              }
             />
           )}
 
@@ -105,12 +105,9 @@ export default function MaterialContents({
         </div>
       )}
 
-      {/* LIST */}
+      <div className="space-y-3">
 
-      <div className="border rounded-xl p-4 bg-neutral-50">
-
-        <div className="flex justify-between mb-3">
-
+        <div className="flex justify-between items-center">
           <h4 className="text-sm font-medium">
             Contents
           </h4>
@@ -118,7 +115,6 @@ export default function MaterialContents({
           <Button onClick={crud.openCreate}>
             Add Content
           </Button>
-
         </div>
 
         {crud.sorted.length === 0 && (
@@ -127,37 +123,39 @@ export default function MaterialContents({
           </p>
         )}
 
-        <div className="space-y-2">
+        <div className="space-y-1">
 
           {crud.sorted.map((item, i) => (
 
-            <div
-              key={item.id}
-              className="flex justify-between text-xs bg-white p-2 border rounded-lg"
-            >
+            <div key={item.id} className="relative">
 
-              <div>
-                {i + 1}. {item.title}
-                <span className="ml-2 text-neutral-400">
-                  ({item.type})
-                </span>
-              </div>
 
-              <div className="flex gap-2">
+              <div className="pl-6 py-2 flex justify-between items-center text-sm bg-white">
 
-                <Button
-                  variant="secondary"
-                  onClick={() => crud.editPage(item.id)}
-                >
-                  Edit
-                </Button>
+                <div>
+                  {i + 1}. {item.title}
+                  <span className="ml-2 text-neutral-400 text-xs">
+                    ({item.type})
+                  </span>
+                </div>
 
-                <Button
-                  variant="danger"
-                  onClick={() => crud.destroy(item.id)}
-                >
-                  Delete
-                </Button>
+                <div className="flex gap-2">
+
+                  <Button
+                    variant="secondary"
+                    onClick={() => crud.editPage(item.id)}
+                  >
+                    Edit
+                  </Button>
+
+                  <Button
+                    variant="danger"
+                    onClick={() => crud.destroy(item.id)}
+                  >
+                    Delete
+                  </Button>
+
+                </div>
 
               </div>
 
@@ -167,8 +165,6 @@ export default function MaterialContents({
 
         </div>
       </div>
-
-      {/* CREATE MODAL */}
 
       <Modal
         open={crud.open}

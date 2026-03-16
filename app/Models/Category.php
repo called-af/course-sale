@@ -15,7 +15,9 @@ class Category extends Model
      * @var array
      */
     protected $fillable = [
+        'img',
         'name',
+        'desc',
         'slug',
     ];
 
@@ -37,5 +39,12 @@ class Category extends Model
             Course::class,
             'course_categories'
         );
+    }
+
+    protected $appends = ['img_url'];
+
+    public function getImgUrlAttribute(): ?string
+    {
+        return $this->img ? asset('storage/'.$this->img) : null;
     }
 }

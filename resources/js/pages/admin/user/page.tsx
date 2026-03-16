@@ -64,7 +64,7 @@ export default function UserPage({ users }: { users: User[] }) {
   return (
     <>
       <Head title="User Management" />
-      <div className="max-w-8xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         
         <BreadCrumb
           items={[
