@@ -110,6 +110,11 @@ class Course extends Model
         });
     }
 
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class);
+    }
+
     public function getThumbnailUrlAttribute(): string
     {
         if ($this->thumbnail) {

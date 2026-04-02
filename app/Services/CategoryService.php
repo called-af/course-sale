@@ -46,6 +46,7 @@ class CategoryService
     {
         return DB::transaction(function () use ($category, $data) {
 
+            // ✅ Handle slug
             if (
                 isset($data['name']) &&
                 $data['name'] !== $category->name
@@ -53,13 +54,17 @@ class CategoryService
                 $data['slug'] = $this->generateUniqueSlug($data['name']);
             }
 
-            if (isset($data['img'])) {
+            // ✅ FIX: hanya jalan kalau benar-benar ada file
+            if (! empty($data['img'])) {
 
                 if ($category->img) {
                     Storage::disk('public')->delete($category->img);
                 }
 
                 $data['img'] = $data['img']->store('categories', 'public');
+            } else {
+                // ❗ penting: jangan override img jadi null
+                unset($data['img']);
             }
 
             $category->update($data);

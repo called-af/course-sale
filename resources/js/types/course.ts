@@ -11,6 +11,7 @@ export interface Course {
   status: string
   price?: number | null
 
+  creator_id?: number
   creator?: {
     name: string
   }

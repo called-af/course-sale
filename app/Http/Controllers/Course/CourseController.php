@@ -7,6 +7,7 @@ use App\Http\Requests\Course\StoreCourseRequest;
 use App\Http\Requests\Course\UpdateCourseRequest;
 use App\Models\Category;
 use App\Models\Course;
+use App\Models\User;
 use App\Services\CourseService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
@@ -30,10 +31,14 @@ class CourseController extends Controller
         $this->authorize('viewAny', Course::class);
 
         return Inertia::render('admin/course/page', [
-            'courses' => Course::with('creator:id,name')
+            'courses' => Course::with([
+                'creator:id,name',
+                'categories:id,name',
+            ])
                 ->latest()
                 ->get()
                 ->append('thumbnail_url'),
+            'categories' => Category::select('id', 'name', 'img', 'desc')->get(),
         ]);
     }
 
@@ -67,6 +72,7 @@ class CourseController extends Controller
                 ->append('thumbnail_url'),
 
             'categories' => Category::select('id', 'name', 'img', 'desc')->get(),
+            'users' => User::select('avatar', 'name', 'email')->get(),
         ]);
     }
 

@@ -29,55 +29,75 @@ export default function CourseCard({ course }: CourseCardProps) {
     <>
       <div
         onClick={() => visit(course.slug)}
-        className="group bg-white p-2 space-y-4 cursor-pointer shadow-sm hover:shadow-lg transition"
+        className="group bg-white cursor-pointer hover:shadow-md transition-shadow duration-200 border border-neutral-100"
       >
-        <div className="relative w-full aspect-video overflow-hidden bg-neutral-100">
+        {/* Thumbnail — bersih tanpa overlay */}
+        <div className="w-full aspect-video overflow-hidden bg-neutral-100">
           <img
             src={course.thumbnail_url}
+            alt={course.title}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
-
-          {course.level && (
-            <div className="absolute top-2 left-2">
-              <Badge>{course.level}</Badge>
-            </div>
-          )}
         </div>
 
-        <div className="space-y-1">
-          <Title as="h2" className="text-base leading-snug line-clamp-2">
+        {/* Content */}
+        <div className="p-4 space-y-3">
+
+          {/* Title */}
+          <Title as="h2" className="text-sm font-semibold leading-snug line-clamp-2 text-neutral-800">
             {course.title}
           </Title>
 
-          <Label className="text-sm text-neutral-600 line-clamp-3">
+          {/* Creator */}
+          <Label className="text-xs text-neutral-400">
+            By {course.creator?.name ?? "—"}
+          </Label>
+
+          {/* Description */}
+          <Label className="text-xs text-neutral-500 line-clamp-2 leading-relaxed">
             {course.description}
           </Label>
 
-          <Label className="text-xs text-neutral-500">
-            By {course.creator?.name}
-          </Label>
-        </div>
-
-        {/* PRICE BADGE */}
-        <Badge variant={course.type === "free" ? "info" : "warning"}>
-          {course.type === "free"
-            ? "FREE"
-            : `Rp ${course.price?.toLocaleString("id-ID")}`}
-        </Badge>
-
-        {isCourseOwner && (
-          <div className="pt-2">
-            <Button
-              variant="danger"
-              onClick={(e) => {
-                e.stopPropagation()
-                setOpenDelete(true)
-              }}
-            >
-              Hapus
-            </Button>
+          {/* Meta row */}
+          <div className="flex items-center gap-2 flex-wrap pt-1">
+            {course.level && (
+              <Badge>{course.level}</Badge>
+            )}
+            <Badge variant={course.type === "free" ? "info" : "warning"}>
+              {course.type === "free"
+                ? "FREE"
+                : `Rp ${course.price?.toLocaleString("id-ID")}`}
+            </Badge>
+            <Badge variant={course.status === "published" ? "success" : "default"}>
+              {course.status}
+            </Badge>
           </div>
-        )}
+
+          {isCourseOwner && (
+            <div
+              className="pt-3 mt-1 border-t border-neutral-100 space-y-2"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-neutral-400">
+                <span>Categories</span>
+                <span className="text-neutral-700 font-medium text-right truncate">
+                  {course.categories?.map((category) => category.name).join(", ") || "—"}
+                </span>
+              </div>
+
+              <Button
+                variant="danger"
+                className="w-full text-xs py-1.5 mt-1"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setOpenDelete(true)
+                }}
+              >
+                Hapus Course
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       <ConfirmationDelete

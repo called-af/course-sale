@@ -9,6 +9,7 @@ use App\Services\UserService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -29,6 +30,13 @@ class UserController extends Controller
     {
         return Inertia::render('admin/user/[id]/page', [
             'user' => $user,
+        ]);
+    }
+
+    public function profile(): Response
+    {
+        return Inertia::render('admin/Profile', [
+            'user' => Auth::user(),
         ]);
     }
 

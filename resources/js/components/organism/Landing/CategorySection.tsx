@@ -42,7 +42,7 @@ export default function CategorySection({ categories }: CategorySectionProps) {
               className="bg-[#FAFAF8] p-8 flex flex-col gap-4 group hover:bg-white transition-colors"
             >
               {c.img_url ? (
-                <img src={c.img_url} className="w-10 h-10 object-cover rounded" />
+                <img src={c.img_url} className="w-10 h-10 object-cover" />
               ) : (
                 <span className="text-3xl">📚</span>
               )}

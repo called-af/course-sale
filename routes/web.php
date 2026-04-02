@@ -167,6 +167,8 @@ Route::middleware(['auth', 'role'])->group(function () {
             Route::resource('users', UserController::class)
                 ->except(['create', 'edit', 'delete']);
 
+            Route::get('/profile', [UserController::class, 'profile'])
+                ->name('admin.profile');
         });
 
     /*

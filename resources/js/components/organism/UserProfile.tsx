@@ -45,9 +45,7 @@ export default function UserProfile({ user }: Props) {
       onSubmit={handleSubmit}
       className="grid md:grid-cols-3 gap-8"
     >
-
-      {/* LEFT - AVATAR */}
-      <div className="bg-white border rounded-2xl p-6 space-y-4">
+      <div className="bg-white border border-gray-300 p-6 space-y-4">
 
         <div className="text-sm font-medium text-neutral-600">
           Avatar
@@ -72,12 +70,8 @@ export default function UserProfile({ user }: Props) {
         </div>
 
       </div>
-
-      {/* RIGHT - FORM */}
       <div className="md:col-span-2 space-y-6">
-
-        {/* ACCOUNT INFO */}
-        <div className="bg-white border rounded-2xl p-6 space-y-4">
+        <div className="bg-white border border-gray-300 p-6 space-y-4">
 
           <div className="text-sm font-medium text-neutral-600">
             Account Information
@@ -122,9 +116,7 @@ export default function UserProfile({ user }: Props) {
           )}
 
         </div>
-
-        {/* SECURITY */}
-        <div className="bg-white border rounded-2xl p-6 space-y-4">
+        <div className="bg-white border border-gray-300 p-6 space-y-4">
 
           <div className="text-sm font-medium text-neutral-600">
             Security
@@ -141,8 +133,6 @@ export default function UserProfile({ user }: Props) {
           />
 
         </div>
-
-        {/* ACTION */}
         <div className="flex justify-end">
 
           <Button
