@@ -87,6 +87,8 @@ class MaterialContentController extends Controller
 
         $this->authorize('update', $content);
 
+        logger($request->content_text);
+
         $this->service->update($content, $request->validated());
 
         return back()->with('success', 'Content updated');

@@ -42,6 +42,8 @@
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
         "react-toastify": "^11.0.5",
+        "slate": "^0.124.0",
+        "slate-react": "^0.124.0",
         "tailwind-merge": "^3.0.1",
         "tailwindcss": "^4.0.0",
         "typescript": "^5.7.2",

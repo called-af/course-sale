@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('material_content_id')->constrained();
             $table->text('question');
+            $table->text('image');
             $table->integer('sort_order');
             $table->timestamps();
         });

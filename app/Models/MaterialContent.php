@@ -35,6 +35,7 @@ class MaterialContent extends Model
         return [
             'id' => 'integer',
             'material_id' => 'integer',
+            'content_text' => 'array',
         ];
     }
 

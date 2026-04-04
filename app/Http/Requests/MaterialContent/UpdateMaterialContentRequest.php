@@ -31,7 +31,7 @@ class UpdateMaterialContentRequest extends FormRequest
             ],
 
             'content_url' => ['nullable', 'string'],
-            'content_text' => ['nullable', 'string'],
+            'content_text' => ['nullable', 'array'],
             'duration' => ['nullable', 'integer', 'min:1'],
         ];
     }

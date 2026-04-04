@@ -1,113 +1,108 @@
-import { useState, useMemo, useEffect } from "react"
-import { router } from "@inertiajs/react"
-import { MaterialContent } from "@/types"
+import { useState, useMemo, useEffect } from 'react';
+import { router } from '@inertiajs/react';
+import { MaterialContent } from '@/types';
 
-export function useMaterialContents(
-  courseSlug: string,
-  moduleId: number,
-  materialId: number,
-  contents: MaterialContent[],
-  editId?: number | null
-) {
-  const baseUrl =
-    `/admin/courses/${courseSlug}/modules/${moduleId}/materials/${materialId}/contents`
+export function useMaterialContents(courseSlug: string, moduleId: number, materialId: number, contents: MaterialContent[], editId?: number | null) {
+    const baseUrl = `/admin/courses/${courseSlug}/modules/${moduleId}/materials/${materialId}/contents`;
 
-  const [open, setOpen] = useState(false)
+    const [open, setOpen] = useState(false);
 
-  const [title, setTitle] = useState("")
-  const [type, setType] = useState<MaterialContent["type"]>("text")
-  const [contentUrl, setContentUrl] = useState("")
-  const [contentText, setContentText] = useState("")
-  const [duration, setDuration] = useState<number | "">("")
+    const [title, setTitle] = useState('');
+    const [type, setType] = useState<MaterialContent['type']>('text');
+    const [contentUrl, setContentUrl] = useState('');
+    const [contentText, setContentText] = useState<any>([]);
+    const [duration, setDuration] = useState<number | ''>('');
 
-  const sorted = useMemo(() => {
-    return [...contents].sort((a, b) => a.sort_order - b.sort_order)
-  }, [contents])
+    const sorted = useMemo(() => {
+        return [...contents].sort((a, b) => a.sort_order - b.sort_order);
+    }, [contents]);
 
-  const editing = useMemo(() => {
-    if (!editId) return null
-    return contents.find(c => c.id === editId) ?? contents[0] ?? null
-  }, [editId, contents])
+    const editing = useMemo(() => {
+        if (!editId) return null;
+        return contents.find((c) => c.id === editId) ?? contents[0] ?? null;
+    }, [editId, contents]);
 
-  useEffect(() => {
-    if (!editing) return
+    useEffect(() => {
+        if (!editing) return;
 
-    setTitle(editing.title)
-    setType(editing.type)
-    setContentUrl(editing.content_url ?? "")
-    setContentText(editing.content_text ?? "")
-    setDuration(editing.duration ?? "")
-  }, [editing])
+        setTitle(editing.title);
+        setType(editing.type);
+        setContentUrl(editing.content_url ?? '');
 
-  function openCreate() {
-    setTitle("")
-    setType("text")
-    setContentUrl("")
-    setContentText("")
-    setDuration("")
-    setOpen(true)
-  }
+        setContentText(editing.content_text ?? []);
 
-  function create() {
-    if (!title.trim()) return
+        setDuration(editing.duration ?? '');
+    }, [editing]);
 
-    router.post(
-      baseUrl,
-      { title },
-      {
-        onSuccess: () => setOpen(false),
-      }
-    )
-  }
+    function openCreate() {
+        setTitle('');
+        setType('text');
+        setContentUrl('');
+        setContentText('');
+        setDuration('');
+        setOpen(true);
+    }
 
-  function update() {
-    if (!editing) return
+    function create() {
+        if (!title.trim()) return;
 
-    router.put(`${baseUrl}/${editing.id}`, {
-      title,
-      type,
-      content_url: contentUrl || null,
-      content_text: contentText || null,
-      duration: duration || null,
-    })
-  }
+        router.post(
+            baseUrl,
+            { title },
+            {
+                onSuccess: () => setOpen(false),
+            },
+        );
+    }
 
-  function destroy(id: number) {
-    router.delete(`${baseUrl}/${id}`, {
-      preserveScroll: true,
-    })
-  }
+    function update() {
+        if (!editing) return;
 
-  function editPage(id: number) {
-    router.get(`${baseUrl}/${id}/edit`)
-  }
+        router.put(`${baseUrl}/${editing.id}`, {
+            title,
+            type,
+            content_url: contentUrl || null,
+            content_text: contentText || null,
+            duration: duration || null,
+        });
+    }
 
-  return {
-    open,
-    setOpen,
+    function destroy(id: number) {
+        router.delete(`${baseUrl}/${id}`, {
+            preserveScroll: true,
+        });
+    }
 
-    title,
-    setTitle,
+    function editPage(id: number) {
+        router.get(`${baseUrl}/${id}/edit`);
+    }
 
-    type,
-    setType,
+    return {
+        open,
+        setOpen,
 
-    contentUrl,
-    setContentUrl,
+        title,
+        setTitle,
 
-    contentText,
-    setContentText,
+        type,
+        setType,
 
-    duration,
-    setDuration,
+        contentUrl,
+        setContentUrl,
 
-    sorted,
-    editing,
+        contentText,
+        setContentText,
 
-    openCreate,
-    create,
-    update,
-    destroy,
-    editPage,
-  }
+        duration,
+        setDuration,
+
+        sorted,
+        editing,
+
+        openCreate,
+        create,
+        update,
+        destroy,
+        editPage,
+    };
 }

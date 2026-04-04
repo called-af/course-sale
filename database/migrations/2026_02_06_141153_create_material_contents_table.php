@@ -19,7 +19,7 @@ return new class extends Migration
             $table->enum('type', ["video","text","quiz","file","ppt"]);
             $table->string('title');
             $table->text('content_url')->nullable();
-            $table->longText('content_text')->nullable();
+            $table->json('content_text')->nullable();
             $table->integer('duration')->nullable();
             $table->integer('sort_order');
             $table->timestamps();

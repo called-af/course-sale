@@ -1,0 +1,32 @@
+interface Props {
+  active?: boolean
+  onMouseDown: (e: React.MouseEvent) => void
+  children: React.ReactNode
+  tooltip?: string
+}
+
+export default function EditorToolbarButton({ active, onMouseDown, children, tooltip }: Props) {
+  return (
+    <div className="relative group">
+      <button
+        onMouseDown={onMouseDown}
+        className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-all select-none
+          ${
+            active
+              ? "bg-violet-600 text-white shadow-sm"
+              : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+          }
+        `}
+      >
+        {children}
+      </button>
+
+      {tooltip && (
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+          {tooltip}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+        </div>
+      )}
+    </div>
+  )
+}
