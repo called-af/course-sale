@@ -1,6 +1,7 @@
 import { useMaterialContents } from "@/hooks/useMaterialContents"
 import { MaterialContent } from "@/types"
-
+import { useState } from "react"
+import ConfirmationDelete from "@/components/molecules/ConfirmationDelete"
 import Modal from "@/components/atoms/Modal"
 import Button from "@/components/atoms/Button"
 import InputField from "@/components/molecules/InputField"
@@ -29,6 +30,17 @@ export default function MaterialContents({
     contents,
     editId
   )
+
+  const handleConfirmDelete = () => {
+    if (deleteId) {
+      crud.destroy(deleteId)
+      setOpenDelete(false)
+      setDeleteId(null)
+    }
+  }
+
+  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [openDelete, setOpenDelete] = useState(false)
 
   return (
     <div className="space-y-6">
@@ -150,7 +162,10 @@ export default function MaterialContents({
 
                   <Button
                     variant="danger"
-                    onClick={() => crud.destroy(item.id)}
+                    onClick={() => {
+                      setDeleteId(item.id)
+                      setOpenDelete(true)
+                    }}
                   >
                     Delete
                   </Button>
@@ -187,6 +202,15 @@ export default function MaterialContents({
         </div>
 
       </Modal>
+
+      <ConfirmationDelete
+        open={openDelete}
+        onClose={() => {
+          setOpenDelete(false)
+          setDeleteId(null)
+        }}
+        onConfirm={handleConfirmDelete}
+      />
 
     </div>
   )

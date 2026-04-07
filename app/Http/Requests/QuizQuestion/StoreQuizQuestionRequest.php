@@ -11,7 +11,7 @@ class StoreQuizQuestionRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,17 @@ class StoreQuizQuestionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'material_content_id' => 'required|exists:material_contents,id',
+
+            'questions' => 'required|array|min:1',
+
+            'questions.*.question' => 'required|string',
+            'questions.*.type' => 'required|in:multiple_choice,essay',
+
+            'questions.*.options' => 'required_if:questions.*.type,multiple_choice|array|min:2',
+
+            'questions.*.options.*.option_text' => 'required|string',
+            'questions.*.options.*.is_correct' => 'required|boolean',
         ];
     }
 }

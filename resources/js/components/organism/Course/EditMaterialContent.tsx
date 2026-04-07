@@ -91,7 +91,7 @@ export default function EditMaterialContent({
                 form.setType(t.value)
                 if (t.value !== "quiz") form.setDuration("")
               }}
-              className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-center
+              className={`flex flex-col items-center gap-1.5 p-3 border-2 transition-all text-center
                 ${
                   form.type === t.value
                     ? "border-violet-500 bg-violet-50 text-violet-700 shadow-sm"
@@ -156,17 +156,17 @@ export default function EditMaterialContent({
               Konten Teks
             </label>
 
-            <div className="flex items-center gap-0.5 bg-gray-100 rounded-lg p-1">
+            <div className="flex items-center gap-0.5 bg-gray-100 p-1">
               <button
                 onClick={() => setSplitView(false)}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-all
+                className={`px-3 py-1 text-xs font-medium transition-all
                   ${!splitView ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
               >
                 Editor
               </button>
               <button
                 onClick={() => setSplitView(true)}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-all
+                className={`px-3 py-1 text-xs font-medium transition-all
                   ${splitView ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
               >
                 Split View

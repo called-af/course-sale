@@ -35,6 +35,11 @@ class QuizOption extends Model
         ];
     }
 
+    public function answers()
+    {
+        return $this->hasMany(QuizAnswer::class);
+    }
+
     public function quizQuestion(): BelongsTo
     {
         return $this->belongsTo(QuizQuestion::class);

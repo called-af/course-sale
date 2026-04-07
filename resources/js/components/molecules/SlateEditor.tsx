@@ -156,7 +156,13 @@ export default function SlateEditor({ value, onChange, initialValue: initialValu
   }, [value])
 
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm focus-within:border-violet-400 focus-within:ring-2 focus-within:ring-violet-100 transition-all duration-150">
+    <div className="
+      border px-3 py-2 text-sm bg-white
+      border-gray-300
+      focus-within:border-purple-700
+      focus-within:ring-1 focus-within:ring-purple-700
+      transition-all
+    ">
 
       <div className="px-4 pt-3">
         <SlateToolbar editor={editor} />
