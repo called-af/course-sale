@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId('course_id')->constrained();
             $table->string('title');
             $table->integer('sort_order');
+            $table->enum('status', ['draft', 'published'])->default('draft');
             $table->timestamps();
         });
 

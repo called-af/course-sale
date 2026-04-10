@@ -5,9 +5,8 @@ import { Menu, X } from "lucide-react"
 
 const menus = [
   { name: "Home", href: "/" },
-  { name: "Courses", href: "/courses" },
-  { name: "About", href: "/about" },
-  { name: "Contact", href: "/contact" },
+  { name: "About", href: "#about" },
+  { name: "Courses", href: "#courses" },
 ]
 
 export default function Navbar() {

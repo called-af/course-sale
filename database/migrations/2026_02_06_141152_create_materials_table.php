@@ -20,6 +20,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->integer('sort_order');
             $table->boolean('is_preview')->default(false);
+            $table->enum('status', ['draft', 'published'])->default('draft');
             $table->timestamps();
         });
 

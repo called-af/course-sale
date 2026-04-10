@@ -10,7 +10,7 @@ const stats = [
 
 export default function AboutSection() {
   return (
-    <section className="bg-[#1a1a1a] text-white">
+    <section className="bg-[#1a1a1a] text-white" id="about">
       <div className="max-w-7xl mx-auto px-4 sm:px-8 py-16 lg:py-24 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
 
         <div className="flex flex-col gap-6">

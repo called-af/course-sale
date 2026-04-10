@@ -15,10 +15,9 @@ export default function CourseSection({ courses }: CourseSectionProps) {
   const { search, setSearch, filteredCourses } = useCourse(undefined, courses)
 
   return (
-    <section className="bg-[#FAFAF8] py-24">
+    <section className="bg-[#FAFAF8] py-24" id="courses">
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
 
-        {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
           <div className="flex flex-col gap-4">
             <Badge variant="purple" dot>
@@ -30,7 +29,6 @@ export default function CourseSection({ courses }: CourseSectionProps) {
             </Title>
           </div>
 
-          {/* Search */}
           <div className="w-full lg:w-72">
             <InputField
               label="Search Courses"
@@ -41,7 +39,6 @@ export default function CourseSection({ courses }: CourseSectionProps) {
           </div>
         </div>
 
-        {/* Grid */}
         {filteredCourses.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredCourses.map((course) => (
@@ -58,7 +55,6 @@ export default function CourseSection({ courses }: CourseSectionProps) {
           </div>
         )}
 
-        {/* Footer CTA */}
         {filteredCourses.length > 0 && (
           <div className="mt-12 flex justify-center">
             <Button

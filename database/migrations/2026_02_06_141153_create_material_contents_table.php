@@ -21,6 +21,7 @@ return new class extends Migration
             $table->text('content_url')->nullable();
             $table->json('content_text')->nullable();
             $table->integer('duration')->nullable();
+            $table->enum('status', ['draft', 'published'])->default('draft');
             $table->integer('sort_order');
             $table->timestamps();
         });
