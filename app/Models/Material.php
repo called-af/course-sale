@@ -21,7 +21,6 @@ class Material extends Model
         'title',
         'description',
         'sort_order',
-        'is_preview',
     ];
 
     /**
@@ -34,8 +33,6 @@ class Material extends Model
         return [
             'id' => 'integer',
             'module_id' => 'integer',
-            'sort_order' => 'integer',
-            'is_preview' => 'boolean',
         ];
     }
 

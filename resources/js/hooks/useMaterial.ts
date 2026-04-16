@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useState } from "react"
 import { router } from "@inertiajs/react"
 import { Material } from "@/types"
 
@@ -12,7 +12,6 @@ export function useMaterials(
 
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
-  const [isPreview, setIsPreview] = useState(false)
 
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [selected, setSelected] = useState<Material | null>(null)
@@ -20,14 +19,13 @@ export function useMaterials(
 
   const baseUrl = `/admin/courses/${courseSlug}/modules/${moduleId}/materials`
 
-  const sorted = useMemo(() => {
-    return [...materials].sort((a, b) => a.sort_order - b.sort_order)
-  }, [materials])
+  const sortedMaterials = [...materials].sort(
+    (a, b) => a.sort_order - b.sort_order
+  )
 
   function reset() {
     setTitle("")
     setDescription("")
-    setIsPreview(false)
   }
 
   function openCreate() {
@@ -40,7 +38,6 @@ export function useMaterials(
     setEditing(material)
     setTitle(material.title)
     setDescription(material.description ?? "")
-    setIsPreview(material.is_preview)
     setOpen(true)
   }
 
@@ -50,15 +47,16 @@ export function useMaterials(
     const data = {
       title,
       description,
-      is_preview: isPreview,
     }
 
     if (editing) {
       router.put(`${baseUrl}/${editing.id}`, data, {
+        preserveScroll: true,
         onSuccess: () => setOpen(false),
       })
     } else {
-      router.post(baseUrl, { title }, {
+      router.post(baseUrl, data, {
+        preserveScroll: true,
         onSuccess: () => setOpen(false),
       })
     }
@@ -84,6 +82,17 @@ export function useMaterials(
     })
   }
 
+  function moveMaterial(
+    material: Material,
+    direction: "up" | "down"
+  ) {
+    router.put(
+      `${baseUrl}/${material.id}/move`,
+      { direction },
+      { preserveScroll: true }
+    )
+  }
+
   return {
     open,
     setOpen,
@@ -95,20 +104,19 @@ export function useMaterials(
     description,
     setDescription,
 
-    isPreview,
-    setIsPreview,
-
     deleteOpen,
     setDeleteOpen,
     selected,
     loadingDelete,
 
-    sorted,
+    sortedMaterials,
 
     openCreate,
     openEdit,
     submit,
     openDelete,
     confirmDelete,
+
+    moveMaterial,
   }
 }

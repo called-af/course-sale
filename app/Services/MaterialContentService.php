@@ -29,6 +29,40 @@ class MaterialContentService
         });
     }
 
+    public function move(MaterialContent $materialContent, string $direction): void
+    {
+        DB::transaction(function () use ($materialContent, $direction) {
+
+            if ($direction === 'up') {
+                $swapWith = MaterialContent::where('material_id', $materialContent->material_id)
+                    ->where('sort_order', '<', $materialContent->sort_order)
+                    ->orderByDesc('sort_order')
+                    ->first();
+            }
+
+            if ($direction === 'down') {
+                $swapWith = MaterialContent::where('material_id', $materialContent->material_id)
+                    ->where('sort_order', '>', $materialContent->sort_order)
+                    ->orderBy('sort_order')
+                    ->first();
+            }
+
+            if (! isset($swapWith)) {
+                return;
+            }
+
+            $currentOrder = $materialContent->sort_order;
+
+            $materialContent->update([
+                'sort_order' => $swapWith->sort_order,
+            ]);
+
+            $swapWith->update([
+                'sort_order' => $currentOrder,
+            ]);
+        });
+    }
+
     public function update(MaterialContent $content, array $data): MaterialContent
     {
         return DB::transaction(function () use ($content, $data) {

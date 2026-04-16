@@ -1,5 +1,10 @@
 import { SetStateAction, useState } from "react"
-import { ChevronRight, ChevronDown } from "lucide-react"
+import {
+  ChevronRight,
+  ChevronDown,
+  ArrowUp,
+  ArrowDown
+} from "lucide-react"
 import { useMaterials } from "@/hooks/useMaterial"
 import { Material } from "@/types"
 
@@ -31,7 +36,7 @@ export default function MaterialsCrud({
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="space-y-3">
 
         <div className="flex justify-between items-center">
           <h3 className="font-semibold text-sm">
@@ -43,42 +48,59 @@ export default function MaterialsCrud({
           </Button>
         </div>
 
-        {crud.sorted.length === 0 && (
-          <div className="text-xs text-neutral-500 py-2">
+        {crud.sortedMaterials.length === 0 ? (
+          <p className="text-sm text-neutral-500">
             No materials yet
-          </div>
-        )}
+          </p>
+        ) : (
+          <div className="space-y-2">
 
-        <div className="space-y-1">
+            {crud.sortedMaterials.map((material, index) => {
+              const isFirst = index === 0
+              const isLast = index === crud.sortedMaterials.length - 1
+              const isOpen = expanded === material.id
 
-          {crud.sorted.map((material, i) => {
-            const open = expanded === material.id
+              return (
+                <div key={material.id} className="relative">
 
-            return (
-              <div key={material.id} className="relative">
+                  <div className="absolute left-3 top-0 bottom-0 w-px bg-neutral-200"></div>
 
-                <div className="absolute left-2 top-0 bottom-0 w-px bg-neutral-200"></div>
-
-                <div className="pl-6 py-2">
-
-                  <div className="flex justify-between items-center">
+                  <div className="flex items-center justify-between pl-8 py-2 hover:bg-neutral-50">
 
                     <div
-                      className="flex items-center gap-2 cursor-pointer flex-1 text-sm"
+                      className="flex items-center gap-2 cursor-pointer text-sm flex-1"
                       onClick={() => toggle(material.id)}
                     >
-                      {open ? (
+                      {isOpen ? (
                         <ChevronDown className="w-4 h-4" />
                       ) : (
                         <ChevronRight className="w-4 h-4" />
                       )}
 
                       <span>
-                        {i + 1}. {material.title}
+                        {index + 1}. {material.title}
                       </span>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div
+                      className="flex gap-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Button
+                        variant="outline"
+                        disabled={isFirst}
+                        onClick={() => crud.moveMaterial(material, "up")}
+                      >
+                        <ArrowUp className="w-4 h-4" />
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        disabled={isLast}
+                        onClick={() => crud.moveMaterial(material, "down")}
+                      >
+                        <ArrowDown className="w-4 h-4" />
+                      </Button>
 
                       <Button
                         variant="secondary"
@@ -93,28 +115,29 @@ export default function MaterialsCrud({
                       >
                         Delete
                       </Button>
-
                     </div>
-
                   </div>
 
-                  {open && (
-                    <div className="mt-3 ml-4 border-l border-neutral-200 pl-4">
-                      <MaterialContents
-                        courseSlug={courseSlug}
-                        moduleId={moduleId}
-                        materialId={material.id}
-                        contents={material.contents ?? []}
-                      />
+                  {isOpen && (
+                    <div className="pl-12 pr-4 pb-3">
+                      <div className="border-l border-neutral-200 pl-6">
+
+                        <MaterialContents
+                          courseSlug={courseSlug}
+                          moduleId={moduleId}
+                          materialId={material.id}
+                          contents={material.contents ?? []}
+                        />
+
+                      </div>
                     </div>
                   )}
-
                 </div>
-              </div>
-            )
-          })}
+              )
+            })}
 
-        </div>
+          </div>
+        )}
       </div>
 
       <Modal
@@ -122,7 +145,6 @@ export default function MaterialsCrud({
         onClose={() => crud.setOpen(false)}
         title={crud.editing ? "Edit Material" : "Add Material"}
       >
-
         <div className="space-y-4">
 
           <InputField
@@ -132,24 +154,11 @@ export default function MaterialsCrud({
           />
 
           {crud.editing && (
-            <>
-              <TextAreaField
-                label="Description"
-                value={crud.description}
-                onChange={(e: { target: { value: SetStateAction<string> } }) =>
-                  crud.setDescription(e.target.value)
-                }
-              />
-
-              <label className="flex gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={crud.isPreview}
-                  onChange={e => crud.setIsPreview(e.target.checked)}
-                />
-                Preview
-              </label>
-            </>
+            <TextAreaField
+              label="Description"
+              value={crud.description}
+              onChange={(e: { target: { value: SetStateAction<string> } }) => crud.setDescription(e.target.value)}
+            />
           )}
 
           <Button onClick={crud.submit}>

@@ -20,7 +20,6 @@ class MaterialService
                 'title' => $data['title'],
                 'description' => null,
                 'sort_order' => $sortOrder,
-                'is_preview' => false,
             ]);
         });
     }
@@ -42,15 +41,44 @@ class MaterialService
         });
     }
 
-    public function reorder(array $orders): void
+    public function move(Material $material, string $direction): void
     {
-        DB::transaction(function () use ($orders) {
+        DB::transaction(function () use ($material, $direction) {
 
-            foreach ($orders as $id => $sortOrder) {
-                Material::where('id', $id)->update([
-                    'sort_order' => $sortOrder,
-                ]);
+            if (is_null($material->sort_order)) {
+                return;
             }
+
+            $query = Material::where('module_id', $material->module_id)
+                ->whereNotNull('sort_order');
+
+            if ($direction === 'up') {
+                $swapWith = (clone $query)
+                    ->where('sort_order', '<', $material->sort_order)
+                    ->orderByDesc('sort_order')
+                    ->first();
+            }
+
+            if ($direction === 'down') {
+                $swapWith = (clone $query)
+                    ->where('sort_order', '>', $material->sort_order)
+                    ->orderBy('sort_order')
+                    ->first();
+            }
+
+            if (! isset($swapWith)) {
+                return;
+            }
+
+            $currentOrder = $material->sort_order;
+
+            $material->update([
+                'sort_order' => $swapWith->sort_order,
+            ]);
+
+            $swapWith->update([
+                'sort_order' => $currentOrder,
+            ]);
         });
     }
 
@@ -65,7 +93,6 @@ class MaterialService
                 'module_id' => $module->id,
                 'title' => $data['title'],
                 'sort_order' => $sortOrder,
-                'is_preview' => false,
             ]);
         });
     }

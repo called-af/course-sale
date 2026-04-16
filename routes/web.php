@@ -119,6 +119,8 @@ Route::middleware(['auth', 'role'])->group(function () {
                 Route::post('/modules/{module}/materials', [MaterialController::class, 'store'])
                     ->name('materials.store');
 
+                Route::put('/modules/{module}/materials/{material}/move', [MaterialController::class, 'move']);
+
                 Route::put('/modules/{module}/materials/{material}', [MaterialController::class, 'update'])
                     ->name('materials.update');
 

@@ -23,6 +23,7 @@ class StoreMaterialRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:255'],
+            'sort_order' => ['nullable', 'integer', 'min:1'],
         ];
     }
 

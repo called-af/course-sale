@@ -8,7 +8,6 @@ export interface Material {
   title: string
   description?: string | null
   sort_order: number
-  is_preview: boolean
 
   created_at?: string
   updated_at?: string

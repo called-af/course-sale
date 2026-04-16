@@ -18,8 +18,7 @@ return new class extends Migration
             $table->foreignId('module_id')->constrained()->cascadeOnDelete();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->integer('sort_order');
-            $table->boolean('is_preview')->default(false);
+            $table->integer('sort_order')->default(1);
             $table->enum('status', ['draft', 'published'])->default('draft');
             $table->timestamps();
         });

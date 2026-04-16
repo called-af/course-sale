@@ -24,6 +24,7 @@ class UpdateMaterialContentRequest extends FormRequest
     {
         return [
             'title' => ['sometimes', 'string', 'max:255'],
+            'sort_order' => ['nullable', 'integer', 'min:1'],
 
             'type' => [
                 'required',

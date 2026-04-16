@@ -34,6 +34,19 @@ class MaterialContentController extends Controller
         return back()->with('success', 'Content created');
     }
 
+    public function move(Course $course, Module $module, MaterialContent $materialContent)
+    {
+        abort_if($module->course_id !== $course->id, 404);
+
+        request()->validate([
+            'direction' => ['required', 'in:up,down'],
+        ]);
+
+        $this->service->move($materialContent, request('direction'));
+
+        return back();
+    }
+
     public function edit(
         Course $course,
         Module $module,
