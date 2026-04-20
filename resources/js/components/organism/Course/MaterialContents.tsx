@@ -7,6 +7,7 @@ import Button from "@/components/atoms/Button"
 import InputField from "@/components/molecules/InputField"
 import TextAreaField from "@/components/molecules/TextAreaField"
 import { SetStateAction } from "react"
+import { ArrowUp, ArrowDown } from "lucide-react"
 
 interface Props {
   courseSlug: string
@@ -31,6 +32,9 @@ export default function MaterialContents({
     editId
   )
 
+  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [openDelete, setOpenDelete] = useState(false)
+
   const handleConfirmDelete = () => {
     if (deleteId) {
       crud.destroy(deleteId)
@@ -39,16 +43,13 @@ export default function MaterialContents({
     }
   }
 
-  const [deleteId, setDeleteId] = useState<number | null>(null)
-  const [openDelete, setOpenDelete] = useState(false)
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
 
       {crud.editing && (
-        <div className="bg-white p-6 space-y-4">
+        <div className="bg-white p-6 space-y-4 border">
 
-          <h2 className="text-lg font-semibold">
+          <h2 className="text-sm font-semibold">
             Edit Content
           </h2>
 
@@ -59,12 +60,11 @@ export default function MaterialContents({
           />
 
           <div className="space-y-1">
-            <label className="text-sm">Type</label>
-
+            <label className="text-xs">Type</label>
             <select
               value={crud.type}
               onChange={e => crud.setType(e.target.value as any)}
-              className="p-2 w-full bg-white"
+              className="p-2 w-full bg-white text-sm"
             >
               <option value="video">Video</option>
               <option value="text">Text</option>
@@ -102,25 +102,18 @@ export default function MaterialContents({
           )}
 
           <div className="flex gap-2">
-            <Button onClick={crud.update}>
-              Save
-            </Button>
-
-            <Button
-              variant="secondary"
-              onClick={() => history.back()}
-            >
+            <Button onClick={crud.update}>Save</Button>
+            <Button variant="secondary" onClick={() => history.back()}>
               Cancel
             </Button>
           </div>
-
         </div>
       )}
 
-      <div className="space-y-3">
+      <div className="space-y-2">
 
         <div className="flex justify-between items-center">
-          <h4 className="text-sm font-medium">
+          <h4 className="text-xs font-medium">
             Contents
           </h4>
 
@@ -129,56 +122,74 @@ export default function MaterialContents({
           </Button>
         </div>
 
-        {crud.sorted.length === 0 && (
+        {crud.sortedContents.length === 0 ? (
           <p className="text-xs text-neutral-500">
             No content yet
           </p>
+        ) : (
+          <div className="space-y-1">
+
+            {crud.sortedContents.map((item, index) => {
+              const isFirst = index === 0
+              const isLast = index === crud.sortedContents.length - 1
+
+              return (
+                <div key={item.id} className="relative">
+
+                  <div className="absolute left-2 top-0 bottom-0 w-px bg-neutral-200"></div>
+
+                  <div className="pl-6 py-2 flex justify-between items-center text-xs bg-white hover:bg-neutral-50">
+
+                    <div>
+                      {index + 1}. {item.title}
+                      <span className="ml-2 text-neutral-400">
+                        ({item.type})
+                      </span>
+                    </div>
+
+                    <div className="flex gap-1">
+
+                      <Button
+                        variant="outline"
+                        disabled={isFirst}
+                        onClick={() => crud.moveContent(item, "up")}
+                      >
+                        <ArrowUp className="w-3 h-3" />
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        disabled={isLast}
+                        onClick={() => crud.moveContent(item, "down")}
+                      >
+                        <ArrowDown className="w-3 h-3" />
+                      </Button>
+
+                      <Button
+                        variant="secondary"
+                        onClick={() => crud.editPage(item.id)}
+                      >
+                        Edit
+                      </Button>
+
+                      <Button
+                        variant="danger"
+                        onClick={() => {
+                          setDeleteId(item.id)
+                          setOpenDelete(true)
+                        }}
+                      >
+                        Delete
+                      </Button>
+
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+
+          </div>
         )}
-
-        <div className="space-y-1">
-
-          {crud.sorted.map((item, i) => (
-
-            <div key={item.id} className="relative">
-
-
-              <div className="pl-6 py-2 flex justify-between items-center text-sm bg-white">
-
-                <div>
-                  {i + 1}. {item.title}
-                  <span className="ml-2 text-neutral-400 text-xs">
-                    ({item.type})
-                  </span>
-                </div>
-
-                <div className="flex gap-2">
-
-                  <Button
-                    variant="secondary"
-                    onClick={() => crud.editPage(item.id)}
-                  >
-                    Edit
-                  </Button>
-
-                  <Button
-                    variant="danger"
-                    onClick={() => {
-                      setDeleteId(item.id)
-                      setOpenDelete(true)
-                    }}
-                  >
-                    Delete
-                  </Button>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          ))}
-
-        </div>
       </div>
 
       <Modal
@@ -186,7 +197,6 @@ export default function MaterialContents({
         onClose={() => crud.setOpen(false)}
         title="Add Content"
       >
-
         <div className="space-y-4">
 
           <InputField
@@ -200,7 +210,6 @@ export default function MaterialContents({
           </Button>
 
         </div>
-
       </Modal>
 
       <ConfirmationDelete
@@ -211,7 +220,6 @@ export default function MaterialContents({
         }}
         onConfirm={handleConfirmDelete}
       />
-
     </div>
   )
 }

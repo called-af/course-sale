@@ -147,6 +147,11 @@ Route::middleware(['auth', 'role'])->group(function () {
                     [MaterialContentController::class, 'destroy']
                 )->name('contents.destroy');
 
+                Route::put(
+                    '/modules/{module}/materials/{material}/contents/{content}/move',
+                    [MaterialContentController::class, 'move']
+                )->name('contents.move');
+
                 Route::get(
                     '/modules/{module}/materials/{material}/contents/{content}/edit',
                     [MaterialContentController::class, 'edit']

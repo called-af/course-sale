@@ -44,7 +44,7 @@ export default function MaterialsCrud({
           </h3>
 
           <Button onClick={crud.openCreate}>
-            Add
+            Add Materials
           </Button>
         </div>
 

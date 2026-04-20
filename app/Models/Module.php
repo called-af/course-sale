@@ -20,6 +20,7 @@ class Module extends Model
         'course_id',
         'title',
         'sort_order',
+        'status',
     ];
 
     /**

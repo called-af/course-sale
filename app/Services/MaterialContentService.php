@@ -23,7 +23,7 @@ class MaterialContentService
             return MaterialContent::create([
                 'material_id' => $material->id,
                 'title' => $data['title'],
-                'type' => 'text',
+                'type' => $data['type'] ?? 'text',
                 'sort_order' => $sortOrder,
             ]);
         });
@@ -33,15 +33,18 @@ class MaterialContentService
     {
         DB::transaction(function () use ($materialContent, $direction) {
 
+            $query = MaterialContent::where('material_id', $materialContent->material_id)
+                ->whereNotNull('sort_order');
+
             if ($direction === 'up') {
-                $swapWith = MaterialContent::where('material_id', $materialContent->material_id)
+                $swapWith = (clone $query)
                     ->where('sort_order', '<', $materialContent->sort_order)
                     ->orderByDesc('sort_order')
                     ->first();
             }
 
             if ($direction === 'down') {
-                $swapWith = MaterialContent::where('material_id', $materialContent->material_id)
+                $swapWith = (clone $query)
                     ->where('sort_order', '>', $materialContent->sort_order)
                     ->orderBy('sort_order')
                     ->first();
