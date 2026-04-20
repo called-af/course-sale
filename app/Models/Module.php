@@ -36,6 +36,21 @@ class Module extends Model
         ];
     }
 
+    public function isPublished(): bool
+    {
+        return $this->status === 'published';
+    }
+
+    public function isDraft(): bool
+    {
+        return $this->status === 'draft';
+    }
+
+    public function canBePublished(): bool
+    {
+        return $this->materials()->exists();
+    }
+
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);

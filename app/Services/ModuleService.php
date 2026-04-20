@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Models\Module;
+use DomainException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class ModuleService
 {
@@ -19,6 +21,7 @@ class ModuleService
                 'course_id' => $data['course_id'],
                 'title' => $data['title'],
                 'sort_order' => $data['sort_order'],
+                'status' => $data['status'] ?? 'draft',
             ]);
         });
     }
@@ -61,9 +64,25 @@ class ModuleService
     {
         return DB::transaction(function () use ($module, $data) {
 
+            if (($data['status'] ?? null) === 'published') {
+
+                if ($module->isPublished()) {
+                    throw new DomainException('Module sudah dipublish');
+                }
+
+                Gate::authorize('publish', $module);
+
+                if (! $module->canBePublished()) {
+                    throw new DomainException('Module belum lengkap untuk dipublish');
+                }
+
+                $data['published_at'] = now();
+            }
+
             $module->update([
                 'title' => $data['title'],
                 'sort_order' => $data['sort_order'] ?? $module->sort_order,
+                'status' => $data['status'] ?? $module->status,
             ]);
 
             return $module->fresh();

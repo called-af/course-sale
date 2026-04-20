@@ -1,114 +1,106 @@
-import { useState } from "react"
-import { router } from "@inertiajs/react"
-import { Module } from "@/types/modules"
+import { useState } from 'react';
+import { router } from '@inertiajs/react';
+import { Module } from '@/types/modules';
 
 export function useModules(courseSlug: string, modules: Module[]) {
-  const [open, setOpen] = useState(false)
-  const [editingModule, setEditingModule] = useState<Module | null>(null)
-  const [title, setTitle] = useState("")
+    const [open, setOpen] = useState(false);
+    const [editingModule, setEditingModule] = useState<Module | null>(null);
+    const [title, setTitle] = useState('');
+    const [status, setStatus] = useState<'draft' | 'published'>('draft');
 
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const [selectedModule, setSelectedModule] = useState<Module | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [selectedModule, setSelectedModule] = useState<Module | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
-  const [expandedModule, setExpandedModule] = useState<number | null>(null)
+    const [expandedModule, setExpandedModule] = useState<number | null>(null);
 
-  const sortedModules = [...modules].sort(
-    (a, b) => a.sort_order - b.sort_order
-  )
+    const sortedModules = [...modules].sort((a, b) => a.sort_order - b.sort_order);
 
-  function openCreateModal() {
-    setEditingModule(null)
-    setTitle("")
-    setOpen(true)
-  }
-
-  function openEditModal(module: Module) {
-    setEditingModule(module)
-    setTitle(module.title)
-    setOpen(true)
-  }
-
-  function handleSubmit() {
-    if (!title.trim()) return
-
-    if (editingModule) {
-      router.put(
-        `/admin/courses/${courseSlug}/modules/${editingModule.id}`,
-        { title },
-        { preserveScroll: true }
-      )
-    } else {
-      router.post(
-        `/admin/courses/${courseSlug}/modules`,
-        { title },
-        { preserveScroll: true }
-      )
+    function openCreateModal() {
+        setEditingModule(null);
+        setTitle('');
+        setStatus('draft');
+        setOpen(true);
     }
 
-    setOpen(false)
-  }
+    function openEditModal(module: Module) {
+        setEditingModule(module);
+        setTitle(module.title);
+        setStatus(module.status);
+        setOpen(true);
+    }
 
-  function openDeleteModal(module: Module) {
-    setSelectedModule(module)
-    setDeleteModalOpen(true)
-  }
+    function handleSubmit() {
+        if (!title.trim()) return;
 
-  function handleConfirmDelete() {
-    if (!selectedModule) return
+        const payload = {
+            title,
+            status,
+        };
 
-    setIsDeleting(true)
-
-    router.delete(
-      `/admin/courses/${courseSlug}/modules/${selectedModule.id}`,
-      {
-        preserveScroll: true,
-        onFinish: () => {
-          setIsDeleting(false)
-          setDeleteModalOpen(false)
-          setSelectedModule(null)
+        if (editingModule) {
+            router.put(`/admin/courses/${courseSlug}/modules/${editingModule.id}`, payload, { preserveScroll: true });
+        } else {
+            router.post(`/admin/courses/${courseSlug}/modules`, payload, { preserveScroll: true });
         }
-      }
-    )
-  }
 
-  function moveModule(module: Module, direction: "up" | "down") {
-    router.put(
-      `/admin/courses/${courseSlug}/modules/${module.id}/move`,
-      { direction },
-      { preserveScroll: true }
-    )
-  }
+        setOpen(false);
+    }
 
-  function toggleExpand(moduleId: number | string) {
-    const id = Number(moduleId)
+    function openDeleteModal(module: Module) {
+        setSelectedModule(module);
+        setDeleteModalOpen(true);
+    }
 
-    setExpandedModule(prev =>
-      prev === id ? null : id
-    )
-  }
+    function handleConfirmDelete() {
+        if (!selectedModule) return;
 
-  return {
-    open,
-    setOpen,
-    editingModule,
-    title,
-    setTitle,
+        setIsDeleting(true);
 
-    deleteModalOpen,
-    setDeleteModalOpen,
-    selectedModule,
-    isDeleting,
+        router.delete(`/admin/courses/${courseSlug}/modules/${selectedModule.id}`, {
+            preserveScroll: true,
+            onFinish: () => {
+                setIsDeleting(false);
+                setDeleteModalOpen(false);
+                setSelectedModule(null);
+            },
+        });
+    }
 
-    sortedModules,
-    expandedModule,
+    function moveModule(module: Module, direction: 'up' | 'down') {
+        router.put(`/admin/courses/${courseSlug}/modules/${module.id}/move`, { direction }, { preserveScroll: true });
+    }
 
-    openCreateModal,
-    openEditModal,
-    handleSubmit,
-    openDeleteModal,
-    handleConfirmDelete,
-    moveModule,
-    toggleExpand,
-  }
+    function toggleExpand(moduleId: number | string) {
+        const id = Number(moduleId);
+
+        setExpandedModule((prev) => (prev === id ? null : id));
+    }
+
+    return {
+        open,
+        setOpen,
+        editingModule,
+        title,
+        setTitle,
+
+        status,
+        setStatus,
+
+        deleteModalOpen,
+        setDeleteModalOpen,
+        selectedModule,
+        isDeleting,
+
+        sortedModules,
+        expandedModule,
+
+        openCreateModal,
+        openEditModal,
+        handleSubmit,
+        openDeleteModal,
+        handleConfirmDelete,
+        moveModule,
+        toggleExpand,
+    };
 }

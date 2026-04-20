@@ -8,7 +8,6 @@ use App\Http\Requests\Module\UpdateModuleRequest;
 use App\Models\Course;
 use App\Models\Module;
 use App\Services\ModuleService;
-use Inertia\Inertia;
 
 class ModuleController extends Controller
 {
@@ -18,6 +17,8 @@ class ModuleController extends Controller
 
     public function store(StoreModuleRequest $request, Course $course)
     {
+        $this->authorize('create', Module::class);
+
         $this->moduleService->create([
             ...$request->validated(),
             'course_id' => $course->id,
@@ -43,6 +44,8 @@ class ModuleController extends Controller
     {
         abort_if($module->course_id !== $course->id, 404);
 
+        $this->authorize('update', $module);
+
         $this->moduleService->update($module, $request->validated());
 
         return back()->with('success', 'Module updated');
@@ -51,6 +54,8 @@ class ModuleController extends Controller
     public function destroy(Course $course, Module $module)
     {
         abort_if($module->course_id !== $course->id, 404);
+
+        $this->authorize('delete', $module);
 
         $this->moduleService->delete($module);
 

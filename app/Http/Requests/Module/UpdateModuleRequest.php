@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Module;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateModuleRequest extends FormRequest
 {
@@ -24,6 +25,10 @@ class UpdateModuleRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'sort_order' => ['nullable', 'integer', 'min:1'],
+            'status' => ['sometimes', Rule::in([
+                'draft',
+                'published',
+            ])],
         ];
     }
 }

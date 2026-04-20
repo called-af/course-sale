@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Material;
 use App\Models\MaterialContent;
+use DomainException;
 use Illuminate\Support\Facades\DB;
 
 class MaterialContentService
@@ -25,6 +26,7 @@ class MaterialContentService
                 'title' => $data['title'],
                 'type' => $data['type'] ?? 'text',
                 'sort_order' => $sortOrder,
+                'status' => $data['status'] ?? 'draft',
             ]);
         });
     }
@@ -70,7 +72,30 @@ class MaterialContentService
     {
         return DB::transaction(function () use ($content, $data) {
 
-            $content->update($data);
+            $isPublishing = ($data['status'] ?? null) === 'published';
+
+            $contentUrl = $data['content_url'] ?? $content->content_url;
+            $contentText = $data['content_text'] ?? $content->content_text;
+
+            if ($isPublishing) {
+
+                if ($content->status === 'published') {
+                    throw new DomainException('Sudah publish');
+                }
+
+                if (empty($contentUrl) && empty($contentText)) {
+                    throw new DomainException('Konten belum lengkap');
+                }
+            }
+
+            $content->update([
+                'title' => $data['title'] ?? $content->title,
+                'type' => $data['type'] ?? $content->type,
+                'content_url' => $contentUrl,
+                'content_text' => $contentText,
+                'duration' => $data['duration'] ?? $content->duration,
+                'status' => $data['status'] ?? $content->status,
+            ]);
 
             return $content->refresh();
         });

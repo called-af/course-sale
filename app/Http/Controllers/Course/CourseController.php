@@ -56,7 +56,7 @@ class CourseController extends Controller
                     'categories:id,name',
                     'modules' => function ($moduleQuery) {
                         $moduleQuery
-                            ->select('id', 'course_id', 'title', 'sort_order')
+                            ->select('id', 'course_id', 'title', 'sort_order', 'status')
                             ->orderBy('sort_order')
                             ->with([
                                 'materials' => function ($materialQuery) {

@@ -5,6 +5,7 @@ import SlateEditor from "@/components/molecules/SlateEditor"
 import SlatePreview from "@/components/molecules/SlatePreview"
 import { useMaterialContents } from "@/hooks/useMaterialContents"
 import { MaterialContent } from "@/types"
+import SelectField from "@/components/molecules/SelectField"
 
 type ContentType = MaterialContent["type"]
 
@@ -13,41 +14,41 @@ const TYPES: {
   label: string
   desc: string
 }[] = [
-  { value: "text",  label: "Teks",       desc: "Rich text" },
-  { value: "video", label: "Video",      desc: "URL video" },
-  { value: "file",  label: "File",       desc: "Dokumen" },
-  { value: "ppt",   label: "Presentasi", desc: "PowerPoint" },
-  { value: "quiz",  label: "Quiz",       desc: "Dengan timer" },
-]
+    { value: "text", label: "Teks", desc: "Rich text" },
+    { value: "video", label: "Video", desc: "URL video" },
+    { value: "file", label: "File", desc: "Dokumen" },
+    { value: "ppt", label: "Presentasi", desc: "PowerPoint" },
+    { value: "quiz", label: "Quiz", desc: "Dengan timer" },
+  ]
 
 const URL_PLACEHOLDER: Partial<Record<ContentType, string>> = {
   video: "https://youtube.com/watch?v=...",
-  file:  "https://drive.google.com/...",
-  ppt:   "https://docs.google.com/presentation/...",
+  file: "https://drive.google.com/...",
+  ppt: "https://docs.google.com/presentation/...",
 }
 
 const URL_LABEL: Partial<Record<ContentType, string>> = {
   video: "Video URL",
-  file:  "File URL",
-  ppt:   "Presentasi URL",
+  file: "File URL",
+  ppt: "Presentasi URL",
 }
 
 function formatDate(iso?: string) {
   if (!iso) return null
   return new Intl.DateTimeFormat("id-ID", {
-    day:    "numeric",
-    month:  "short",
-    year:   "numeric",
-    hour:   "2-digit",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(iso))
 }
 
 interface Props {
   courseSlug: string
-  moduleId:   number
+  moduleId: number
   materialId: number
-  content:    MaterialContent
+  content: MaterialContent
 }
 
 export default function EditMaterialContent({
@@ -78,6 +79,17 @@ export default function EditMaterialContent({
         onChange={(e) => form.setTitle(e.target.value)}
         placeholder="Masukkan judul konten..."
       />
+      <SelectField
+        label="Status"
+        value={form.status}
+        onChange={(e) =>
+          form.setStatus(e.target.value as "draft" | "published")
+        }
+        options={[
+          { label: "Draft", value: "draft" },
+          { label: "Published", value: "published" },
+        ]}
+      />
 
       <div>
         <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
@@ -92,10 +104,9 @@ export default function EditMaterialContent({
                 if (t.value !== "quiz") form.setDuration("")
               }}
               className={`flex flex-col items-center gap-1.5 p-3 border-2 transition-all text-center
-                ${
-                  form.type === t.value
-                    ? "border-violet-500 bg-violet-50 text-violet-700 shadow-sm"
-                    : "border-gray-100 bg-white text-gray-500 hover:border-gray-200 hover:bg-gray-50"
+                ${form.type === t.value
+                  ? "border-violet-500 bg-violet-50 text-violet-700 shadow-sm"
+                  : "border-gray-100 bg-white text-gray-500 hover:border-gray-200 hover:bg-gray-50"
                 }
               `}
             >

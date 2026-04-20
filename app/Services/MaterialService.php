@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\Material;
 use App\Models\Module;
+use DomainException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class MaterialService
 {
@@ -20,6 +22,7 @@ class MaterialService
                 'title' => $data['title'],
                 'description' => null,
                 'sort_order' => $sortOrder,
+                'status' => $data['status'] ?? 'draft',
             ]);
         });
     }
@@ -28,7 +31,26 @@ class MaterialService
     {
         return DB::transaction(function () use ($material, $data) {
 
-            $material->update($data);
+            if (($data['status'] ?? null) === 'published') {
+
+                if ($material->isPublished()) {
+                    throw new DomainException('Material sudah dipublish');
+                }
+
+                Gate::authorize('publish', $material);
+
+                if (! $material->canBePublished()) {
+                    throw new DomainException('Material belum lengkap untuk dipublish');
+                }
+
+                $data['published_at'] = now();
+            }
+
+            $material->update([
+                'title' => $data['title'],
+                'description' => $data['description'] ?? $material->description,
+                'status' => $data['status'] ?? $material->status,
+            ]);
 
             return $material->refresh();
         });
@@ -93,6 +115,7 @@ class MaterialService
                 'module_id' => $module->id,
                 'title' => $data['title'],
                 'sort_order' => $sortOrder,
+                'status' => $data['status'] ?? 'draft',
             ]);
         });
     }

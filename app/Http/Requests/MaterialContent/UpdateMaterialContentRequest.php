@@ -31,6 +31,8 @@ class UpdateMaterialContentRequest extends FormRequest
                 Rule::in(['video', 'text', 'quiz', 'file', 'ppt']),
             ],
 
+            'status' => ['sometimes', 'in:draft,published'],
+
             'content_url' => ['nullable', 'string'],
             'content_text' => ['nullable', 'array'],
             'duration' => ['nullable', 'integer', 'min:1'],

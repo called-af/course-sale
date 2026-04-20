@@ -23,6 +23,7 @@ class MaterialContent extends Model
         'content_text',
         'duration',
         'sort_order',
+        'status'
     ];
 
     /**

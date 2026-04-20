@@ -25,6 +25,7 @@ class UpdateMaterialRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'sort_order' => ['nullable', 'integer', 'min:1'],
             'description' => ['nullable', 'string'],
+            'status' => ['required', 'in:draft,published'],
         ];
     }
 }

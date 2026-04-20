@@ -8,6 +8,7 @@ import InputField from "@/components/molecules/InputField"
 import TextAreaField from "@/components/molecules/TextAreaField"
 import { SetStateAction } from "react"
 import { ArrowUp, ArrowDown } from "lucide-react"
+import SelectField from "@/components/molecules/SelectField"
 
 interface Props {
   courseSlug: string
@@ -145,6 +146,14 @@ export default function MaterialContents({
                       <span className="ml-2 text-neutral-400">
                         ({item.type})
                       </span>
+                      <span
+                        className={`ml-2 text-[10px] px-2 py-0.5 rounded ${item.status === "published"
+                            ? "bg-green-100 text-green-600"
+                            : "bg-yellow-100 text-yellow-600"
+                          }`}
+                      >
+                        {item.status}
+                      </span>
                     </div>
 
                     <div className="flex gap-1">
@@ -203,6 +212,18 @@ export default function MaterialContents({
             label="Title"
             value={crud.title}
             onChange={e => crud.setTitle(e.target.value)}
+          />
+
+          <SelectField
+            label="Status"
+            value={crud.status}
+            onChange={(e) =>
+              crud.setStatus(e.target.value as "draft" | "published")
+            }
+            options={[
+              { label: "Draft", value: "draft" },
+              { label: "Published", value: "published" },
+            ]}
           />
 
           <Button onClick={crud.create}>

@@ -6,6 +6,7 @@ import MaterialsCrud from "./MaterialsCrud"
 import Modal from "@/components/atoms/Modal"
 import Button from "@/components/atoms/Button"
 import InputField from "@/components/molecules/InputField"
+import SelectField from "@/components/molecules/SelectField"
 import ConfirmationDelete from "@/components/molecules/ConfirmationDelete"
 import Title from "@/components/atoms/Title"
 
@@ -63,9 +64,20 @@ export default function ModulesTree({ course, modules }: Props) {
                         <ChevronRight className="w-4 h-4" />
                       )}
 
-                      <span>
-                        {index + 1}. {module.title}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span>
+                          {index + 1}. {module.title}
+                        </span>
+
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded ${module.status === "published"
+                            ? "bg-green-100 text-green-600"
+                            : "bg-yellow-100 text-yellow-600"
+                            }`}
+                        >
+                          {module.status}
+                        </span>
+                      </div>
                     </div>
 
                     <div
@@ -148,6 +160,17 @@ export default function ModulesTree({ course, modules }: Props) {
           label="Module Title"
           value={crud.title}
           onChange={(e) => crud.setTitle(e.target.value)}
+        />
+        <SelectField
+          label="Status"
+          value={crud.status}
+          onChange={(e) =>
+            crud.setStatus(e.target.value as "draft" | "published")
+          }
+          options={[
+            { label: "Draft", value: "draft" },
+            { label: "Published", value: "published" },
+          ]}
         />
       </Modal>
 

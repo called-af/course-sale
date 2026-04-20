@@ -2,136 +2,129 @@ import { useState, useMemo, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 import { MaterialContent } from '@/types';
 
-export function useMaterialContents(
-  courseSlug: string,
-  moduleId: number,
-  materialId: number,
-  contents: MaterialContent[],
-  editId?: number | null
-) {
-  const baseUrl = `/admin/courses/${courseSlug}/modules/${moduleId}/materials/${materialId}/contents`;
+export function useMaterialContents(courseSlug: string, moduleId: number, materialId: number, contents: MaterialContent[], editId?: number | null) {
+    const baseUrl = `/admin/courses/${courseSlug}/modules/${moduleId}/materials/${materialId}/contents`;
 
-  const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(false);
 
-  const [title, setTitle] = useState('');
-  const [type, setType] = useState<MaterialContent['type']>('text');
-  const [contentUrl, setContentUrl] = useState('');
-  const [contentText, setContentText] = useState<any>([]);
-  const [duration, setDuration] = useState<number | ''>('');
+    const [title, setTitle] = useState('');
+    const [type, setType] = useState<MaterialContent['type']>('text');
+    const [status, setStatus] = useState<'draft' | 'published'>('draft');
+    const [contentUrl, setContentUrl] = useState('');
+    const [contentText, setContentText] = useState<any>([]);
+    const [duration, setDuration] = useState<number | ''>('');
 
-  // ✅ SORTED CONTENTS (FIX)
-  const sortedContents = useMemo(() => {
-    return [...contents].sort((a, b) => a.sort_order - b.sort_order);
-  }, [contents]);
+    const sortedContents = useMemo(() => {
+        return [...contents].sort((a, b) => a.sort_order - b.sort_order);
+    }, [contents]);
 
-  // ✅ EDITING DATA
-  const editing = useMemo(() => {
-    if (!editId) return null;
-    return contents.find((c) => c.id === editId) ?? null;
-  }, [editId, contents]);
+    const editing = useMemo(() => {
+        if (!editId) return null;
+        return contents.find((c) => c.id === editId) ?? null;
+    }, [editId, contents]);
 
-  useEffect(() => {
-    if (!editing) return;
+    useEffect(() => {
+        if (!editing) return;
 
-    setTitle(editing.title);
-    setType(editing.type);
-    setContentUrl(editing.content_url ?? '');
-    setContentText(editing.content_text ?? []);
-    setDuration(editing.duration ?? '');
-  }, [editing]);
+        setTitle(editing.title);
+        setType(editing.type);
+        setContentUrl(editing.content_url ?? '');
+        setContentText(editing.content_text ?? []);
+        setStatus(editing.status);
+        setDuration(editing.duration ?? '');
+    }, [editing]);
 
-  function reset() {
-    setTitle('');
-    setType('text');
-    setContentUrl('');
-    setContentText([]);
-    setDuration('');
-  }
+    function reset() {
+        setTitle('');
+        setType('text');
+        setContentUrl('');
+        setContentText([]);
+        setDuration('');
+        setStatus('draft');
+    }
 
-  function openCreate() {
-    reset();
-    setOpen(true);
-  }
+    function openCreate() {
+        reset();
+        setOpen(true);
+    }
 
-  function create() {
-    if (!title.trim()) return;
+    function create() {
+        if (!title.trim()) return;
 
-    router.post(
-      baseUrl,
-      {
+        router.post(
+            baseUrl,
+            {
+                title,
+                type,
+                content_url: contentUrl || null,
+                content_text: contentText || null,
+                duration: duration || null,
+                status,
+            },
+            {
+                onSuccess: () => setOpen(false),
+            },
+        );
+    }
+
+    function update() {
+        if (!editing) return;
+
+        router.put(`${baseUrl}/${editing.id}`, {
+            title,
+            type,
+            content_url: contentUrl || null,
+            content_text: contentText || null,
+            duration: duration || null,
+            status,
+        });
+    }
+
+    function destroy(id: number) {
+        router.delete(`${baseUrl}/${id}`, {
+            preserveScroll: true,
+        });
+    }
+
+    function editPage(id: number) {
+        router.get(`${baseUrl}/${id}/edit`);
+    }
+
+    function moveContent(content: MaterialContent, direction: 'up' | 'down') {
+        router.put(`${baseUrl}/${content.id}/move`, { direction }, { preserveScroll: true });
+    }
+
+    return {
+        open,
+        setOpen,
+
         title,
+        setTitle,
+
         type,
-        content_url: contentUrl || null,
-        content_text: contentText || null,
-        duration: duration || null,
-      },
-      {
-        onSuccess: () => setOpen(false),
-      }
-    );
-  }
+        setType,
 
-  function update() {
-    if (!editing) return;
+        contentUrl,
+        setContentUrl,
 
-    router.put(`${baseUrl}/${editing.id}`, {
-      title,
-      type,
-      content_url: contentUrl || null,
-      content_text: contentText || null,
-      duration: duration || null,
-    });
-  }
+        contentText,
+        setContentText,
 
-  function destroy(id: number) {
-    router.delete(`${baseUrl}/${id}`, {
-      preserveScroll: true,
-    });
-  }
+        status,
+        setStatus,
 
-  function editPage(id: number) {
-    router.get(`${baseUrl}/${id}/edit`);
-  }
+        duration,
+        setDuration,
 
-  function moveContent(
-    content: MaterialContent,
-    direction: 'up' | 'down'
-  ) {
-    router.put(
-      `${baseUrl}/${content.id}/move`,
-      { direction },
-      { preserveScroll: true }
-    );
-  }
+        sortedContents,
+        editing,
 
-  return {
-    open,
-    setOpen,
+        openCreate,
+        create,
+        update,
+        destroy,
+        editPage,
 
-    title,
-    setTitle,
-
-    type,
-    setType,
-
-    contentUrl,
-    setContentUrl,
-
-    contentText,
-    setContentText,
-
-    duration,
-    setDuration,
-
-    sortedContents, // ✅ pakai ini di UI
-    editing,
-
-    openCreate,
-    create,
-    update,
-    destroy,
-    editPage,
-
-    moveContent, // ✅ fitur baru
-  };
+        moveContent,
+    };
 }

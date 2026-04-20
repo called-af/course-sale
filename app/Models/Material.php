@@ -21,6 +21,7 @@ class Material extends Model
         'title',
         'description',
         'sort_order',
+        'status',
     ];
 
     /**
@@ -34,6 +35,21 @@ class Material extends Model
             'id' => 'integer',
             'module_id' => 'integer',
         ];
+    }
+
+    public function isPublished(): bool
+    {
+        return $this->status === 'published';
+    }
+
+    public function isDraft(): bool
+    {
+        return $this->status === 'draft';
+    }
+
+    public function canBePublished(): bool
+    {
+        return $this->contents()->exists();
     }
 
     public function module(): BelongsTo

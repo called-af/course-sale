@@ -11,6 +11,7 @@ import { Material } from "@/types"
 import Modal from "@/components/atoms/Modal"
 import Button from "@/components/atoms/Button"
 import InputField from "@/components/molecules/InputField"
+import SelectField from "@/components/molecules/SelectField"
 import TextAreaField from "@/components/molecules/TextAreaField"
 import ConfirmationDelete from "@/components/molecules/ConfirmationDelete"
 import MaterialContents from "./MaterialContents"
@@ -77,9 +78,20 @@ export default function MaterialsCrud({
                         <ChevronRight className="w-4 h-4" />
                       )}
 
-                      <span>
-                        {index + 1}. {material.title}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span>
+                          {index + 1}. {material.title}
+                        </span>
+
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded ${material.status === "published"
+                              ? "bg-green-100 text-green-600"
+                              : "bg-yellow-100 text-yellow-600"
+                            }`}
+                        >
+                          {material.status}
+                        </span>
+                      </div>
                     </div>
 
                     <div
@@ -160,6 +172,18 @@ export default function MaterialsCrud({
               onChange={(e: { target: { value: SetStateAction<string> } }) => crud.setDescription(e.target.value)}
             />
           )}
+
+          <SelectField
+            label="Status"
+            value={crud.status}
+            onChange={(e) =>
+              crud.setStatus(e.target.value as "draft" | "published")
+            }
+            options={[
+              { label: "Draft", value: "draft" },
+              { label: "Published", value: "published" },
+            ]}
+          />
 
           <Button onClick={crud.submit}>
             {crud.editing ? "Update" : "Create"}

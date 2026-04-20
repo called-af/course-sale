@@ -7,6 +7,7 @@ export interface MaterialContent {
   content_text?: JSON | null
   duration?: number | null
   sort_order: number
+  status: "draft" | "published"
 
   created_at?: string
   updated_at?: string

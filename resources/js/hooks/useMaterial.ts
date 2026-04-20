@@ -1,122 +1,117 @@
-import { useState } from "react"
-import { router } from "@inertiajs/react"
-import { Material } from "@/types"
+import { useState } from 'react';
+import { router } from '@inertiajs/react';
+import { Material } from '@/types';
 
-export function useMaterials(
-  courseSlug: string,
-  moduleId: number,
-  materials: Material[]
-) {
-  const [open, setOpen] = useState(false)
-  const [editing, setEditing] = useState<Material | null>(null)
+export function useMaterials(courseSlug: string, moduleId: number, materials: Material[]) {
+    const [open, setOpen] = useState(false);
+    const [editing, setEditing] = useState<Material | null>(null);
 
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
 
-  const [deleteOpen, setDeleteOpen] = useState(false)
-  const [selected, setSelected] = useState<Material | null>(null)
-  const [loadingDelete, setLoadingDelete] = useState(false)
+    const [status, setStatus] = useState<'draft' | 'published'>('draft');
 
-  const baseUrl = `/admin/courses/${courseSlug}/modules/${moduleId}/materials`
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [selected, setSelected] = useState<Material | null>(null);
+    const [loadingDelete, setLoadingDelete] = useState(false);
 
-  const sortedMaterials = [...materials].sort(
-    (a, b) => a.sort_order - b.sort_order
-  )
+    const baseUrl = `/admin/courses/${courseSlug}/modules/${moduleId}/materials`;
 
-  function reset() {
-    setTitle("")
-    setDescription("")
-  }
+    const sortedMaterials = [...materials].sort((a, b) => a.sort_order - b.sort_order);
 
-  function openCreate() {
-    setEditing(null)
-    reset()
-    setOpen(true)
-  }
-
-  function openEdit(material: Material) {
-    setEditing(material)
-    setTitle(material.title)
-    setDescription(material.description ?? "")
-    setOpen(true)
-  }
-
-  function submit() {
-    if (!title.trim()) return
-
-    const data = {
-      title,
-      description,
+    function reset() {
+        setTitle('');
+        setDescription('');
+        setStatus('draft');
     }
 
-    if (editing) {
-      router.put(`${baseUrl}/${editing.id}`, data, {
-        preserveScroll: true,
-        onSuccess: () => setOpen(false),
-      })
-    } else {
-      router.post(baseUrl, data, {
-        preserveScroll: true,
-        onSuccess: () => setOpen(false),
-      })
+    function openCreate() {
+        setEditing(null);
+        reset();
+        setOpen(true);
     }
-  }
 
-  function openDelete(material: Material) {
-    setSelected(material)
-    setDeleteOpen(true)
-  }
+    function openEdit(material: Material) {
+        setEditing(material);
+        setTitle(material.title);
+        setDescription(material.description ?? '');
+        setStatus(material.status);
+        setOpen(true);
+    }
 
-  function confirmDelete() {
-    if (!selected) return
+    function submit() {
+        if (!title.trim()) return;
 
-    setLoadingDelete(true)
+        const data = {
+            title,
+            description,
+            status,
+        };
 
-    router.delete(`${baseUrl}/${selected.id}`, {
-      preserveScroll: true,
-      onFinish: () => {
-        setLoadingDelete(false)
-        setDeleteOpen(false)
-        setSelected(null)
-      },
-    })
-  }
+        if (editing) {
+            router.put(`${baseUrl}/${editing.id}`, data, {
+                preserveScroll: true,
+                onSuccess: () => setOpen(false),
+            });
+        } else {
+            router.post(baseUrl, data, {
+                preserveScroll: true,
+                onSuccess: () => setOpen(false),
+            });
+        }
+    }
 
-  function moveMaterial(
-    material: Material,
-    direction: "up" | "down"
-  ) {
-    router.put(
-      `${baseUrl}/${material.id}/move`,
-      { direction },
-      { preserveScroll: true }
-    )
-  }
+    function openDelete(material: Material) {
+        setSelected(material);
+        setDeleteOpen(true);
+    }
 
-  return {
-    open,
-    setOpen,
-    editing,
+    function confirmDelete() {
+        if (!selected) return;
 
-    title,
-    setTitle,
+        setLoadingDelete(true);
 
-    description,
-    setDescription,
+        router.delete(`${baseUrl}/${selected.id}`, {
+            preserveScroll: true,
+            onFinish: () => {
+                setLoadingDelete(false);
+                setDeleteOpen(false);
+                setSelected(null);
+            },
+        });
+    }
 
-    deleteOpen,
-    setDeleteOpen,
-    selected,
-    loadingDelete,
+    function moveMaterial(material: Material, direction: 'up' | 'down') {
+        router.put(`${baseUrl}/${material.id}/move`, { direction }, { preserveScroll: true });
+    }
 
-    sortedMaterials,
+    return {
+        open,
+        setOpen,
+        editing,
 
-    openCreate,
-    openEdit,
-    submit,
-    openDelete,
-    confirmDelete,
+        title,
+        setTitle,
 
-    moveMaterial,
-  }
+        description,
+        setDescription,
+
+        status,
+        setStatus,
+
+        deleteOpen,
+        setDeleteOpen,
+        selected,
+        loadingDelete,
+
+        sortedMaterials,
+
+        openCreate,
+        openEdit,
+        submit,
+        openDelete,
+        confirmDelete,
+
+        moveMaterial,
+    };
 }

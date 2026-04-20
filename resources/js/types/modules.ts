@@ -5,6 +5,7 @@ export interface Module {
   course_id: number
   title: string
   sort_order: number
+  status: "draft" | "published"
 
   course: {
     slug: string
