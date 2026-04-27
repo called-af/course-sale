@@ -8,11 +8,12 @@ import MultiSelectField from "@/components/molecules/MultiSelectField"
 import ChooseFile from "@/components/molecules/ChooseFile"
 
 import BreadCrumb from "@/components/atoms/BreadCrumb"
-import ModulesTree from "@/components/organism/Course/ModulesTree"
+import CourseStructure from "@/components/organism/Course/CourseStructure"
 
 import { Course } from "@/types"
 import { useCourse } from "@/hooks/useCourse"
 import { Head } from "@inertiajs/react"
+import Title from "@/components/atoms/Title"
 
 interface CourseSlugProps {
   course: Course
@@ -148,7 +149,7 @@ export default function CourseSlug({ course, categories }: CourseSlugProps) {
           </div>
         </div>
 
-        <ModulesTree
+        <CourseStructure
           course={course}
           modules={course.modules ?? []}
         />
