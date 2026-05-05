@@ -71,6 +71,12 @@ class MaterialContentController extends Controller
                 'contents',
             ]),
             'editContentId' => $content->id,
+            'quizQuestions' => $content->type === 'quiz'
+                ? \App\Models\QuizQuestion::with('quizOptions')
+                    ->where('material_content_id', $content->id)
+                    ->orderBy('sort_order')
+                    ->get()
+                : [],
         ]);
     }
 

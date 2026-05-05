@@ -78,12 +78,13 @@ class MaterialContentService
             $contentText = $data['content_text'] ?? $content->content_text;
 
             if ($isPublishing) {
-
                 if ($content->status === 'published') {
                     throw new DomainException('Sudah publish');
                 }
 
-                if (empty($contentUrl) && empty($contentText)) {
+                $isQuiz = ($data['type'] ?? $content->type) === 'quiz';
+
+                if (! $isQuiz && empty($contentUrl) && empty($contentText)) {
                     throw new DomainException('Konten belum lengkap');
                 }
             }

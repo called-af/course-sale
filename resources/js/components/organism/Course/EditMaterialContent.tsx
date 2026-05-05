@@ -6,6 +6,7 @@ import SlatePreview from "@/components/molecules/SlatePreview"
 import { useMaterialContents } from "@/hooks/useMaterialContents"
 import { MaterialContent } from "@/types"
 import SelectField from "@/components/molecules/SelectField"
+import QuizBuilder from "@/components/organism/Course/QuizBuilder"
 
 type ContentType = MaterialContent["type"]
 
@@ -143,19 +144,36 @@ export default function EditMaterialContent({
       )}
 
       {form.type === "quiz" && (
-        <div className="flex items-end gap-3">
-          <div className="w-36">
-            <InputField
-              label="Durasi Quiz"
-              name="duration"
-              type="number"
-              min={1}
-              value={form.duration}
-              onChange={(e) => form.setDuration(Number(e.target.value))}
-              placeholder="30"
-            />
+        <div className="space-y-6">
+          <div className="flex items-end gap-3">
+            <div className="w-36">
+              <InputField
+                label="Durasi Quiz"
+                name="duration"
+                type="number"
+                min={1}
+                value={form.duration}
+                onChange={(e) => form.setDuration(Number(e.target.value))}
+                placeholder="30"
+              />
+            </div>
+            <span className="pb-2 text-sm text-gray-500">menit</span>
           </div>
-          <span className="pb-2 text-sm text-gray-500">menit</span>
+
+          <div className="border-t border-gray-100" />
+
+          {content.id ? (
+            <QuizBuilder
+              courseSlug={courseSlug}
+              moduleId={moduleId}
+              materialId={materialId}
+              contentId={content.id}
+            />
+          ) : (
+            <div className="px-4 py-5 bg-amber-50 border border-amber-200 text-sm text-amber-700">
+              Simpan konten terlebih dahulu sebelum menambahkan soal quiz.
+            </div>
+          )}
         </div>
       )}
 

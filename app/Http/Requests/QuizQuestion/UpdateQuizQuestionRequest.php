@@ -6,19 +6,11 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateQuizQuestionRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
@@ -28,14 +20,30 @@ class UpdateQuizQuestionRequest extends FormRequest
 
             'questions.*.id' => 'nullable|exists:quiz_questions,id',
             'questions.*.question' => 'required|string',
+            'questions.*.image' => 'nullable|image|max:2048',
             'questions.*.type' => 'required|in:multiple_choice,essay',
             'questions.*.sort_order' => 'nullable|integer',
 
-            'questions.*.options' => 'array',
+            'questions.*.options' => [
+                'required_if:questions.*.type,multiple_choice',
+                'prohibited_if:questions.*.type,essay',
+                'array',
+                'min:2',
+            ],
 
             'questions.*.options.*.id' => 'nullable|exists:quiz_options,id',
-            'questions.*.options.*.option_text' => 'required|string',
-            'questions.*.options.*.is_correct' => 'required|boolean',
+            'questions.*.options.*.option_text' => 'required_if:questions.*.type,multiple_choice|string',
+            'questions.*.options.*.is_correct' => 'required_if:questions.*.type,multiple_choice|boolean',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'questions.*.options.required_if' => 'Options wajib diisi untuk soal pilihan ganda.',
+            'questions.*.options.prohibited_if' => 'Soal essay tidak boleh memiliki options.',
+            'questions.*.options.min' => 'Soal pilihan ganda minimal memiliki 2 pilihan jawaban.',
+            'questions.*.options.*.is_correct.required_if' => 'Setiap option harus ditandai benar atau salah.',
         ];
     }
 }

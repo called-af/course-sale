@@ -9,6 +9,7 @@ use App\Http\Controllers\Course\ModuleController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\Course\QuizController;
 use App\Models\Course;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -156,6 +157,33 @@ Route::middleware(['auth', 'role'])->group(function () {
                     '/modules/{module}/materials/{material}/contents/{content}/edit',
                     [MaterialContentController::class, 'edit']
                 )->name('contents.edit');
+
+                // Letakkan setelah route contents.move yang sudah ada
+
+                /*
+                |--------------------------------------------------------------------------
+                | QUIZ QUESTIONS (nested under content)
+                |--------------------------------------------------------------------------
+                */
+                Route::get(
+                    '/modules/{module}/materials/{material}/contents/{content}/quiz-questions',
+                    [QuizController::class, 'index']
+                )->name('contents.quiz.index');
+
+                Route::post(
+                    '/modules/{module}/materials/{material}/contents/{content}/quiz-questions',
+                    [QuizController::class, 'store']
+                )->name('contents.quiz.store');
+
+                Route::put(
+                    '/modules/{module}/materials/{material}/contents/{content}/quiz-questions',
+                    [QuizController::class, 'update']
+                )->name('contents.quiz.update');
+
+                Route::delete(
+                    '/modules/{module}/materials/{material}/contents/{content}/quiz-questions/{quizQuestion}',
+                    [QuizController::class, 'destroy']
+                )->name('contents.quiz.destroy');
             });
 
             Route::get('/categories', fn () => Inertia::render('admin/category/page', [

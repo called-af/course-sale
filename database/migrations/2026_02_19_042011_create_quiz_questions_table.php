@@ -17,7 +17,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('material_content_id')->constrained();
             $table->text('question');
-            $table->text('image');
+            $table->enum('type', ['multiple_choice', 'essay'])->default('multiple_choice');
+            $table->text('image')->nullable();
             $table->integer('sort_order');
             $table->timestamps();
         });
