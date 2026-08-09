@@ -6,43 +6,41 @@ import {
   FileText, Video, HelpCircle, File, Presentation,
 } from "lucide-react"
 
-import { Module }                    from "@/types/modules"
+import { Module } from "@/types/modules"
 import { Material, MaterialContent } from "@/types"
 
-import { useModules }          from "@/hooks/useModules"
-import { useMaterials }        from "@/hooks/useMaterial"
+import { useModules } from "@/hooks/useModules"
+import { useMaterials } from "@/hooks/useMaterial"
 import { useMaterialContents } from "@/hooks/useMaterialContents"
 
-import Modal              from "@/components/atoms/Modal"
-import Button             from "@/components/atoms/Button"
-import Title              from "@/components/atoms/Title"
-import InputField         from "@/components/molecules/InputField"
-import TextAreaField      from "@/components/molecules/TextAreaField"
-import SelectField        from "@/components/molecules/SelectField"
+import Modal from "@/components/atoms/Modal"
+import Button from "@/components/atoms/Button"
+import Title from "@/components/atoms/Title"
+import InputField from "@/components/molecules/InputField"
+import TextAreaField from "@/components/molecules/TextAreaField"
+import SelectField from "@/components/molecules/SelectField"
 import ConfirmationDelete from "@/components/molecules/ConfirmationDelete"
 
-/* ── Content type config ─────────────────────────────────── */
+/* Content type config */
 const TYPE_META: Record<string, { label: string; icon: typeof Video; cls: string }> = {
-  video: { label: "Video", icon: Video,        cls: "text-violet-500" },
-  text:  { label: "Text",  icon: FileText,     cls: "text-blue-500" },
-  quiz:  { label: "Quiz",  icon: HelpCircle,   cls: "text-amber-500" },
-  file:  { label: "File",  icon: File,         cls: "text-neutral-400" },
-  ppt:   { label: "PPT",   icon: Presentation, cls: "text-rose-500" },
+  video: { label: "Video", icon: Video, cls: "text-violet-500" },
+  text: { label: "Text", icon: FileText, cls: "text-blue-500" },
+  quiz: { label: "Quiz", icon: HelpCircle, cls: "text-amber-500" },
+  file: { label: "File", icon: File, cls: "text-neutral-400" },
+  ppt: { label: "PPT", icon: Presentation, cls: "text-rose-500" },
 }
 
 
-/* ══════════════════════════════════════════════════════════════
+/*
    TreeNode — Renders the connecting lines for each item.
    Creates a continuous vertical pipe │ that connects siblings,
-   with a horizontal branch ── at each item.
-══════════════════════════════════════════════════════════════ */
+   with a horizontal branch at each item. */
 function TreeNode({ isLast, children }: { isLast: boolean; children: React.ReactNode }) {
   return (
     <div className="relative pl-6">
       {/* Vertical line: full height for non-last, half for last */}
-      <div className={`absolute left-[7px] top-0 border-l-2 border-neutral-200 ${
-        isLast ? "h-[22px]" : "bottom-0"
-      }`} />
+      <div className={`absolute left-[7px] top-0 border-l-2 border-neutral-200 ${isLast ? "h-[22px]" : "bottom-0"
+        }`} />
       {/* Horizontal branch */}
       <div className="absolute left-[7px] top-[21px] w-[17px] border-t-2 border-neutral-200" />
       {children}
@@ -51,9 +49,8 @@ function TreeNode({ isLast, children }: { isLast: boolean; children: React.React
 }
 
 
-/* ═══════════════════════════════════════════════════════════
-   LEVEL 3 — CONTENTS
-═══════════════════════════════════════════════════════════ */
+/*
+   LEVEL 3 — CONTENTS */
 interface ContentsSectionProps {
   courseSlug: string; moduleId: number; materialId: number
   contents: MaterialContent[]; editId?: number | null
@@ -61,7 +58,7 @@ interface ContentsSectionProps {
 
 function ContentsSection({ courseSlug, moduleId, materialId, contents, editId }: ContentsSectionProps) {
   const crud = useMaterialContents(courseSlug, moduleId, materialId, contents, editId)
-  const [deleteId, setDeleteId]     = useState<number | null>(null)
+  const [deleteId, setDeleteId] = useState<number | null>(null)
   const [openDelete, setOpenDelete] = useState(false)
 
   function handleConfirmDelete() {
@@ -72,10 +69,10 @@ function ContentsSection({ courseSlug, moduleId, materialId, contents, editId }:
     <div>
       {/* Inline Edit */}
       {crud.editing && (
-        <div className="m-3 p-4 rounded-xl border border-violet-200/60 bg-violet-50/20 space-y-3">
+        <div className="m-3 p-4 border border-violet-200/60 bg-violet-50/20 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-semibold text-violet-500 uppercase tracking-wider">Edit Content</span>
-            <button onClick={() => history.back()} className="p-1 rounded-md text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-colors">
+            <button onClick={() => history.back()} className="p-1 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-colors">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -83,7 +80,7 @@ function ContentsSection({ courseSlug, moduleId, materialId, contents, editId }:
           <div className="space-y-1">
             <label className="text-xs font-medium text-neutral-500">Type</label>
             <select value={crud.type} onChange={e => crud.setType(e.target.value as any)}
-              className="w-full rounded-lg border border-neutral-200 bg-white text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-300 transition">
+              className="w-full border border-neutral-200 bg-white text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-300 transition">
               {Object.entries(TYPE_META).map(([val, { label }]) => (
                 <option key={val} value={val}>{label}</option>
               ))}
@@ -111,7 +108,7 @@ function ContentsSection({ courseSlug, moduleId, materialId, contents, editId }:
       <div className="flex items-center justify-between pt-2 pb-1 pr-2">
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">Contents</span>
-          <span className="text-[10px] text-neutral-300 bg-neutral-100 rounded-full px-1.5 py-px font-medium">
+          <span className="text-[10px] text-neutral-300 bg-neutral-100 px-1.5 py-px font-medium">
             {crud.sortedContents.length}
           </span>
         </div>
@@ -131,13 +128,13 @@ function ContentsSection({ courseSlug, moduleId, materialId, contents, editId }:
       ) : (
         crud.sortedContents.map((item, i) => {
           const isFirst = i === 0
-          const isLast  = i === crud.sortedContents.length - 1
-          const meta    = TYPE_META[item.type] ?? TYPE_META.file
-          const Icon    = meta.icon
+          const isLast = i === crud.sortedContents.length - 1
+          const meta = TYPE_META[item.type] ?? TYPE_META.file
+          const Icon = meta.icon
 
           return (
             <TreeNode key={item.id} isLast={isLast}>
-              <div className="group flex items-center gap-2 py-1.5 pr-2 rounded-md hover:bg-white/60 transition-colors">
+              <div className="group flex items-center gap-2 py-1.5 pr-2 hover:bg-white/60 transition-colors">
                 <Icon className={`w-4 h-4 shrink-0 ${meta.cls}`} />
                 <span className="flex-1 text-[13px] text-neutral-700 truncate">{item.title}</span>
                 <span className="hidden sm:inline text-[9px] font-medium text-neutral-400 uppercase tracking-wide shrink-0">
@@ -174,9 +171,8 @@ function ContentsSection({ courseSlug, moduleId, materialId, contents, editId }:
 }
 
 
-/* ═══════════════════════════════════════════════════════════
-   LEVEL 2 — MATERIALS
-═══════════════════════════════════════════════════════════ */
+/*
+   LEVEL 2 — MATERIALS */
 interface MaterialsSectionProps {
   courseSlug: string; moduleId: number; materials: Material[]
 }
@@ -195,7 +191,7 @@ function MaterialsSection({ courseSlug, moduleId, materials }: MaterialsSectionP
       <div className="flex items-center justify-between pt-2 pb-1 pr-2">
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">Materials</span>
-          <span className="text-[10px] text-neutral-300 bg-neutral-100 rounded-full px-1.5 py-px font-medium">
+          <span className="text-[10px] text-neutral-300 bg-neutral-100 px-1.5 py-px font-medium">
             {crud.sortedMaterials.length}
           </span>
         </div>
@@ -215,17 +211,16 @@ function MaterialsSection({ courseSlug, moduleId, materials }: MaterialsSectionP
       ) : (
         crud.sortedMaterials.map((material, i) => {
           const isFirst = i === 0
-          const isLast  = i === crud.sortedMaterials.length - 1
-          const isOpen  = expanded === material.id
+          const isLast = i === crud.sortedMaterials.length - 1
+          const isOpen = expanded === material.id
 
           return (
             <TreeNode key={material.id} isLast={isLast}>
               {/* Material row */}
               <div
                 onClick={() => toggle(material.id)}
-                className={`group flex items-center gap-2 py-2 pr-2 rounded-lg cursor-pointer transition-colors ${
-                  isOpen ? "bg-blue-50/40" : "hover:bg-neutral-50"
-                }`}>
+                className={`group flex items-center gap-2 py-2 pr-2 cursor-pointer transition-colors ${isOpen ? "bg-blue-50/40" : "hover:bg-neutral-50"
+                  }`}>
                 <div className={`shrink-0 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}>
                   <ChevronRight className={`w-3.5 h-3.5 ${isOpen ? "text-blue-500" : "text-neutral-300"}`} />
                 </div>
@@ -275,11 +270,10 @@ function MaterialsSection({ courseSlug, moduleId, materials }: MaterialsSectionP
 }
 
 
-/* ═══════════════════════════════════════════════════════════
-   LEVEL 1 — MODULES  ← default export
-═══════════════════════════════════════════════════════════ */
+/*
+   LEVEL 1 — MODULES  ← default export */
 interface CourseStructureProps {
-  course:  { slug: string }
+  course: { slug: string }
   modules: Module[]
 }
 
@@ -288,50 +282,49 @@ export default function CourseStructure({ course, modules }: CourseStructureProp
 
   return (
     <>
-      <div className="rounded-2xl border border-neutral-200/80 bg-white shadow-sm overflow-hidden">
+      <div className="border border-slate-200/80 bg-white shadow-sm overflow-hidden p-6 sm:p-8 space-y-6">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center">
-              <Layers className="w-4 h-4 text-white" />
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-xs">
+              <Layers className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-[15px] font-semibold text-neutral-800">Course Structure</h3>
-              <p className="text-[11px] text-neutral-400 mt-0.5">
-                {crud.sortedModules.length} module{crud.sortedModules.length !== 1 ? "s" : ""}
+              <h3 className="text-lg font-bold text-slate-900">Structure & Syllabus Course</h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Manage modules, materials, and learning content ({crud.sortedModules.length} Modules)
               </p>
             </div>
           </div>
-          <Button size="md" onClick={crud.openCreateModal} leftIcon={<Plus className="w-3.5 h-3.5" />}>
-            Add Module
+          <Button size="md" onClick={crud.openCreateModal} leftIcon={<Plus className="w-4 h-4" />} className="!rounded-none">
+            Add New Module
           </Button>
         </div>
 
         {/* Modules */}
         {crud.sortedModules.length === 0 ? (
-          <div className="flex flex-col items-center py-16 text-center">
-            <div className="w-12 h-12 rounded-xl border-2 border-dashed border-neutral-200 flex items-center justify-center mb-3">
-              <Layers className="w-5 h-5 text-neutral-300" />
+          <div className="flex flex-col items-center py-16 text-center bg-slate-50/50 border border-dashed border-slate-200">
+            <div className="w-12 h-12 bg-white border border-slate-200 flex items-center justify-center mb-3 shadow-xs">
+              <Layers className="w-6 h-6 text-purple-500" />
             </div>
-            <p className="text-sm text-neutral-400 font-medium">No modules yet</p>
-            <p className="text-xs text-neutral-300 mt-1">Add your first module to get started</p>
+            <p className="text-sm text-slate-700 font-bold">No Modules Yet</p>
+            <p className="text-xs text-slate-400 mt-1 max-w-sm">Add your first module to start building your course curriculum.</p>
           </div>
         ) : (
           <div className="p-4">
             {crud.sortedModules.map((module, index) => {
               const isFirst = index === 0
-              const isLast  = index === crud.sortedModules.length - 1
-              const isOpen  = crud.expandedModule === module.id
+              const isLast = index === crud.sortedModules.length - 1
+              const isOpen = crud.expandedModule === module.id
 
               return (
                 <TreeNode key={module.id} isLast={isLast}>
                   {/* Module row */}
                   <div
                     onClick={() => crud.toggleExpand(module.id)}
-                    className={`group flex items-center gap-2.5 py-2.5 pr-2 rounded-xl cursor-pointer transition-colors ${
-                      isOpen ? "bg-purple-50/40" : "hover:bg-neutral-50/60"
-                    }`}>
+                    className={`group flex items-center gap-2.5 py-2.5 pr-2 cursor-pointer transition-colors ${isOpen ? "bg-purple-50/40" : "hover:bg-neutral-50/60"
+                      }`}>
                     <div className={`shrink-0 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}>
                       <ChevronRight className={`w-4 h-4 ${isOpen ? "text-purple-500" : "text-neutral-300"}`} />
                     </div>
@@ -388,18 +381,17 @@ export default function CourseStructure({ course, modules }: CourseStructureProp
 }
 
 
-/* ─────────────────────────────────────────────────────────
-   Shared primitives
-───────────────────────────────────────────────────────── */
+/*
+   Shared primitives */
 
 function StatusDot({ status }: { status: string }) {
   const colors: Record<string, string> = {
     published: "bg-emerald-400",
-    draft:     "bg-amber-400",
+    draft: "bg-amber-400",
   }
   return (
     <span className="flex items-center gap-1.5 shrink-0" title={status}>
-      <span className={`w-2 h-2 rounded-full ${colors[status] ?? "bg-neutral-300"}`} />
+      <span className={`w-2 h-2 ${colors[status] ?? "bg-neutral-300"}`} />
       <span className="hidden sm:inline text-[10px] font-medium text-neutral-400 capitalize">{status}</span>
     </span>
   )
@@ -410,7 +402,7 @@ function IconBtn({ children, onClick, disabled, title, danger }: {
 }) {
   return (
     <button onClick={onClick} disabled={disabled} title={title}
-      className={`w-7 h-7 flex items-center justify-center rounded-md transition-colors shrink-0
+      className={`w-7 h-7 flex items-center justify-center transition-colors shrink-0
         ${danger
           ? "text-neutral-400 hover:text-red-500 hover:bg-red-50"
           : "text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100"

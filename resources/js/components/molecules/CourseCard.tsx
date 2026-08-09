@@ -7,7 +7,8 @@ import ConfirmationDelete from "@/components/molecules/ConfirmationDelete"
 import { useState } from "react"
 import { Course } from "@/types"
 import { useCourse } from "@/hooks/useCourse"
-import { usePage } from "@inertiajs/react"
+import { usePage, Link } from "@inertiajs/react"
+import { Eye } from "lucide-react"
 
 interface CourseCardProps {
   course: Course
@@ -20,10 +21,13 @@ export default function CourseCard({ course }: CourseCardProps) {
   const { auth } = usePage().props as any
   const user = auth?.user
 
+  const creatorId = typeof course.creator === "object" ? (course.creator as any)?.id : ((course as any).creator_id ?? course.creator)
   const isCourseOwner =
     user &&
     (user.role === "admin" ||
-      (user.role === "instructor" && course.creator === user.id))
+      (user.role === "instructor" && (creatorId === user.id || (course as any).creator_id === user.id)))
+
+  const rolePrefix = user?.role ?? "admin"
 
   return (
     <>
@@ -85,16 +89,25 @@ export default function CourseCard({ course }: CourseCardProps) {
                 </span>
               </div>
 
-              <Button
-                variant="danger"
-                className="w-full text-xs py-1.5 mt-1"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setOpenDelete(true)
-                }}
-              >
-                Hapus Course
-              </Button>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <Link
+                  href={`/${rolePrefix}/courses/${course.slug}/preview`}
+                  className="inline-flex items-center justify-center gap-1 text-xs py-1.5 px-3 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 font-medium transition-colors"
+                >
+                  <Eye className="w-3.5 h-3.5" /> Preview
+                </Link>
+
+                <Button
+                  variant="danger"
+                  className="w-full text-xs py-1.5 !rounded-none"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setOpenDelete(true)
+                  }}
+                >
+                  Hapus
+                </Button>
+              </div>
             </div>
           )}
         </div>

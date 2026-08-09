@@ -81,6 +81,9 @@ Route::middleware(['auth', 'role'])->group(function () {
             Route::get('/courses/{course:slug}', [CourseController::class, 'show'])
                 ->name('courses.show');
 
+            Route::get('/courses/{course:slug}/preview', [CourseController::class, 'preview'])
+                ->name('courses.preview');
+
             Route::post('/courses', [CourseController::class, 'store'])
                 ->name('courses.store');
 
@@ -219,17 +222,14 @@ Route::middleware(['auth', 'role'])->group(function () {
             Route::get('/dashboard', fn () => Inertia::render('user/Dashboard')
             )->name('dashboard');
 
-            Route::get('/courses', fn () => Inertia::render('user/course/page', [
-                'courses' => Course::where('creator_id', Auth::id())
-                    ->latest()
-                    ->get(),
-            ])
-            )->name('courses.index');
+            Route::get('/courses', [CourseController::class, 'index'])
+                ->name('courses.index');
 
-            Route::get('/courses/{course:slug}', fn (Course $course) => Inertia::render('user/course/[slug]/page', [
-                'course' => $course,
-            ])
-            )->name('courses.show');
+            Route::get('/courses/{course:slug}', [CourseController::class, 'show'])
+                ->name('courses.show');
+
+            Route::get('/courses/{course:slug}/preview', [CourseController::class, 'preview'])
+                ->name('courses.preview');
 
             Route::post('/courses', [CourseController::class, 'store'])
                 ->name('courses.store');
@@ -251,9 +251,10 @@ Route::middleware(['auth', 'role'])->group(function () {
             Route::get('/dashboard', fn () => Inertia::render('user/Dashboard')
             )->name('dashboard');
 
-            Route::get('/courses/{course:slug}', fn (Course $course) => Inertia::render('user/course/[slug]/page', [
-                'course' => $course,
-            ])
-            )->name('courses.show');
+            Route::get('/courses/{course:slug}', [CourseController::class, 'show'])
+                ->name('courses.show');
+
+            Route::get('/courses/{course:slug}/preview', [CourseController::class, 'preview'])
+                ->name('courses.preview');
         });
 });

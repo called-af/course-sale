@@ -1,4 +1,8 @@
 import { useState } from "react"
+import {
+  FileText, Video, File, Presentation, HelpCircle,
+  ExternalLink, Clock, Save, CheckCircle2, Layout, Eye, Edit3
+} from "lucide-react"
 import Button from "@/components/atoms/Button"
 import InputField from "@/components/molecules/InputField"
 import SlateEditor from "@/components/molecules/SlateEditor"
@@ -14,29 +18,67 @@ const TYPES: {
   value: ContentType
   label: string
   desc: string
+  icon: typeof FileText
+  colorCls: string
+  activeCls: string
 }[] = [
-    { value: "text", label: "Teks", desc: "Rich text" },
-    { value: "video", label: "Video", desc: "URL video" },
-    { value: "file", label: "File", desc: "Dokumen" },
-    { value: "ppt", label: "Presentasi", desc: "PowerPoint" },
-    { value: "quiz", label: "Quiz", desc: "Dengan timer" },
-  ]
+  {
+    value: "text",
+    label: "Text / Article",
+    desc: "Rich text & documentation",
+    icon: FileText,
+    colorCls: "text-blue-600 bg-blue-50 border-blue-100",
+    activeCls: "border-blue-500 bg-blue-50/80 ring-2 ring-blue-500/20 text-blue-950",
+  },
+  {
+    value: "video",
+    label: "Video Lesson",
+    desc: "YouTube / Vimeo / URL",
+    icon: Video,
+    colorCls: "text-violet-600 bg-violet-50 border-violet-100",
+    activeCls: "border-violet-500 bg-violet-50/80 ring-2 ring-violet-500/20 text-violet-950",
+  },
+  {
+    value: "file",
+    label: "File Attachment",
+    desc: "PDF / Word / ZIP",
+    icon: File,
+    colorCls: "text-emerald-600 bg-emerald-50 border-emerald-100",
+    activeCls: "border-emerald-500 bg-emerald-50/80 ring-2 ring-emerald-500/20 text-emerald-950",
+  },
+  {
+    value: "ppt",
+    label: "Presentation",
+    desc: "PPT slides / Google Slides",
+    icon: Presentation,
+    colorCls: "text-amber-600 bg-amber-50 border-amber-100",
+    activeCls: "border-amber-500 bg-amber-50/80 ring-2 ring-amber-500/20 text-amber-950",
+  },
+  {
+    value: "quiz",
+    label: "Quiz & Evaluation",
+    desc: "Multiple choice & essay",
+    icon: HelpCircle,
+    colorCls: "text-rose-600 bg-rose-50 border-rose-100",
+    activeCls: "border-rose-500 bg-rose-50/80 ring-2 ring-rose-500/20 text-rose-950",
+  },
+]
 
 const URL_PLACEHOLDER: Partial<Record<ContentType, string>> = {
-  video: "https://youtube.com/watch?v=...",
-  file: "https://drive.google.com/...",
-  ppt: "https://docs.google.com/presentation/...",
+  video: "https://www.youtube.com/watch?v=...",
+  file: "https://drive.google.com/file/d/...",
+  ppt: "https://docs.google.com/presentation/d/...",
 }
 
 const URL_LABEL: Partial<Record<ContentType, string>> = {
-  video: "Video URL",
-  file: "File URL",
-  ppt: "Presentasi URL",
+  video: "Video Lesson URL",
+  file: "File / Documentation URL",
+  ppt: "Presentation Slide URL",
 }
 
 function formatDate(iso?: string) {
   if (!iso) return null
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -72,141 +114,255 @@ export default function EditMaterialContent({
 
   return (
     <div className="space-y-6">
+      {/* Card 1: Main Content Settings */}
+      <div className="bg-white border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-6">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">Main Content Settings</h2>
+            <p className="text-xs text-slate-500 mt-0.5">Set the title, publication status, and content type for this lesson.</p>
+          </div>
 
-      <InputField
-        label="Judul Konten"
-        name="title"
-        value={form.title}
-        onChange={(e) => form.setTitle(e.target.value)}
-        placeholder="Masukkan judul konten..."
-      />
-      <SelectField
-        label="Status"
-        value={form.status}
-        onChange={(e) =>
-          form.setStatus(e.target.value as "draft" | "published")
-        }
-        options={[
-          { label: "Draft", value: "draft" },
-          { label: "Published", value: "published" },
-        ]}
-      />
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold uppercase tracking-wider ${
+              form.status === "published"
+                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                : "bg-amber-50 text-amber-700 border border-amber-200"
+            }`}>
+              <span className={`w-1.5 h-1.5 ${form.status === "published" ? "bg-emerald-500" : "bg-amber-500"}`} />
+              {form.status}
+            </span>
+          </div>
+        </div>
 
-      <div>
-        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-          Tipe Konten
-        </label>
-        <div className="grid grid-cols-5 gap-2">
-          {TYPES.map((t) => (
-            <button
-              key={t.value}
-              onClick={() => {
-                form.setType(t.value)
-                if (t.value !== "quiz") form.setDuration("")
-              }}
-              className={`flex flex-col items-center gap-1.5 p-3 border-2 transition-all text-center
-                ${form.type === t.value
-                  ? "border-violet-500 bg-violet-50 text-violet-700 shadow-sm"
-                  : "border-gray-100 bg-white text-gray-500 hover:border-gray-200 hover:bg-gray-50"
-                }
-              `}
-            >
-              <span className="text-xs font-semibold leading-none">{t.label}</span>
-              <span className="text-[10px] text-gray-400 leading-none hidden sm:block">
-                {t.desc}
-              </span>
-            </button>
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2">
+            <InputField
+              label="Material Content Title"
+              name="title"
+              value={form.title}
+              onChange={(e) => form.setTitle(e.target.value)}
+              placeholder="e.g., Introduction to HTML & Document Structure"
+            />
+          </div>
+
+          <div>
+            <SelectField
+              label="Publication Status"
+              value={form.status}
+              onChange={(e) =>
+                form.setStatus(e.target.value as "draft" | "published")
+              }
+              options={[
+                { label: "Draft (Unpublished)", value: "draft" },
+                { label: "Published (Student Accessible)", value: "published" },
+              ]}
+            />
+          </div>
+        </div>
+
+        {/* Content Type Selector */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+            Select Content Type
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {TYPES.map((t) => {
+              const Icon = t.icon
+              const isSelected = form.type === t.value
+
+              return (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => {
+                    form.setType(t.value)
+                    if (t.value !== "quiz") form.setDuration("")
+                  }}
+                  className={`relative flex flex-col items-start p-4 border transition-all text-left group hover:scale-[1.01] ${
+                    isSelected
+                      ? t.activeCls
+                      : "border-slate-200/90 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50/50"
+                  }`}
+                >
+                  <div className={`p-2.5 border mb-3 transition-colors ${t.colorCls}`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+
+                  <span className="text-sm font-bold block leading-tight">{t.label}</span>
+                  <span className="text-[11px] text-slate-400 mt-1 leading-snug">
+                    {t.desc}
+                  </span>
+
+                  {isSelected && (
+                    <div className="absolute top-3 right-3 text-emerald-600">
+                      <CheckCircle2 className="w-4 h-4 fill-emerald-100" />
+                    </div>
+                  )}
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
 
-      {(form.type === "video" || form.type === "file" || form.type === "ppt") && (
-        <div>
-          <InputField
-            label={URL_LABEL[form.type] ?? "URL"}
-            name="content_url"
-            type="url"
-            value={form.contentUrl}
-            onChange={(e) => form.setContentUrl(e.target.value)}
-            placeholder={URL_PLACEHOLDER[form.type]}
-          />
-          {form.contentUrl && (
-            <a
-              href={form.contentUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-1.5 inline-flex items-center gap-1 text-xs text-violet-600 hover:underline"
-            >
-              Buka URL ↗
-            </a>
-          )}
-        </div>
-      )}
-
-      {form.type === "quiz" && (
-        <div className="space-y-6">
-          <div className="flex items-end gap-3">
-            <div className="w-36">
-              <InputField
-                label="Durasi Quiz"
-                name="duration"
-                type="number"
-                min={1}
-                value={form.duration}
-                onChange={(e) => form.setDuration(Number(e.target.value))}
-                placeholder="30"
-              />
-            </div>
-            <span className="pb-2 text-sm text-gray-500">menit</span>
-          </div>
-
-          <div className="border-t border-gray-100" />
-
-          {content.id ? (
-            <QuizBuilder
-              courseSlug={courseSlug}
-              moduleId={moduleId}
-              materialId={materialId}
-              contentId={content.id}
-            />
-          ) : (
-            <div className="px-4 py-5 bg-amber-50 border border-amber-200 text-sm text-amber-700">
-              Simpan konten terlebih dahulu sebelum menambahkan soal quiz.
-            </div>
-          )}
-        </div>
-      )}
-
-      {form.type === "text" && (
-        <div>
-
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Konten Teks
-            </label>
-
-            <div className="flex items-center gap-0.5 bg-gray-100 p-1">
-              <button
-                onClick={() => setSplitView(false)}
-                className={`px-3 py-1 text-xs font-medium transition-all
-                  ${!splitView ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
-              >
-                Editor
-              </button>
-              <button
-                onClick={() => setSplitView(true)}
-                className={`px-3 py-1 text-xs font-medium transition-all
-                  ${splitView ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
-              >
-                Split View
-              </button>
-            </div>
-          </div>
-
-          {splitView ? (
-            <div className="grid grid-cols-2 gap-4 items-start">
+      {/* Card 2: Content Specific Editor */}
+      <div className="bg-white border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-6">
+        {/* Media URL Input */}
+        {(form.type === "video" || form.type === "file" || form.type === "ppt") && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <p className="text-[11px] font-medium text-gray-400 mb-1.5 uppercase tracking-wide">Editor</p>
+                <h3 className="text-base font-bold text-slate-900">Links & Media</h3>
+                <p className="text-xs text-slate-500">Enter the media source URL for student access.</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <InputField
+                label={URL_LABEL[form.type] ?? "Media URL"}
+                name="content_url"
+                type="url"
+                value={form.contentUrl}
+                onChange={(e) => form.setContentUrl(e.target.value)}
+                placeholder={URL_PLACEHOLDER[form.type]}
+              />
+
+              {form.contentUrl && (
+                <div className="p-3 bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs">
+                  <span className="text-slate-600 truncate max-w-md">{form.contentUrl}</span>
+                  <a
+                    href={form.contentUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-600 font-medium hover:bg-indigo-100 transition-colors"
+                  >
+                    Open Link <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Quiz Builder Container */}
+        {form.type === "quiz" && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-rose-500" />
+                  Quiz Settings & Duration
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">Set the time limit for students to complete the quiz.</p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="w-32">
+                  <InputField
+                    label=""
+                    name="duration"
+                    type="number"
+                    min={1}
+                    value={form.duration}
+                    onChange={(e) => form.setDuration(Number(e.target.value))}
+                    placeholder="30"
+                  />
+                </div>
+                <span className="text-sm font-semibold text-slate-600">Minutes</span>
+              </div>
+            </div>
+
+            {/* Quick Duration Presets */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Quick Presets:</span>
+              {[15, 30, 45, 60, 90].map((mins) => (
+                <button
+                  key={mins}
+                  type="button"
+                  onClick={() => form.setDuration(mins)}
+                  className={`px-3 py-1 text-xs font-medium border transition-all ${
+                    form.duration === mins
+                      ? "bg-rose-50 border-rose-300 text-rose-700 font-semibold"
+                      : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                  }`}
+                >
+                  {mins} min
+                </button>
+              ))}
+            </div>
+
+            <div className="pt-2">
+              {content.id ? (
+                <QuizBuilder
+                  courseSlug={courseSlug}
+                  moduleId={moduleId}
+                  materialId={materialId}
+                  contentId={content.id}
+                />
+              ) : (
+                <div className="p-4 bg-amber-50 border border-amber-200 text-sm text-amber-700">
+                  Save content first before adding quiz questions.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Rich Text Editor */}
+        {form.type === "text" && (
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Lesson Text Editor</h3>
+                <p className="text-xs text-slate-500">Write and compose rich text learning material.</p>
+              </div>
+
+              <div className="flex items-center gap-1 bg-slate-100 p-1">
+                <button
+                  type="button"
+                  onClick={() => setSplitView(false)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all ${
+                    !splitView ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  <Edit3 className="w-3.5 h-3.5" /> Editor
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSplitView(true)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all ${
+                    splitView ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  <Layout className="w-3.5 h-3.5" /> Split View
+                </button>
+              </div>
+            </div>
+
+            {splitView ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                <div className="space-y-2">
+                  <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Text Editor</span>
+                  <div className="border border-slate-200/90 overflow-hidden shadow-xs focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-400 transition-all">
+                    <SlateEditor
+                      key={content.id}
+                      initialValue={content.content_text as any}
+                      value={form.contentText}
+                      onChange={form.setContentText}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                    <Eye className="w-3.5 h-3.5 text-indigo-500" /> Student Preview
+                  </span>
+                  <div className="border border-slate-200/80 bg-slate-50/50 p-4 min-h-[300px]">
+                    <SlatePreview value={form.contentText} />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="border border-slate-200/90 overflow-hidden shadow-xs focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-400 transition-all">
                 <SlateEditor
                   key={content.id}
                   initialValue={content.content_text as any}
@@ -214,35 +370,26 @@ export default function EditMaterialContent({
                   onChange={form.setContentText}
                 />
               </div>
-              <div>
-                <p className="text-[11px] font-medium text-gray-400 mb-1.5 uppercase tracking-wide">Preview</p>
-                <SlatePreview value={form.contentText} />
-              </div>
-            </div>
-          ) : (
-            <SlateEditor
-              key={content.id}
-              initialValue={content.content_text as any}
-              value={form.contentText}
-              onChange={form.setContentText}
-            />
-          )}
-
-        </div>
-      )}
-
-      <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
-        <Button onClick={form.update}>
-          Simpan Konten
-        </Button>
-
-        {content.updated_at && (
-          <p className="text-xs text-gray-400">
-            Terakhir diubah: {formatDate(content.updated_at)}
-          </p>
+            )}
+          </div>
         )}
-      </div>
 
+        {/* Footer Action Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-slate-100">
+          <div className="flex items-center gap-2">
+            <Button onClick={form.update} size="md" leftIcon={<Save className="w-4 h-4" />} className="!rounded-none">
+              Save Content Changes
+            </Button>
+          </div>
+
+          {content.updated_at && (
+            <span className="text-xs text-slate-400 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-slate-400" />
+              Last updated: {formatDate(content.updated_at)}
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

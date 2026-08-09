@@ -14,7 +14,7 @@ class StoreQuizQuestionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'material_content_id' => 'required|exists:material_contents,id',
+            'material_content_id' => 'nullable|exists:material_contents,id',
 
             'questions' => 'required|array|min:1',
 
@@ -25,22 +25,61 @@ class StoreQuizQuestionRequest extends FormRequest
             'questions.*.options' => [
                 'required_if:questions.*.type,multiple_choice',
                 'prohibited_if:questions.*.type,essay',
+                'nullable',
                 'array',
-                'min:2',
             ],
 
-            'questions.*.options.*.option_text' => 'required_if:questions.*.type,multiple_choice|string',
-            'questions.*.options.*.is_correct' => 'required_if:questions.*.type,multiple_choice|boolean',
+            'questions.*.options.*.option_text' => 'nullable|string',
+            'questions.*.options.*.is_correct' => 'nullable|boolean',
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $questions = $this->input('questions', []);
+            foreach ($questions as $index => $q) {
+                if (($q['type'] ?? '') === 'multiple_choice') {
+                    $options = $q['options'] ?? [];
+                    if (!is_array($options) || count($options) < 2) {
+                        $validator->errors()->add(
+                            "questions.{$index}.options",
+                            'Soal pilihan ganda minimal memiliki 2 pilihan jawaban.'
+                        );
+                    } else {
+                        $hasEmpty = false;
+                        $hasCorrect = false;
+                        foreach ($options as $opt) {
+                            if (!isset($opt['option_text']) || trim((string) $opt['option_text']) === '') {
+                                $hasEmpty = true;
+                            }
+                            if (!empty($opt['is_correct'])) {
+                                $hasCorrect = true;
+                            }
+                        }
+                        if ($hasEmpty) {
+                            $validator->errors()->add(
+                                "questions.{$index}.options",
+                                'Semua opsi pilihan ganda harus memiliki teks jawaban.'
+                            );
+                        }
+                        if (!$hasCorrect) {
+                            $validator->errors()->add(
+                                "questions.{$index}.options",
+                                'Soal pilihan ganda harus memilih minimal 1 jawaban yang benar.'
+                            );
+                        }
+                    }
+                }
+            }
+        });
     }
 
     public function messages(): array
     {
         return [
-            'questions.*.options.required_if' => 'Options wajib diisi untuk soal pilihan ganda.',
-            'questions.*.options.prohibited_if' => 'Soal essay tidak boleh memiliki options.',
-            'questions.*.options.min' => 'Soal pilihan ganda minimal memiliki 2 pilihan jawaban.',
-            'questions.*.options.*.is_correct.required_if' => 'Setiap option harus ditandai benar atau salah.',
+            'questions.*.options.required_if' => 'Opsi wajib diisi untuk soal pilihan ganda.',
+            'questions.*.options.prohibited_if' => 'Soal essay tidak boleh memiliki opsi jawaban.',
         ];
     }
 }

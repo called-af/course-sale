@@ -1,4 +1,4 @@
-import { useState, ChangeEvent, useRef } from "react"
+import { useState, ChangeEvent, useRef, useEffect } from "react"
 import Label from "@/components/atoms/Label"
 import clsx from "clsx"
 
@@ -22,6 +22,10 @@ export default function ChooseFile({
 
   const [preview, setPreview] = useState<string | null>(value ?? null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    setPreview(value ?? null)
+  }, [value])
 
   function handleChange(e: ChangeEvent<HTMLInputElement>) {
 
@@ -47,7 +51,7 @@ export default function ChooseFile({
       <div
         onClick={() => inputRef.current?.click()}
         className={clsx(
-          "relative w-full border border-dashed border-neutral-300 rounded overflow-hidden cursor-pointer bg-neutral-50 hover:bg-neutral-100 transition flex items-center justify-center",
+          "relative w-full border border-dashed border-neutral-300 rounded-none overflow-hidden cursor-pointer bg-neutral-50 hover:bg-neutral-100 transition flex items-center justify-center",
           aspect === "square" && "aspect-square",
           aspect === "video" && "aspect-video",
           className

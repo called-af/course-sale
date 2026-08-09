@@ -44,4 +44,9 @@ class MaterialContent extends Model
     {
         return $this->belongsTo(Material::class);
     }
+
+    public function quizQuestions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(QuizQuestion::class)->orderBy('sort_order');
+    }
 }

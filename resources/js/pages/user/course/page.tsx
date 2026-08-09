@@ -12,7 +12,7 @@ export default function Course() {
       <Head />
       <div>
         <Button variant="secondary" onClick={() => setOpen(true)}>
-          Tambah Course
+          Add Course
         </Button>
       </div>
 

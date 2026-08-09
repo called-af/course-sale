@@ -1,8 +1,7 @@
 import { usePage } from "@inertiajs/react"
-import { Plus, GripVertical, Trash2 } from "lucide-react"
+import { Plus, GripVertical, Trash2, Check, AlertCircle, HelpCircle, FileText, Sparkles, Layers, Image as ImageIcon } from "lucide-react"
 
 import Button from "@/components/atoms/Button"
-import InputField from "@/components/molecules/InputField"
 import TextAreaField from "@/components/molecules/TextAreaField"
 import ChooseFile from "@/components/molecules/ChooseFile"
 import ConfirmationDelete from "@/components/molecules/ConfirmationDelete"
@@ -28,25 +27,24 @@ function OptionRow({
 }) {
   return (
     <div
-      className={`flex items-center gap-2 px-3 py-2 border transition-all cursor-pointer group
-        ${option.is_correct
-          ? "border-emerald-200 bg-emerald-50"
-          : "border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50"
-        }`}
+      className={`flex items-center gap-3 px-3.5 py-2.5 border transition-all cursor-pointer group ${
+        option.is_correct
+          ? "border-emerald-300 bg-emerald-50/60 shadow-xs ring-1 ring-emerald-500/20"
+          : "border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/60"
+      }`}
       onClick={() => onSetCorrect(index)}
     >
-      <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all
-        ${option.is_correct
-          ? "border-emerald-500 bg-emerald-500"
-          : "border-gray-300 group-hover:border-violet-300"
-        }`}
-      >
-        {option.is_correct && <span className="w-1.5 h-1.5 rounded-full bg-white block" />}
+      <div className={`w-5 h-5 border-2 flex-shrink-0 flex items-center justify-center transition-all ${
+        option.is_correct
+          ? "border-emerald-500 bg-emerald-500 text-white shadow-xs"
+          : "border-slate-300 group-hover:border-indigo-400 bg-white"
+      }`}>
+        {option.is_correct && <Check className="w-3 h-3 stroke-[3]" />}
       </div>
 
-      <span className={`text-xs font-bold flex-shrink-0 w-4
-        ${option.is_correct ? "text-emerald-600" : "text-gray-400"}`}
-      >
+      <span className={`text-xs font-bold flex-shrink-0 w-5 h-5 flex items-center justify-center ${
+        option.is_correct ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"
+      }`}>
         {String.fromCharCode(65 + index)}
       </span>
 
@@ -55,23 +53,27 @@ function OptionRow({
           type="text"
           value={option.option_text}
           onChange={(e) => onUpdate(index, { option_text: e.target.value })}
-          placeholder={`Pilihan ${String.fromCharCode(65 + index)}...`}
-          className={`w-full text-sm bg-transparent border-none outline-none placeholder-gray-300
-            ${option.is_correct ? "text-emerald-700 font-medium" : "text-gray-700"}`}
+          placeholder={`Option ${String.fromCharCode(65 + index)}...`}
+          className={`w-full text-sm bg-transparent border-none outline-none placeholder-slate-300 ${
+            option.is_correct ? "text-emerald-950 font-semibold" : "text-slate-700"
+          }`}
         />
       </div>
 
       {option.is_correct && (
-        <span className="text-[10px] font-semibold text-emerald-500 flex-shrink-0">✓ Benar</span>
+        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100/80 px-2 py-0.5 flex-shrink-0">
+          ✓ Correct Answer
+        </span>
       )}
 
       {canRemove && (
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onRemove(index) }}
-          className="p-1 text-gray-200 hover:text-red-400 transition-colors flex-shrink-0"
+          className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100"
+          title="Remove Option"
         >
-          <Trash2 size={12} />
+          <Trash2 size={13} />
         </button>
       )}
     </div>
@@ -98,56 +100,63 @@ function QuestionCard({
   onSetCorrect: (key: string, i: number) => void
 }) {
   return (
-    <div className="border border-gray-200 bg-white">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-100">
-        <GripVertical size={14} className="text-gray-300 flex-shrink-0" />
-
-        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-          Soal {index + 1}
-        </span>
-
-        <div className="flex items-center ml-auto bg-white border border-gray-200 p-0.5">
-          {(["multiple_choice", "essay"] as const).map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => onUpdate(question._key, { type: t })}
-              className={`px-3 py-1 text-xs font-medium transition-all
-                ${question.type === t
-                  ? "bg-violet-500 text-white"
-                  : "text-gray-500 hover:text-gray-700"
-                }`}
-            >
-              {t === "multiple_choice" ? "Pilihan Ganda" : "Essay"}
-            </button>
-          ))}
+    <div className="border border-slate-200/90 bg-white shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+      {/* Header Soal */}
+      <div className="flex items-center justify-between gap-3 px-4 py-3 bg-slate-50/80 border-b border-slate-100">
+        <div className="flex items-center gap-2.5">
+          <GripVertical size={16} className="text-slate-300 cursor-grab active:cursor-grabbing shrink-0" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider">
+            Question #{String(index + 1).padStart(2, "0")}
+          </span>
         </div>
 
-        <button
-          type="button"
-          onClick={() => onConfirmDelete(question)}
-          className="p-1.5 text-gray-300 hover:text-red-400 transition-colors"
-        >
-          <Trash2 size={14} />
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Tipe Selector Switch */}
+          <div className="flex items-center bg-slate-200/60 p-0.5">
+            {(["multiple_choice", "essay"] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => onUpdate(question._key, { type: t })}
+                className={`px-3 py-1 text-xs font-semibold transition-all ${
+                  question.type === t
+                    ? "bg-white text-indigo-900 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                {t === "multiple_choice" ? "Multiple Choice" : "Essay"}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onConfirmDelete(question)}
+            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+            title="Delete Question"
+          >
+            <Trash2 size={15} />
+          </button>
+        </div>
       </div>
 
-      <div className="p-4 space-y-4">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto]">
+      <div className="p-5 space-y-5">
+        {/* Teks Pertanyaan & Gambar */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_130px]">
           <TextAreaField
-            label="Pertanyaan"
+            label="Question Prompt"
             name="question"
             rows={3}
             value={question.question}
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
               onUpdate(question._key, { question: e.target.value })
             }
-            placeholder="Tulis pertanyaan di sini..."
+            placeholder="Write question prompt or instructions here..."
           />
 
-          <div className="w-28 flex-shrink-0">
+          <div className="space-y-1">
             <ChooseFile
-              label="Gambar (opsional)"
+              label="Question Image"
               aspect="square"
               value={question.image ?? null}
               onChange={(file) =>
@@ -157,18 +166,19 @@ function QuestionCard({
           </div>
         </div>
 
+        {/* Pilihan Ganda */}
         {question.type === "multiple_choice" && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-                Pilihan Jawaban
-              </p>
-              <p className="text-[10px] text-gray-300">
-                · klik baris untuk tandai jawaban benar
-              </p>
+          <div className="space-y-3 pt-2 border-t border-slate-100">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Answer Options (Click row to select the correct answer)
+              </span>
+              <span className="text-xs text-slate-400">
+                {question.quiz_options.length} options
+              </span>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {question.quiz_options.map((opt, i) => (
                 <OptionRow
                   key={opt.id || i}
@@ -182,60 +192,37 @@ function QuestionCard({
               ))}
             </div>
 
-            {question.quiz_options.length < 6 && (
-              <button
-                type="button"
-                onClick={() => onAddOption(question._key)}
-                className="flex items-center gap-1.5 text-xs text-violet-500 hover:text-violet-700 font-medium transition-colors"
-              >
-                <Plus size={12} />
-                Tambah pilihan
-              </button>
-            )}
+            <div className="flex items-center justify-between pt-1">
+              {question.quiz_options.length < 6 && (
+                <button
+                  type="button"
+                  onClick={() => onAddOption(question._key)}
+                  className="inline-flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-semibold px-3 py-1.5 border border-indigo-100 bg-indigo-50/50 hover:bg-indigo-100/50 transition-colors"
+                >
+                  <Plus size={13} />
+                  Add Option
+                </button>
+              )}
 
-            {!question.quiz_options.some((o) => o.is_correct) && (
-              <div className="flex items-center gap-1.5 px-3 py-2 bg-amber-50 border border-amber-100">
-                <span className="text-amber-400 text-xs">⚠</span>
-                <p className="text-[11px] text-amber-600 font-medium">
-                  Belum ada jawaban benar yang dipilih
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {question.type === "essay" && (
-          <div className="space-y-3">
-            <div className="flex items-start gap-2 px-3 py-2.5 bg-blue-50 border border-blue-100">
-              <svg className="w-3.5 h-3.5 text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
-              <p className="text-xs text-blue-600">
-                Siswa menjawab secara bebas dalam bentuk teks. Penilaian dilakukan manual oleh instruktur.
-              </p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-                Tampilan untuk siswa
-              </p>
-              <div className="border border-dashed border-gray-200 bg-gray-50 px-3 py-3">
-                <div className="w-full min-h-16 flex items-start">
-                  <p className="text-xs text-gray-300 italic">Tulis jawaban kamu di sini...</p>
+              {!question.quiz_options.some((o) => o.is_correct) && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-medium">
+                  <AlertCircle size={13} className="text-amber-500" />
+                  No correct answer selected yet.
                 </div>
-                <div className="mt-2 flex justify-between items-center border-t border-gray-200 pt-2">
-                  <p className="text-[10px] text-gray-300">0 kata</p>
-                  <div className="h-5 w-20 bg-violet-100 rounded-sm" />
-                </div>
-              </div>
+              )}
             </div>
           </div>
         )}
 
+        {/* Essay Info */}
         {question.type === "essay" && (
-          <div className="px-3 py-2.5 bg-blue-50 border border-blue-100">
-            <p className="text-xs text-blue-600">
-              Siswa menjawab soal ini secara bebas dalam bentuk teks.
+          <div className="p-4 bg-blue-50/60 border border-blue-100 space-y-2">
+            <div className="flex items-center gap-2 text-xs font-semibold text-blue-800">
+              <FileText size={15} className="text-blue-500" />
+              Essay Question
+            </div>
+            <p className="text-xs text-blue-600 leading-relaxed">
+              Students answer freely using a text box. Essay responses are manually reviewed and graded by the instructor.
             </p>
           </div>
         )}
@@ -255,35 +242,48 @@ export default function QuizBuilder({ courseSlug, moduleId, materialId, contentI
     props.quizQuestions ?? [],
   )
 
+  const mcCount = quiz.questions.filter((q) => q.type === "multiple_choice").length
+  const essayCount = quiz.questions.filter((q) => q.type === "essay").length
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            Bank Soal
-          </p>
-          <p className="text-xs text-gray-400 mt-0.5">
-            {quiz.questions.length} soal
-          </p>
+    <div className="space-y-5">
+      {/* Header Bank Soal Card */}
+      <div className="p-4 bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-rose-100 text-rose-600 flex items-center justify-center font-bold">
+            <HelpCircle size={20} />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-800">Quiz Question Bank</h3>
+            <div className="flex items-center gap-3 text-xs text-slate-500 mt-0.5">
+              <span>Total: <strong className="text-slate-800">{quiz.questions.length} Questions</strong></span>
+              <span>•</span>
+              <span>Multiple Choice: <strong className="text-indigo-600">{mcCount}</strong></span>
+              <span>•</span>
+              <span>Essay: <strong className="text-purple-600">{essayCount}</strong></span>
+            </div>
+          </div>
         </div>
 
         <button
           type="button"
           onClick={quiz.addQuestion}
-          className="flex items-center gap-1.5 px-3 py-1.5 border border-dashed border-violet-300 text-violet-600 text-xs font-medium hover:bg-violet-50 transition-colors"
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs border border-rose-200 transition-colors shadow-xs"
         >
-          <Plus size={13} />
-          Tambah Soal
+          <Plus size={14} />
+          Add New Question
         </button>
       </div>
 
       {quiz.errors && (
-        <div className="px-4 py-3 bg-red-50 border border-red-200 text-sm text-red-600">
-          {quiz.errors}
+        <div className="p-4 bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
+          <AlertCircle size={16} className="text-red-500 shrink-0" />
+          <span>{quiz.errors}</span>
         </div>
       )}
 
-      <div className="space-y-3">
+      {/* List Soal */}
+      <div className="space-y-4">
         {quiz.questions.map((q, i) => (
           <QuestionCard
             key={q._key}
@@ -299,13 +299,14 @@ export default function QuizBuilder({ courseSlug, moduleId, materialId, contentI
         ))}
       </div>
 
-      <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
-        <Button onClick={quiz.save} disabled={quiz.processing}>
-          {quiz.processing ? "Menyimpan..." : "Simpan Semua Soal"}
+      {/* Action Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white border border-slate-200/80 shadow-xs">
+        <Button onClick={quiz.save} disabled={quiz.processing} size="md" className="!rounded-none">
+          {quiz.processing ? "Saving Questions..." : "Save All Quiz Questions"}
         </Button>
-        <p className="text-xs text-gray-400">
-          Perubahan soal tidak tersimpan otomatis.
-        </p>
+        <span className="text-xs text-slate-400">
+          Question changes must be saved manually.
+        </span>
       </div>
 
       <ConfirmationDelete
@@ -313,8 +314,8 @@ export default function QuizBuilder({ courseSlug, moduleId, materialId, contentI
         onClose={quiz.cancelDelete}
         onConfirm={quiz.executeDelete}
         isLoading={quiz.processing}
-        title="Hapus Soal"
-        message={`Yakin ingin menghapus soal "${quiz.deleteTarget?.question || "ini"}"? Tindakan ini tidak bisa dibatalkan.`}
+        title="Delete Quiz Question"
+        message={`Are you sure you want to delete question "${quiz.deleteTarget?.question || "this"}"? This action cannot be undone.`}
       />
     </div>
   )

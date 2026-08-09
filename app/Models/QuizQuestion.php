@@ -18,6 +18,7 @@ class QuizQuestion extends Model
     protected $fillable = [
         'material_content_id',
         'question',
+        'type',
         'image',
         'sort_order',
     ];

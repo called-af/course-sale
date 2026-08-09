@@ -34,13 +34,20 @@ class QuizController extends Controller
         ]);
     }
 
-    public function store(StoreQuizQuestionRequest $request): JsonResponse
-    {
-        $this->quizService->storeQuestions($request->validated());
+    public function store(
+        StoreQuizQuestionRequest $request,
+        Course $course,
+        Module $module,
+        Material $material,
+        MaterialContent $content
+    ) {
+        $data = array_merge($request->validated(), [
+            'material_content_id' => $content->id,
+        ]);
 
-        return response()->json([
-            'message' => 'Quiz questions created successfully.',
-        ], 201);
+        $this->quizService->storeQuestions($data);
+
+        return back()->with('success', 'Quiz questions created successfully.');
     }
 
     public function update(
@@ -49,16 +56,14 @@ class QuizController extends Controller
         Module $module,
         Material $material,
         MaterialContent $content
-    ): JsonResponse {
+    ) {
         $data = array_merge($request->validated(), [
             'material_content_id' => $content->id,
         ]);
 
         $this->quizService->updateQuestions($data);
 
-        return response()->json([
-            'message' => 'Quiz questions updated successfully.',
-        ]);
+        return back()->with('success', 'Quiz questions updated successfully.');
     }
 
     public function destroy(
@@ -67,11 +72,9 @@ class QuizController extends Controller
         Material $material,
         MaterialContent $content,
         QuizQuestion $quizQuestion
-    ): JsonResponse {
+    ) {
         $this->quizService->deleteQuestion($quizQuestion);
 
-        return response()->json([
-            'message' => 'Quiz question deleted successfully.',
-        ]);
+        return back()->with('success', 'Quiz question deleted successfully.');
     }
 }

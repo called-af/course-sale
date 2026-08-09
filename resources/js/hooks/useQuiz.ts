@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { router, usePage } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
+import { router } from '@inertiajs/react';
 
 export type QuestionType = 'multiple_choice' | 'essay';
 
@@ -42,13 +42,17 @@ function makeEmptyQuestion(index: number): QuizQuestion {
 function normalizeFromServer(q: any): QuizQuestion {
     return {
         id: q.id,
-        _key: makeKey(),
+        _key: q._key || makeKey(),
         question: q.question ?? '',
         type: q.type ?? 'multiple_choice',
-        image: q.image ? `/storage/${q.image}` : null, 
+        image: q.image ? (q.image.startsWith('/') || q.image.startsWith('http') ? q.image : `/storage/${q.image}`) : null,
         imageFile: null,
         sort_order: q.sort_order,
-        quiz_options: q.quiz_options ?? [],
+        quiz_options: (q.quiz_options ?? []).map((opt: any) => ({
+            id: opt.id,
+            option_text: opt.option_text ?? '',
+            is_correct: Boolean(opt.is_correct),
+        })),
     };
 }
 
@@ -56,6 +60,12 @@ export function useQuiz(courseSlug: string, moduleId: number, materialId: number
     const [questions, setQuestions] = useState<QuizQuestion[]>(() =>
         initialQuestions.length > 0 ? initialQuestions.map(normalizeFromServer) : [makeEmptyQuestion(0)],
     );
+
+    useEffect(() => {
+        if (initialQuestions.length > 0) {
+            setQuestions(initialQuestions.map(normalizeFromServer));
+        }
+    }, [initialQuestions]);
 
     const [processing, setProcessing] = useState(false);
     const [errors, setErrors] = useState<string | null>(null);
@@ -113,28 +123,52 @@ export function useQuiz(courseSlug: string, moduleId: number, materialId: number
     const save = () => {
         setErrors(null);
 
+        for (let i = 0; i < questions.length; i++) {
+            const q = questions[i];
+            if (!q.question.trim()) {
+                setErrors(`Soal ${i + 1} belum memiliki teks pertanyaan.`);
+                return;
+            }
+            if (q.type === 'multiple_choice') {
+                if (q.quiz_options.length < 2) {
+                    setErrors(`Soal ${i + 1} pilihan ganda minimal harus memiliki 2 opsi jawaban.`);
+                    return;
+                }
+                const hasEmptyText = q.quiz_options.some((o) => !o.option_text.trim());
+                if (hasEmptyText) {
+                    setErrors(`Soal ${i + 1} memiliki opsi jawaban yang masih kosong.`);
+                    return;
+                }
+                const hasCorrect = q.quiz_options.some((o) => o.is_correct);
+                if (!hasCorrect) {
+                    setErrors(`Soal ${i + 1} belum memiliki jawaban benar yang dipilih.`);
+                    return;
+                }
+            }
+        }
+
         const hasExisting = questions.some((q) => q.id !== undefined);
         const hasFiles = questions.some((q) => q.imageFile instanceof File);
 
         const payload: Record<string, any> = {
             material_content_id: contentId,
+            questions: questions.map((q, i) => ({
+                ...(q.id ? { id: q.id } : {}),
+                question: q.question,
+                type: q.type,
+                sort_order: i + 1,
+                ...(q.imageFile ? { image: q.imageFile } : {}),
+                ...(q.type === 'multiple_choice'
+                    ? {
+                          options: q.quiz_options.map((o) => ({
+                              ...(o.id ? { id: o.id } : {}),
+                              option_text: o.option_text,
+                              is_correct: o.is_correct ? 1 : 0,
+                          })),
+                      }
+                    : {}),
+            })),
         };
-
-        questions.forEach((q, i) => {
-            if (q.id) payload[`questions[${i}][id]`] = q.id;
-            payload[`questions[${i}][question]`] = q.question;
-            payload[`questions[${i}][type]`] = q.type;
-            payload[`questions[${i}][sort_order]`] = i + 1;
-            if (q.imageFile) payload[`questions[${i}][image]`] = q.imageFile;
-
-            if (q.type === 'multiple_choice') {
-                q.quiz_options.forEach((o, j) => {
-                    if (o.id) payload[`questions[${i}][options][${j}][id]`] = o.id;
-                    payload[`questions[${i}][options][${j}][option_text]`] = o.option_text;
-                    payload[`questions[${i}][options][${j}][is_correct]`] = o.is_correct ? 1 : 0;
-                });
-            }
-        });
 
         const routerOptions = {
             forceFormData: hasFiles,
@@ -142,7 +176,6 @@ export function useQuiz(courseSlug: string, moduleId: number, materialId: number
             preserveScroll: true,
             onStart: () => setProcessing(true),
             onFinish: () => setProcessing(false),
-            onSuccess: () => router.reload({ only: ['quizQuestions'] }),
             onError: (errs: any) => {
                 const messages = Object.values(errs as Record<string, string>).join(', ');
                 setErrors(messages || 'Gagal menyimpan soal quiz.');

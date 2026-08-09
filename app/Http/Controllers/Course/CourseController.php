@@ -30,14 +30,17 @@ class CourseController extends Controller
     {
         $this->authorize('viewAny', Course::class);
 
+        $query = Course::with([
+            'creator:id,name',
+            'categories:id,name',
+        ]);
+
+        if (Auth::user()->role === 'instructor') {
+            $query->where('creator_id', Auth::id());
+        }
+
         return Inertia::render('admin/course/page', [
-            'courses' => Course::with([
-                'creator:id,name',
-                'categories:id,name',
-            ])
-                ->latest()
-                ->get()
-                ->append('thumbnail_url'),
+            'courses' => $query->latest()->get()->append('thumbnail_url'),
             'categories' => Category::select('id', 'name', 'img', 'desc')->get(),
         ]);
     }
@@ -77,7 +80,44 @@ class CourseController extends Controller
     }
 
     /**
+     * Preview course as learning interface (admin)
+     */
+    public function preview(Course $course): Response
+    {
+        $this->authorize('view', $course);
+
+        return Inertia::render('admin/course/preview/page', [
+            'course' => $course
+                ->load([
+                    'creator:id,name',
+                    'categories:id,name',
+                    'modules' => function ($moduleQuery) {
+                        $moduleQuery
+                            ->select('id', 'course_id', 'title', 'sort_order', 'status')
+                            ->orderBy('sort_order')
+                            ->with([
+                                'materials' => function ($materialQuery) {
+                                    $materialQuery
+                                        ->select('id', 'module_id', 'title', 'sort_order', 'status')
+                                        ->orderBy('sort_order')
+                                        ->with([
+                                            'contents' => function ($contentQuery) {
+                                                $contentQuery
+                                                    ->orderBy('sort_order')
+                                                    ->with(['quizQuestions.quizOptions']);
+                                            },
+                                        ]);
+                                },
+                            ]);
+                    },
+                ])
+                ->append('thumbnail_url'),
+        ]);
+    }
+
+    /**
      * Store new course
+
      */
     public function store(
         StoreCourseRequest $request
