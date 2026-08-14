@@ -6,6 +6,7 @@ import CourseCard from "@/components/molecules/CourseCard"
 import { useCourse } from "@/hooks/useCourse"
 import { Course } from "@/types"
 import { ArrowRight } from "lucide-react"
+import { Link } from "@inertiajs/react"
 
 interface CourseSectionProps {
   courses: Course[]
@@ -21,11 +22,11 @@ export default function CourseSection({ courses }: CourseSectionProps) {
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
           <div className="flex flex-col gap-4">
             <Badge variant="purple" dot>
-              Kursus Pilihan
+              Featured Courses
             </Badge>
             <Title as="h2" className="leading-tight" style={{ fontSize: "clamp(1.8rem,4vw,2.8rem)" }}>
-              Temukan Kursus yang
-              <span className="bg-purple-400 px-2 ml-2 inline-block">Tepat Untukmu</span>
+              Find the Course That's
+              <span className="bg-purple-400 px-2 ml-2 inline-block">Right for You</span>
             </Title>
           </div>
 
@@ -47,23 +48,25 @@ export default function CourseSection({ courses }: CourseSectionProps) {
           </div>
         ) : (
           <div className="py-24 flex flex-col items-center gap-3 text-center">
-            <Title as="h4" className="text-gray-400">Kursus tidak ditemukan</Title>
-            <p className="text-sm text-gray-400">Coba kata kunci lain atau reset pencarian</p>
+            <Title as="h4" className="text-gray-400">No courses found</Title>
+            <p className="text-sm text-gray-400">Try a different keyword or reset the search</p>
             <Button variant="outline" className="mt-2" onClick={() => setSearch("")}>
-              Reset Pencarian
+              Reset Search
             </Button>
           </div>
         )}
 
         {filteredCourses.length > 0 && (
           <div className="mt-12 flex justify-center">
-            <Button
-              variant="outline"
-              rightIcon={<ArrowRight size={16} />}
-              className="px-8 py-3 text-base"
-            >
-              Lihat Semua Kursus
-            </Button>
+            <Link href="/course">
+              <Button
+                variant="outline"
+                rightIcon={<ArrowRight size={16} />}
+                className="px-8 py-3 text-base"
+              >
+                View All Courses
+              </Button>
+            </Link>
           </div>
         )}
 

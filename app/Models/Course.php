@@ -29,6 +29,8 @@ class Course extends Model
         'rating_count',
     ];
 
+    protected $appends = ['thumbnail_url'];
+
     protected function casts(): array
     {
         return [

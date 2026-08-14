@@ -45,14 +45,14 @@ export default function CategoryForm({
             variant="outline"
             onClick={onClose}
           >
-            Batal
+            Cancel
           </Button>
 
           <Button
             onClick={onSubmit}
             disabled={processing || !data.name.trim()}
           >
-            Simpan
+            Save
           </Button>
         </>
       }
@@ -70,13 +70,13 @@ export default function CategoryForm({
 
         <div className="flex-1 flex flex-col gap-3">
           <InputField
-            label="Nama"
+            label="Name"
             value={data.name}
             onChange={(e) => setData("name", e.target.value)}
           />
 
           <InputField
-            label="Deskripsi"
+            label="Description"
             value={data.desc}
             onChange={(e) => setData("desc", e.target.value)}
           />

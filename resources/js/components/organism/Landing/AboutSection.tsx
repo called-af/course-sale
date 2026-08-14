@@ -2,10 +2,10 @@ import Title from "@/components/atoms/Title"
 import Badge from "@/components/atoms/Badge"
 
 const stats = [
-  { value: "2019", label: "Tahun Berdiri" },
-  { value: "50K+", label: "Pelajar Aktif" },
-  { value: "200+", label: "Kursus Tersedia" },
-  { value: "98%", label: "Tingkat Kepuasan" },
+  { value: "2019", label: "Founded" },
+  { value: "50K+", label: "Active Learners" },
+  { value: "200+", label: "Courses Available" },
+  { value: "98%", label: "Satisfaction Rate" },
 ]
 
 export default function AboutSection() {
@@ -15,22 +15,22 @@ export default function AboutSection() {
 
         <div className="flex flex-col gap-6">
           <Badge variant="purple" dot>
-            Tentang Kami
+            About Us
           </Badge>
 
           <Title as="h2" className="text-white leading-tight" style={{ fontSize: "clamp(2rem,4vw,3rem)" }}>
-            Kami hadir untuk mengubah cara belajar Indonesia
+            We're here to transform the way people learn
           </Title>
 
           <p className="text-gray-400 text-lg leading-relaxed">
-            KursusIO lahir dari keyakinan bahwa pendidikan berkualitas harus bisa diakses siapa saja,
-            di mana saja. Kami menghadirkan instruktur terbaik, kurikulum yang relevan dengan industri,
-            dan komunitas yang saling mendukung.
+            KursusIO was born from the belief that quality education should be accessible to everyone,
+            everywhere. We bring together the best instructors, industry-relevant curriculum,
+            and a community that supports each other.
           </p>
 
           <p className="text-gray-500 leading-relaxed">
-            Sejak 2019, kami telah membantu puluhan ribu pelajar mengembangkan skill digital mereka
-            dan berhasil masuk ke perusahaan impian — dari startup lokal hingga perusahaan Fortune 500.
+            Since 2019, we've helped tens of thousands of learners develop their digital skills
+            and land their dream jobs — from local startups to Fortune 500 companies.
           </p>
         </div>
 

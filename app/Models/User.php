@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
@@ -55,5 +56,15 @@ class User extends Authenticatable
     public function hasRole($roles): bool
     {
         return in_array($this->role, (array) $roles);
+    }
+
+    public function createdCourses(): HasMany
+    {
+        return $this->hasMany(Course::class, 'creator_id');
+    }
+
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(Enrollment::class, 'user_id');
     }
 }

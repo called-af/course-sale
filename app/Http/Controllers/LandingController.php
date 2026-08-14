@@ -20,7 +20,8 @@ class LandingController extends Controller
                 ->with('creator', 'categories')
                 ->latest()
                 ->take(8)
-                ->get(),
+                ->get()
+                ->append(['thumbnail_url']),
 
             'categories' => Category::all(),
         ]);

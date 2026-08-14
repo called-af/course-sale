@@ -15,22 +15,22 @@ export default function CategorySection({ categories }: CategorySectionProps) {
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
           <div className="flex flex-col gap-4">
             <Badge variant="purple" dot>
-              Jalur Karier
+              Career Paths
             </Badge>
             <Title
               as="h2"
               className="leading-tight"
               style={{ fontSize: "clamp(1.8rem,4vw,2.8rem)" }}
             >
-              Pilih Jalur Karier
+              Choose the Career Path
               <span className="bg-purple-400 px-2 ml-2 inline-block">
-                yang Kamu Mau
+                You Want
               </span>
             </Title>
           </div>
 
           <p className="text-gray-400 text-sm max-w-xs lg:text-right leading-relaxed">
-            Setiap jalur dirancang bersama praktisi industri untuk memastikan kamu siap kerja.
+            Each path is designed with industry practitioners to ensure you're job-ready.
           </p>
         </div>
 
@@ -51,14 +51,13 @@ export default function CategorySection({ categories }: CategorySectionProps) {
                 <Title as="h4" className="text-gray-900">
                   {c.name}
                 </Title>
-
                 <span className="text-xs text-purple-500 font-medium uppercase tracking-widest">
-                  Kategori
+                  Category
                 </span>
               </div>
 
               <p className="text-gray-500 text-sm leading-relaxed">
-                {c.desc ?? "Pelajari berbagai kursus dalam kategori ini."}
+                {c.desc ?? "Explore a variety of courses in this category."}
               </p>
 
               <div className="mt-auto pt-4">
@@ -66,7 +65,7 @@ export default function CategorySection({ categories }: CategorySectionProps) {
                   href={`/courses?category=${c.slug}`}
                   className="inline-flex items-center gap-1 text-sm text-gray-400 group-hover:text-purple-600 transition-colors"
                 >
-                  Lihat Kursus <ArrowRight size={14} />
+                  View Courses <ArrowRight size={14} />
                 </Link>
               </div>
             </div>
@@ -81,7 +80,7 @@ export default function CategorySection({ categories }: CategorySectionProps) {
               rightIcon={<ArrowRight size={16} />}
               className="px-8 py-3 text-base"
             >
-              Eksplorasi Semua Jalur
+              Explore All Paths
             </Button>
           </Link>
         </div>

@@ -52,7 +52,7 @@ export default function HeroSection() {
           }}
         >
           <Badge variant="purple" dot>
-            Platform Belajar #1 Indonesia
+            Indonesia's #1 Learning Platform
           </Badge>
 
           <div>
@@ -70,16 +70,16 @@ export default function HeroSection() {
           </div>
 
           <p className="text-gray-500 lg:text-lg text-sm max-w-lg leading-relaxed">
-            Bergabung dengan ribuan pelajar yang telah mengubah karier mereka lewat kursus
-            berkualitas tinggi dan mentor berpengalaman.
+            Join thousands of learners who have transformed their careers through
+            high-quality courses and experienced mentors.
           </p>
 
           <div className="flex flex-col lg:flex-row items-center gap-4">
             <Button widthFull variant="primary" rightIcon={<ArrowRight size={18} />} className="px-8 py-3 text-base bg-gray-900 hover:bg-gray-700 focus:ring-gray-500">
-              Jelajahi Kursus
+              Explore Courses
             </Button>
             <Button widthFull variant="outline" leftIcon={<Play size={18} />} className="px-6 py-3 text-base">
-              Lihat Demo
+              Watch Demo
             </Button>
           </div>
 
@@ -96,7 +96,7 @@ export default function HeroSection() {
                 <span className="text-gray-900 font-semibold ml-1">4.9</span>
               </div>
               <div className="text-xs text-gray-400 mt-0.5">
-                dari <span className="text-gray-700 font-medium">50.000+</span> pelajar aktif
+                from <span className="text-gray-700 font-medium">50,000+</span> active learners
               </div>
             </div>
           </div>

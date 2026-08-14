@@ -16,6 +16,15 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', [LandingController::class, 'show'])->name('home');
+Route::get('/course', function () {
+    return Inertia::render('course/page', [
+        'courses' => Course::where('status', 'published')
+            ->with(['creator:id,name', 'categories:id,name'])
+            ->latest()
+            ->get()
+            ->append('thumbnail_url'),
+    ]);
+})->name('course.index');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthControllers::class, 'show'])->name('login');
@@ -222,8 +231,8 @@ Route::middleware(['auth', 'role'])->group(function () {
             Route::get('/dashboard', fn () => Inertia::render('user/Dashboard')
             )->name('dashboard');
 
-            Route::get('/courses', [CourseController::class, 'index'])
-                ->name('courses.index');
+            Route::get('/courses', fn () => Inertia::render('user/course/page')
+            )->name('courses.index');
 
             Route::get('/courses/{course:slug}', [CourseController::class, 'show'])
                 ->name('courses.show');
@@ -250,6 +259,9 @@ Route::middleware(['auth', 'role'])->group(function () {
 
             Route::get('/dashboard', fn () => Inertia::render('user/Dashboard')
             )->name('dashboard');
+
+            Route::get('/courses', fn () => Inertia::render('user/course/page')
+            )->name('courses.index');
 
             Route::get('/courses/{course:slug}', [CourseController::class, 'show'])
                 ->name('courses.show');

@@ -126,22 +126,22 @@ export function useQuiz(courseSlug: string, moduleId: number, materialId: number
         for (let i = 0; i < questions.length; i++) {
             const q = questions[i];
             if (!q.question.trim()) {
-                setErrors(`Soal ${i + 1} belum memiliki teks pertanyaan.`);
+                setErrors(`Question ${i + 1} does not have question text.`);
                 return;
             }
             if (q.type === 'multiple_choice') {
                 if (q.quiz_options.length < 2) {
-                    setErrors(`Soal ${i + 1} pilihan ganda minimal harus memiliki 2 opsi jawaban.`);
+                    setErrors(`Question ${i + 1} (multiple choice) must have at least 2 options.`);
                     return;
                 }
                 const hasEmptyText = q.quiz_options.some((o) => !o.option_text.trim());
                 if (hasEmptyText) {
-                    setErrors(`Soal ${i + 1} memiliki opsi jawaban yang masih kosong.`);
+                    setErrors(`Question ${i + 1} has an empty answer option.`);
                     return;
                 }
                 const hasCorrect = q.quiz_options.some((o) => o.is_correct);
                 if (!hasCorrect) {
-                    setErrors(`Soal ${i + 1} belum memiliki jawaban benar yang dipilih.`);
+                    setErrors(`Question ${i + 1} does not have a correct answer selected.`);
                     return;
                 }
             }
@@ -176,9 +176,9 @@ export function useQuiz(courseSlug: string, moduleId: number, materialId: number
             preserveScroll: true,
             onStart: () => setProcessing(true),
             onFinish: () => setProcessing(false),
-            onError: (errs: any) => {
+                onError: (errs: any) => {
                 const messages = Object.values(errs as Record<string, string>).join(', ');
-                setErrors(messages || 'Gagal menyimpan soal quiz.');
+                setErrors(messages || 'Failed to save quiz questions.');
             },
         };
 
@@ -213,7 +213,7 @@ export function useQuiz(courseSlug: string, moduleId: number, materialId: number
                 setQuestions((prev) => prev.filter((q) => q._key !== deleteTarget._key));
                 setDeleteTarget(null);
             },
-            onError: () => setErrors('Gagal menghapus soal.'),
+            onError: () => setErrors('Failed to delete question.'),
         });
     };
 

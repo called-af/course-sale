@@ -105,7 +105,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                     setOpenDelete(true)
                   }}
                 >
-                  Hapus
+                  Delete
                 </Button>
               </div>
             </div>
@@ -117,8 +117,8 @@ export default function CourseCard({ course }: CourseCardProps) {
         open={openDelete}
         onClose={() => setOpenDelete(false)}
         onConfirm={() => destroy(course.slug)}
-        title="Hapus Course"
-        message={`Course "${course.title}" akan dihapus permanen.`}
+        title="Delete Course"
+        message={`Course "${course.title}" will be permanently deleted.`}
       />
     </>
   )

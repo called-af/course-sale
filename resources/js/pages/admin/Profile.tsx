@@ -10,7 +10,7 @@ export default function Profile({ user }: { user: User }) {
     <>
       <Head title={`Edit ${user.name}`} />
 
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="max-w-8xl mx-auto space-y-8">
         
         <BreadCrumb
           items={[

@@ -1,20 +1,20 @@
 import { Link } from "@inertiajs/react"
 
 const links = {
-  "Produk": [
-    { name: "Kursus", href: "/courses" },
-    { name: "Instruktur", href: "/instructors" },
-    { name: "Sertifikasi", href: "/certification" },
+  "Product": [
+    { name: "Courses", href: "/courses" },
+    { name: "Instructors", href: "/instructors" },
+    { name: "Certification", href: "/certification" },
   ],
-  "Perusahaan": [
-    { name: "Tentang Kami", href: "/about" },
-    { name: "Karier", href: "/careers" },
+  "Company": [
+    { name: "About Us", href: "/about" },
+    { name: "Careers", href: "/careers" },
     { name: "Blog", href: "/blog" },
   ],
-  "Bantuan": [
+  "Support": [
     { name: "FAQ", href: "/faq" },
-    { name: "Kontak", href: "/contact" },
-    { name: "Kebijakan Privasi", href: "/privacy" },
+    { name: "Contact", href: "/contact" },
+    { name: "Privacy Policy", href: "/privacy" },
   ],
 }
 
@@ -31,7 +31,7 @@ export default function Footer() {
             <img src="/images/logo.png" alt="Logo" className="h-8 w-auto" />
           </Link>
           <p className="text-gray-500 text-sm leading-relaxed">
-            Platform belajar digital terbaik untuk mengembangkan skill dan memajukan karier kamu.
+            The best digital learning platform to develop your skills and advance your career.
           </p>
         </div>
 
