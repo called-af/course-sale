@@ -5,14 +5,17 @@ namespace App\Http\Controllers\Course;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Module\StoreModuleRequest;
 use App\Http\Requests\Module\UpdateModuleRequest;
+use App\Http\Requests\Course\MoveCourseResourceRequest;
 use App\Models\Course;
 use App\Models\Module;
 use App\Services\ModuleService;
+use App\Services\CourseStructureService;
 
 class ModuleController extends Controller
 {
     public function __construct(
-        protected ModuleService $moduleService
+    protected ModuleService $moduleService,
+    protected CourseStructureService $structureService,
     ) {}
 
     public function store(StoreModuleRequest $request, Course $course)
@@ -27,24 +30,17 @@ class ModuleController extends Controller
         return back()->with('success', 'Module created');
     }
 
-    public function move(Course $course, Module $module)
+    public function move(MoveCourseResourceRequest $request, Course $course, Module $module)
     {
-        abort_if($module->course_id !== $course->id, 404);
-
-        request()->validate([
-            'direction' => ['required', 'in:up,down'],
-        ]);
-
-        $this->moduleService->move($module, request('direction'));
+        $this->structureService->ensureModuleBelongsToCourse($course, $module);
+        $this->moduleService->move($module, $request->string('direction')->toString());
 
         return back();
     }
 
     public function update(UpdateModuleRequest $request, Course $course, Module $module)
     {
-        abort_if($module->course_id !== $course->id, 404);
-
-        $this->authorize('update', $module);
+        $this->structureService->ensureModuleBelongsToCourse($course, $module);
 
         $this->moduleService->update($module, $request->validated());
 
@@ -53,8 +49,7 @@ class ModuleController extends Controller
 
     public function destroy(Course $course, Module $module)
     {
-        abort_if($module->course_id !== $course->id, 404);
-
+        $this->structureService->ensureModuleBelongsToCourse($course, $module);
         $this->authorize('delete', $module);
 
         $this->moduleService->delete($module);

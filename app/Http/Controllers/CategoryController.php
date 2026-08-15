@@ -37,6 +37,7 @@ class CategoryController extends Controller
 
     public function destroy(Category $category): RedirectResponse
     {
+        $this->authorize('delete', $category);
         $this->categoryService->delete($category);
 
         return back()->with('success', 'Category berhasil dihapus');

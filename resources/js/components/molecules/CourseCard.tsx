@@ -108,7 +108,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                 onClose={() => setOpenDelete(false)}
                 onConfirm={() => destroy(course.slug)}
                 title="Delete Course"
-                message={`Course "${course.title}" will be permanently deleted.`}
+                message={`Are you sure you want to delete "${course.title}"? This action will permanently remove the course, including its modules, materials, and lesson content.`}
             />
         </>
     );

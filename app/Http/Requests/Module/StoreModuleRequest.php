@@ -11,7 +11,7 @@ class StoreModuleRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->can('update', $this->route('course')) ?? false;
     }
 
     /**

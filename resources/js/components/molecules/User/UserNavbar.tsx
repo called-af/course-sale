@@ -1,7 +1,7 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { BookOpen, Compass, GraduationCap, LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
+import { Bell, BookOpen, CheckCircle, Compass, GraduationCap, LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
 import clsx from 'clsx';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface UserNavbarProps {
     title?: string;
@@ -31,13 +31,29 @@ function buildNavigation(role: string): NavigationItem[] {
 export default function UserNavbar({ title }: UserNavbarProps) {
     const { props, url } = usePage();
     const auth = (props as any).auth;
+    const instructorApprovalNotifications = (props as any).instructorApprovalNotifications;
     const [menuOpen, setMenuOpen] = useState(false);
+    const [notificationsOpen, setNotificationsOpen] = useState(false);
+    const notificationRef = useRef<HTMLDivElement>(null);
     const navigation = buildNavigation(auth?.user?.role ?? 'student');
+    const approvedCourses = instructorApprovalNotifications?.courses ?? [];
+    const approvedCourseCount = instructorApprovalNotifications?.count ?? 0;
 
     const logout = () => router.post('/logout');
 
     // Derive page title from URL if not passed explicitly
     const pageTitle = title ?? deriveTitle(url);
+
+    useEffect(() => {
+        const closeOnOutsideClick = (event: MouseEvent) => {
+            if (!notificationRef.current?.contains(event.target as Node)) {
+                setNotificationsOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', closeOnOutsideClick);
+        return () => document.removeEventListener('mousedown', closeOnOutsideClick);
+    }, []);
 
     return (
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-neutral-100 bg-white px-5">
@@ -76,6 +92,58 @@ export default function UserNavbar({ title }: UserNavbarProps) {
                 </div>
 
                 <div className="flex shrink-0 items-center gap-3">
+                    {auth?.user?.role === 'instructor' && (
+                        <div ref={notificationRef} className="relative">
+                            <button
+                                type="button"
+                                onClick={() => setNotificationsOpen((open) => !open)}
+                                className="relative p-2 text-neutral-500 transition-colors hover:bg-purple-50 hover:text-purple-600"
+                                title="Course approvals"
+                                aria-label="Course approvals"
+                                aria-expanded={notificationsOpen}
+                            >
+                                <Bell size={18} />
+                                {approvedCourseCount > 0 && (
+                                    <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-emerald-500 px-1 text-[10px] font-bold leading-4 text-white">
+                                        {approvedCourseCount > 99 ? '99+' : approvedCourseCount}
+                                    </span>
+                                )}
+                            </button>
+
+                            {notificationsOpen && (
+                                <div className="absolute right-0 top-11 z-50 w-80 overflow-hidden border border-neutral-200 bg-white shadow-xl">
+                                    <div className="border-b border-neutral-100 px-4 py-3">
+                                        <p className="text-sm font-semibold text-neutral-800">Approved courses</p>
+                                        <p className="text-xs text-neutral-400">Courses approved by an administrator</p>
+                                    </div>
+                                    <div className="max-h-80 overflow-y-auto">
+                                        {approvedCourses.length === 0 ? (
+                                            <p className="px-4 py-8 text-center text-sm text-neutral-400">No course approvals yet.</p>
+                                        ) : (
+                                            approvedCourses.map((course: any) => (
+                                                <button
+                                                    key={course.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setNotificationsOpen(false);
+                                                        router.visit(`/instructor/courses/${course.slug}`);
+                                                    }}
+                                                    className="flex w-full items-start gap-3 border-b border-neutral-100 px-4 py-3 text-left last:border-0 transition-colors hover:bg-emerald-50"
+                                                >
+                                                    <CheckCircle size={16} className="mt-0.5 shrink-0 text-emerald-500" />
+                                                    <div className="min-w-0">
+                                                        <p className="truncate text-sm font-medium text-neutral-800">{course.title}</p>
+                                                        <p className="mt-0.5 text-xs text-emerald-600">Approved and published</p>
+                                                    </div>
+                                                </button>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {/* User pill */}
                     <div className="flex items-center gap-2.5">
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden bg-purple-100 text-xs font-bold text-purple-600">

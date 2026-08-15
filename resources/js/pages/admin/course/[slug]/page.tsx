@@ -1,5 +1,6 @@
 import AdminLayout from "@/components/templates/AdminLayout"
 import Button from "@/components/atoms/Button"
+import Modal from "@/components/atoms/Modal"
 import InputField from "@/components/molecules/InputField"
 import TextAreaField from "@/components/molecules/TextAreaField"
 import SelectField from "@/components/molecules/SelectField"
@@ -10,8 +11,9 @@ import CourseStructure from "@/components/organism/Course/CourseStructure"
 
 import { Course } from "@/types"
 import { useCourse } from "@/hooks/useCourse"
-import { Head, Link, usePage } from "@inertiajs/react"
-import { ArrowLeft, Eye, Image, Save, Tag, User } from "lucide-react"
+import { Head, Link, router, usePage } from "@inertiajs/react"
+import { ArrowLeft, CheckCircle, Eye, Image, Save, Tag } from "lucide-react"
+import { useState } from "react"
 
 interface CourseSlugProps {
   course: Course
@@ -21,6 +23,8 @@ interface CourseSlugProps {
 export default function CourseSlug({ course, categories }: CourseSlugProps) {
   const { auth } = usePage().props as any
   const rolePrefix = auth?.user?.role ?? "admin"
+  const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false)
+  const [isApproving, setIsApproving] = useState(false)
 
   const {
     data,
@@ -32,6 +36,14 @@ export default function CourseSlug({ course, categories }: CourseSlugProps) {
     hasChanges,
     save,
   } = useCourse(course)
+
+  const approve = () => {
+    router.put(`/admin/courses/${course.slug}/approve`, {}, {
+      onStart: () => setIsApproving(true),
+      onSuccess: () => setIsApprovalModalOpen(false),
+      onFinish: () => setIsApproving(false),
+    })
+  }
 
   return (
     <>
@@ -59,6 +71,15 @@ export default function CourseSlug({ course, categories }: CourseSlugProps) {
           description={course.creator ? `Created by ${course.creator.name}` : undefined}
           actions={
             <div className="flex items-center gap-3">
+              {course.status === "review" && (
+                <Button
+                  onClick={() => setIsApprovalModalOpen(true)}
+                  leftIcon={<CheckCircle className="w-4 h-4" />}
+                  className="!rounded-none"
+                >
+                  Approve & Publish
+                </Button>
+              )}
               <Link
                 href={`/${rolePrefix}/courses/${course.slug}/preview`}
                 className="inline-flex items-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-medium text-sm border border-purple-500 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
@@ -171,7 +192,6 @@ export default function CourseSlug({ course, categories }: CourseSlugProps) {
                   options={[
                     { label: "Draft", value: "draft" },
                     { label: "Under Review", value: "review" },
-                    { label: "Published", value: "published" },
                   ]}
                 />
               </div>
@@ -212,6 +232,35 @@ export default function CourseSlug({ course, categories }: CourseSlugProps) {
 
         <CourseStructure course={course} modules={course.modules ?? []} />
       </div>
+
+      <Modal
+        open={isApprovalModalOpen}
+        onClose={() => !isApproving && setIsApprovalModalOpen(false)}
+        title="Approve Course"
+        footer={
+          <>
+            <Button
+              variant="outline"
+              onClick={() => setIsApprovalModalOpen(false)}
+              disabled={isApproving}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={approve}
+              isLoading={isApproving}
+              leftIcon={<CheckCircle className="w-4 h-4" />}
+            >
+              Approve & Publish
+            </Button>
+          </>
+        }
+      >
+        <p>Are you sure you want to approve this course?</p>
+        <p className="mt-2 text-gray-500">
+          Once approved, “{course.title}” will be published and become visible in the public course catalog.
+        </p>
+      </Modal>
     </>
   )
 }

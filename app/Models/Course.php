@@ -25,6 +25,7 @@ class Course extends Model
         'level',
         'status',
         'published_at',
+        'approved_at',
         'rating_avg',
         'rating_count',
     ];
@@ -38,6 +39,7 @@ class Course extends Model
             'creator_id' => 'integer',
             'price' => 'decimal:2',
             'published_at' => 'datetime',
+            'approved_at' => 'datetime',
             'rating_avg' => 'decimal:2',
         ];
     }
@@ -120,6 +122,10 @@ class Course extends Model
     public function getThumbnailUrlAttribute(): string
     {
         if ($this->thumbnail) {
+            if (str_starts_with($this->thumbnail, 'assets/')) {
+                return asset($this->thumbnail);
+            }
+
             return asset('storage/'.$this->thumbnail);
         }
 

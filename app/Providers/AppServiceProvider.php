@@ -5,8 +5,12 @@ namespace App\Providers;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use App\Models\{Category, Course, Material, MaterialContent, Module, User};
+use App\Policies\{CategoryPolicy, CoursePolicy, MaterialContentPolicy, MaterialPolicy, ModulePolicy, UserPolicy};
+use App\Services\CourseStructureService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->scoped(CourseStructureService::class);
     }
 
     /**
@@ -24,6 +28,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        Gate::policy(Category::class, CategoryPolicy::class);
+        Gate::policy(Course::class, CoursePolicy::class);
+        Gate::policy(Module::class, ModulePolicy::class);
+        Gate::policy(Material::class, MaterialPolicy::class);
+        Gate::policy(MaterialContent::class, MaterialContentPolicy::class);
+        Gate::policy(User::class, UserPolicy::class);
     }
 
     protected function configureDefaults(): void

@@ -87,11 +87,11 @@ class CoursePolicy
 
     public function publish(User $user, Course $course): bool
     {
-        return
-            $user->role === 'admin'
-            || (
-                $user->role === 'instructor'
-                && $course->creator_id === $user->id
-            );
+        return $user->role === 'admin';
+    }
+
+    public function approve(User $user, Course $course): bool
+    {
+        return $user->role === 'admin';
     }
 }

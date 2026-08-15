@@ -24,11 +24,13 @@ class MaterialPolicy
 
     public function update(User $user, Material $material): bool
     {
-        return $user->hasRole(['admin', 'instructor']);
+        return $user->role === 'admin'
+            || ($user->role === 'instructor'
+                && $material->module->course->creator_id === $user->id);
     }
 
     public function delete(User $user, Material $material): bool
     {
-        return $user->hasRole(['admin', 'instructor']);
+        return $this->update($user, $material);
     }
 }

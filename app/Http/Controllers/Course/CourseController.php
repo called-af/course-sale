@@ -4,10 +4,9 @@ namespace App\Http\Controllers\Course;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Course\StoreCourseRequest;
+use App\Http\Requests\Course\SubmitCourseForReviewRequest;
 use App\Http\Requests\Course\UpdateCourseRequest;
-use App\Models\Category;
 use App\Models\Course;
-use App\Models\User;
 use App\Services\CourseService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
@@ -30,19 +29,7 @@ class CourseController extends Controller
     {
         $this->authorize('viewAny', Course::class);
 
-        $query = Course::with([
-            'creator:id,name',
-            'categories:id,name',
-        ]);
-
-        if (Auth::user()->role === 'instructor') {
-            $query->where('creator_id', Auth::id());
-        }
-
-        $data = [
-            'courses' => $query->latest()->get()->append('thumbnail_url'),
-            'categories' => Category::select('id', 'name', 'img', 'desc')->get(),
-        ];
+        $data = $this->courseService->indexData(Auth::user());
 
         if (Auth::user()->role === 'instructor') {
             return Inertia::render('user/course/page', $data);
@@ -62,31 +49,7 @@ class CourseController extends Controller
             ? 'user/course/[slug]/page'
             : 'admin/course/[slug]/page';
 
-        return Inertia::render($view, [
-            'course' => $course
-                ->load([
-                    'creator:id,name',
-                    'categories:id,name',
-                    'modules' => function ($moduleQuery) {
-                        $moduleQuery
-                            ->select('id', 'course_id', 'title', 'sort_order', 'status')
-                            ->orderBy('sort_order')
-                            ->with([
-                                'materials' => function ($materialQuery) {
-                                    $materialQuery
-                                        ->orderBy('sort_order')
-                                        ->with([
-                                            'contents' => fn ($contentQuery) => $contentQuery->orderBy('sort_order'),
-                                        ]);
-                                },
-                            ]);
-                    },
-                ])
-                ->append('thumbnail_url'),
-
-            'categories' => Category::select('id', 'name', 'img', 'desc')->get(),
-            'users' => User::select('avatar', 'name', 'email')->get(),
-        ]);
+        return Inertia::render($view, $this->courseService->detailData($course));
     }
 
     /**
@@ -100,33 +63,7 @@ class CourseController extends Controller
             ? 'user/course/preview/page'
             : 'admin/course/preview/page';
 
-        return Inertia::render($view, [
-            'course' => $course
-                ->load([
-                    'creator:id,name',
-                    'categories:id,name',
-                    'modules' => function ($moduleQuery) {
-                        $moduleQuery
-                            ->select('id', 'course_id', 'title', 'sort_order', 'status')
-                            ->orderBy('sort_order')
-                            ->with([
-                                'materials' => function ($materialQuery) {
-                                    $materialQuery
-                                        ->select('id', 'module_id', 'title', 'sort_order', 'status')
-                                        ->orderBy('sort_order')
-                                        ->with([
-                                            'contents' => function ($contentQuery) {
-                                                $contentQuery
-                                                    ->orderBy('sort_order')
-                                                    ->with(['quizQuestions.quizOptions']);
-                                            },
-                                        ]);
-                                },
-                            ]);
-                    },
-                ])
-                ->append('thumbnail_url'),
-        ]);
+        return Inertia::render($view, $this->courseService->previewData($course));
     }
 
     /**
@@ -197,6 +134,19 @@ class CourseController extends Controller
         }
     }
 
+    public function submitForReview(
+        SubmitCourseForReviewRequest $request,
+        Course $course,
+    ): RedirectResponse {
+        try {
+            $this->courseService->submitForReview($course);
+
+            return back()->with('success', 'Course meets all requirements and has been submitted for admin approval.');
+        } catch (DomainException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+    }
+
     /**
      * Delete course
      */
@@ -204,23 +154,21 @@ class CourseController extends Controller
     {
         $this->authorize('delete', $course);
 
-        $course->categories()->detach();
-
-        $course->delete();
+        $this->courseService->delete($course);
 
         return match (Auth::user()->role) {
 
-            'admin' => redirect()
+                'admin' => redirect()
                 ->route('admin.courses.index')
-                ->with('success', 'Course berhasil dihapus'),
+                ->with('success', 'Course deleted successfully.'),
 
-            'instructor' => redirect()
+                'instructor' => redirect()
                 ->route('instructor.courses.index')
-                ->with('success', 'Course berhasil dihapus'),
+                ->with('success', 'Course deleted successfully.'),
 
-            default => redirect()
+                default => redirect()
                 ->route('home')
-                ->with('success', 'Course berhasil dihapus'),
+                ->with('success', 'Course deleted successfully.'),
         };
     }
 }

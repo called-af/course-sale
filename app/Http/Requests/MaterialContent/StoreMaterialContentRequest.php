@@ -11,7 +11,7 @@ class StoreMaterialContentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->can('create', [\App\Models\MaterialContent::class, $this->route('material')]) ?? false;
     }
 
     /**

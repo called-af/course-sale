@@ -10,8 +10,9 @@ import CourseStructure from "@/components/organism/Course/CourseStructure"
 
 import { Course } from "@/types"
 import { useCourse } from "@/hooks/useCourse"
-import { Head, Link, usePage } from "@inertiajs/react"
-import { ArrowLeft, Eye, Image, Save, Tag } from "lucide-react"
+import { Head, Link, router, usePage } from "@inertiajs/react"
+import { ArrowLeft, ClipboardCheck, Eye, Image, Save, Tag } from "lucide-react"
+import { useState } from "react"
 
 interface CourseSlugProps {
   course: Course
@@ -21,6 +22,7 @@ interface CourseSlugProps {
 export default function CourseSlug({ course, categories }: CourseSlugProps) {
   const { auth } = usePage().props as any
   const rolePrefix = auth?.user?.role ?? "instructor"
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false)
 
   const {
     data,
@@ -32,6 +34,13 @@ export default function CourseSlug({ course, categories }: CourseSlugProps) {
     hasChanges,
     save,
   } = useCourse(course)
+
+  const submitForReview = () => {
+    router.put(`/instructor/courses/${course.slug}/submit-review`, {}, {
+      onStart: () => setIsSubmittingReview(true),
+      onFinish: () => setIsSubmittingReview(false),
+    })
+  }
 
   return (
     <>
@@ -59,6 +68,23 @@ export default function CourseSlug({ course, categories }: CourseSlugProps) {
           description={course.creator ? `Created by ${course.creator.name}` : undefined}
           actions={
             <div className="flex items-center gap-3">
+              {course.status === "draft" && (
+                <Button
+                  onClick={submitForReview}
+                  disabled={hasChanges || isSubmittingReview}
+                  isLoading={isSubmittingReview}
+                  leftIcon={<ClipboardCheck className="w-4 h-4" />}
+                  title={hasChanges ? "Save your changes before submitting the course for review." : "Submit this course for admin review"}
+                  className="!rounded-none"
+                >
+                  Submit for Review
+                </Button>
+              )}
+              {course.status === "review" && (
+                <span className="border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700">
+                  Awaiting Admin Approval
+                </span>
+              )}
               <Link
                 href={`/${rolePrefix}/courses/${course.slug}/preview`}
                 className="inline-flex items-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-medium text-sm border border-purple-500 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
@@ -164,16 +190,12 @@ export default function CourseSlug({ course, categories }: CourseSlugProps) {
                     { label: "Paid", value: "paid" },
                   ]}
                 />
-                <SelectField
-                  label="Publication Status"
-                  value={data.status}
-                  onChange={(e) => setData("status", e.target.value)}
-                  options={[
-                    { label: "Draft", value: "draft" },
-                    { label: "Under Review", value: "review" },
-                    { label: "Published", value: "published" },
-                  ]}
-                />
+                <div>
+                  <p className="mb-1.5 text-sm font-medium text-neutral-700">Publication Status</p>
+                  <div className="flex min-h-10 items-center border border-neutral-200 bg-neutral-50 px-3 text-sm font-medium capitalize text-neutral-600">
+                    {course.status === "review" ? "Under Review" : course.status}
+                  </div>
+                </div>
               </div>
               {data.type === "paid" && (
                 <InputField

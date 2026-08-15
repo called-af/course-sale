@@ -1,19 +1,20 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useUser } from "@/hooks/useUser"
-import { Head } from "@inertiajs/react"
-import { Plus } from "lucide-react"
+import { Head, router } from "@inertiajs/react"
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
 
 import type { User } from "@/types/user"
 import AdminLayout from "@/components/templates/AdminLayout"
 import Button from "@/components/atoms/Button"
 import InputField from "@/components/molecules/InputField"
+import SelectField from "@/components/molecules/SelectField"
 import PageHeader from "@/components/molecules/PageHeader"
 
 import UserTable from "@/components/organism/UserTable"
 import UserFormModal from "@/components/organism/UserFormModal"
 import ConfirmationDelete from "@/components/molecules/ConfirmationDelete"
 
-export default function UserPage({ users }: { users: User[] }) {
+export default function UserPage({ users, filters }: { users: any; filters?: { search?: string; role?: string } }) {
   const {
     data, setData, processing,
     editingUser, deleteTarget,
@@ -22,13 +23,29 @@ export default function UserPage({ users }: { users: User[] }) {
     openDeleteModal, closeDeleteModal, confirmDelete,
   } = useUser()
 
-  const [search, setSearch] = useState("")
+  const [search, setSearch] = useState(filters?.search ?? "")
+  const [role, setRole] = useState(filters?.role ?? "")
   const [formOpen, setFormOpen] = useState(false)
+  const firstFilterRender = useRef(true)
 
-  const filteredUsers = users.filter((u) =>
-    u.name.toLowerCase().includes(search.toLowerCase()) ||
-    u.email.toLowerCase().includes(search.toLowerCase())
-  )
+  const userItems: User[] = users?.data ?? []
+
+  useEffect(() => {
+    if (firstFilterRender.current) {
+      firstFilterRender.current = false
+      return
+    }
+
+    const timer = window.setTimeout(() => {
+      router.get("/admin/users", { search: search || undefined, role: role || undefined }, {
+        only: ["users", "filters"],
+        preserveState: true,
+        preserveScroll: true,
+      })
+    }, 300)
+
+    return () => window.clearTimeout(timer)
+  }, [search, role])
 
   function handleAddClick() {
     closeEdit()
@@ -75,27 +92,71 @@ export default function UserPage({ users }: { users: User[] }) {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
               <h2 className="text-lg font-bold text-slate-900">
-                All Users ({filteredUsers.length})
+                All Users ({users?.total ?? 0})
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Filter or search through all registered users.
               </p>
             </div>
-            <div className="w-full sm:w-80">
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
               <InputField
                 label=""
                 placeholder="Search name or email..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
+              <SelectField
+                label=""
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                options={[
+                  { label: "All Roles", value: "" },
+                  { label: "Admin", value: "admin" },
+                  { label: "Instructor", value: "instructor" },
+                  { label: "Student", value: "student" },
+                ]}
+                className="min-w-36"
+              />
             </div>
           </div>
 
           <UserTable
-            users={filteredUsers}
+            users={userItems}
             onEdit={handleEditClick}
             onDelete={openDeleteModal}
           />
+
+          {(users?.last_page ?? 1) > 1 && (
+            <div className="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs text-slate-500">
+                Showing {userItems.length === 0 ? 0 : ((users.current_page - 1) * 10) + 1}
+                –{Math.min(users.current_page * 10, users.total)} of {users.total} users
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={users.current_page === 1}
+                  onClick={() => router.get("/admin/users", { page: users.current_page - 1, search: search || undefined, role: role || undefined }, { only: ["users", "filters"], preserveState: true, preserveScroll: true })}
+                  leftIcon={<ChevronLeft className="h-4 w-4" />}
+                >
+                  Previous
+                </Button>
+                <span className="px-2 text-xs font-medium text-slate-500">
+                  Page {users.current_page} of {users.last_page}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={users.current_page === users.last_page}
+                  onClick={() => router.get("/admin/users", { page: users.current_page + 1, search: search || undefined, role: role || undefined }, { only: ["users", "filters"], preserveState: true, preserveScroll: true })}
+                  rightIcon={<ChevronRight className="h-4 w-4" />}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         <UserFormModal

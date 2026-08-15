@@ -7,7 +7,7 @@ use App\Http\Requests\User\UpdateUserRequest;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -19,40 +19,19 @@ class UserController extends Controller
         $this->authorizeResource(User::class, 'user');
     }
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        return Inertia::render('admin/user/page', [
-            'users' => User::withCount(['createdCourses', 'enrollments'])
-                ->latest()
-                ->get(),
-        ]);
+        return Inertia::render('admin/user/page', $this->userService->indexData($request));
     }
 
     public function show(User $user): Response
     {
-        return Inertia::render('admin/user/[id]/page', [
-            'user' => $user->load([
-                'createdCourses' => function ($query) {
-                    $query->withCount(['modules', 'enrollments'])
-                        ->with(['categories:id,name', 'creator:id,name'])
-                        ->latest();
-                },
-                'enrollments.course:id,title,slug,thumbnail',
-            ]),
-        ]);
+        return Inertia::render('admin/user/[id]/page', $this->userService->detailData($user));
     }
 
     public function profile(): Response
     {
-        return Inertia::render('admin/Profile', [
-            'user' => Auth::user()->load([
-                'createdCourses' => function ($query) {
-                    $query->withCount(['modules', 'enrollments'])
-                        ->with('categories:id,name')
-                        ->latest();
-                },
-            ]),
-        ]);
+        return Inertia::render('admin/Profile', $this->userService->profileData(request()->user()));
     }
 
     public function store(StoreUserRequest $request): RedirectResponse

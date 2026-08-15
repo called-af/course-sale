@@ -5,17 +5,20 @@ namespace App\Http\Controllers\Course;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MaterialContent\StoreMaterialContentRequest;
 use App\Http\Requests\MaterialContent\UpdateMaterialContentRequest;
+use App\Http\Requests\Course\MoveCourseResourceRequest;
 use App\Models\Course;
 use App\Models\Material;
 use App\Models\MaterialContent;
 use App\Models\Module;
 use App\Services\MaterialContentService;
+use App\Services\CourseStructureService;
 use Inertia\Inertia;
 
 class MaterialContentController extends Controller
 {
     public function __construct(
-        protected MaterialContentService $service
+        protected MaterialContentService $service,
+        protected CourseStructureService $structureService,
     ) {}
 
     public function store(
@@ -24,10 +27,7 @@ class MaterialContentController extends Controller
         Module $module,
         Material $material
     ) {
-        abort_if($module->course_id !== $course->id, 404);
-        abort_if($material->module_id !== $module->id, 404);
-
-        $this->authorize('create', [MaterialContent::class, $material]);
+        $this->structureService->ensureMaterialHierarchy($course, $module, $material);
 
         $this->service->create($material, $request->validated());
 
@@ -35,20 +35,14 @@ class MaterialContentController extends Controller
     }
 
     public function move(
+        MoveCourseResourceRequest $request,
         Course $course,
         Module $module,
         Material $material,
         MaterialContent $content
     ) {
-        abort_if($module->course_id !== $course->id, 404);
-        abort_if($material->module_id !== $module->id, 404);
-        abort_if($content->material_id !== $material->id, 404);
-
-        request()->validate([
-            'direction' => ['required', 'in:up,down'],
-        ]);
-
-        $this->service->move($content, request('direction'));
+        $this->structureService->ensureContentHierarchy($course, $module, $material, $content);
+        $this->service->move($content, $request->string('direction')->toString());
 
         return back();
     }
@@ -59,11 +53,7 @@ class MaterialContentController extends Controller
         Material $material,
         MaterialContent $content
     ) {
-        abort_if($module->course_id !== $course->id, 404);
-        abort_if($material->module_id !== $module->id, 404);
-        abort_if($content->material_id !== $material->id, 404);
-
-        $this->authorize('update', $content);
+        $this->structureService->ensureContentHierarchy($course, $module, $material, $content);
 
         return Inertia::render('admin/course/[material]/page', [
             'material' => $material->load([
@@ -86,11 +76,7 @@ class MaterialContentController extends Controller
         Material $material,
         MaterialContent $content
     ) {
-        abort_if($module->course_id !== $course->id, 404);
-        abort_if($material->module_id !== $module->id, 404);
-        abort_if($content->material_id !== $material->id, 404);
-
-        $this->authorize('update', $content);
+        $this->structureService->ensureContentHierarchy($course, $module, $material, $content);
 
         return response()->json([
             'data' => $content->load([
@@ -106,13 +92,7 @@ class MaterialContentController extends Controller
         Material $material,
         MaterialContent $content
     ) {
-        abort_if($module->course_id !== $course->id, 404);
-        abort_if($material->module_id !== $module->id, 404);
-        abort_if($content->material_id !== $material->id, 404);
-
-        $this->authorize('update', $content);
-
-        logger($request->content_text);
+        $this->structureService->ensureContentHierarchy($course, $module, $material, $content);
 
         $this->service->update($content, $request->validated());
 
@@ -125,10 +105,7 @@ class MaterialContentController extends Controller
         Material $material,
         MaterialContent $content
     ) {
-        abort_if($module->course_id !== $course->id, 404);
-        abort_if($material->module_id !== $module->id, 404);
-        abort_if($content->material_id !== $material->id, 404);
-
+        $this->structureService->ensureContentHierarchy($course, $module, $material, $content);
         $this->authorize('delete', $content);
 
         $this->service->delete($content);

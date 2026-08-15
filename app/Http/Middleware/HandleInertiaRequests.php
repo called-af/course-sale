@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\AdminReviewNotificationService;
+use App\Services\InstructorApprovalNotificationService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -41,6 +43,10 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'adminReviewNotifications' => fn () => app(AdminReviewNotificationService::class)
+                ->for($request->user()),
+            'instructorApprovalNotifications' => fn () => app(InstructorApprovalNotificationService::class)
+                ->for($request->user()),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
