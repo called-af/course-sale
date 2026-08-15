@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\Material;
 use App\Models\MaterialProgress;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,8 @@ class EnrollmentController extends Controller
     public function store(Request $request, Course $course): RedirectResponse
     {
         $user = Auth::user();
+
+        abort_unless($course->isPublished(), 404);
 
         // Already enrolled? Just redirect to learning page
         $existing = Enrollment::where('user_id', $user->id)
@@ -68,14 +71,16 @@ class EnrollmentController extends Controller
 
         if (! $enrollment) {
             return redirect()
-                ->route('courses.show', $course->slug)
+                ->route('course.index')
                 ->with('error', 'Anda belum terdaftar di kursus ini.');
         }
 
         $course->load([
             'modules' => fn ($q) => $q->orderBy('sort_order')->with([
                 'materials' => fn ($mq) => $mq->orderBy('sort_order')->with([
-                    'contents' => fn ($cq) => $cq->orderBy('sort_order'),
+                    'contents' => fn ($cq) => $cq
+                        ->orderBy('sort_order')
+                        ->with(['quizQuestions.quizOptions']),
                 ]),
             ]),
         ]);
@@ -117,7 +122,7 @@ class EnrollmentController extends Controller
             ->pluck('is_completed', 'material_id')
             ->toArray();
 
-        return Inertia::render('user/course/[slug]/page', [
+        return Inertia::render('user/course/[enroll]/page', [
             'course'          => $course->append('thumbnail_url'),
             'currentMaterial' => $currentMaterial,
             'currentContent'  => $currentContent,
@@ -133,9 +138,14 @@ class EnrollmentController extends Controller
         $request->validate(['material_id' => ['required', 'integer', 'exists:materials,id']]);
 
         $user = Auth::user();
+        $this->authorize('view', $course);
+        $material = Material::query()
+            ->whereKey($request->integer('material_id'))
+            ->whereHas('module', fn ($query) => $query->where('course_id', $course->id))
+            ->firstOrFail();
 
         MaterialProgress::updateOrCreate(
-            ['user_id' => $user->id, 'material_id' => $request->material_id],
+            ['user_id' => $user->id, 'material_id' => $material->id],
             ['is_completed' => true, 'completed_at' => now()]
         );
 

@@ -5,12 +5,43 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\MaterialProgress;
+use App\Models\MaterialContent;
+use App\Models\Order;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class DashboardController extends Controller
 {
+    public function admin(): Response
+    {
+        $topCourses = Course::query()
+            ->withCount(['enrollments' => fn ($query) => $query->where('status', 'active')])
+            ->orderByDesc('enrollments_count')
+            ->take(5)
+            ->get(['id', 'title', 'slug']);
+
+        $recentEnrollments = Enrollment::query()
+            ->where('status', 'active')
+            ->with(['user:id,name', 'course:id,title,slug'])
+            ->latest('enrolled_at')
+            ->take(5)
+            ->get();
+
+        return Inertia::render('admin/Dashboard', [
+            'metrics' => [
+                'totalUsers' => User::count(),
+                'totalCourses' => Course::count(),
+                'activeEnrollments' => Enrollment::where('status', 'active')->count(),
+                'revenue' => (float) Order::where('status', 'paid')->sum('total_price'),
+            ],
+            'topCourses' => $topCourses,
+            'recentEnrollments' => $recentEnrollments,
+            'recentCourses' => Course::latest()->take(5)->get(['id', 'title', 'slug', 'status', 'created_at']),
+        ]);
+    }
+
     public function student(): Response
     {
         $user = Auth::user();
@@ -21,7 +52,7 @@ class DashboardController extends Controller
                 'course' => function ($q) {
                     $q->with([
                         'modules' => fn ($mq) => $mq->with('materials'),
-                    ])->append('thumbnail_url');
+                    ]);
                 },
             ])
             ->latest()
@@ -30,6 +61,7 @@ class DashboardController extends Controller
         // Compute progress for each enrollment
         $enrolledCourses = $enrollments->map(function ($enrollment) use ($user) {
             $course    = $enrollment->course;
+            $course->append('thumbnail_url');
             $allMaterialIds = collect();
 
             foreach ($course->modules ?? [] as $module) {
@@ -70,6 +102,15 @@ class DashboardController extends Controller
             'enrolledCourses' => $enrolledCourses->values(),
             'totalCompleted'  => $totalCompleted,
             'overallProgress' => $overallProgress,
+            'completedMaterials' => MaterialProgress::where('user_id', $user->id)
+                ->where('is_completed', true)
+                ->count(),
+            'learningMinutes' => MaterialContent::whereIn(
+                'material_id',
+                MaterialProgress::where('user_id', $user->id)
+                    ->where('is_completed', true)
+                    ->pluck('material_id')
+            )->sum('duration'),
         ]);
     }
 
@@ -78,12 +119,10 @@ class DashboardController extends Controller
         $user = Auth::user();
 
         $courses = Course::where('creator_id', $user->id)
-            ->withCount('enrollments')
+            ->withCount(['enrollments' => fn ($query) => $query->where('status', 'active')])
             ->latest()
             ->get()
             ->append('thumbnail_url');
-
-        $instructorCourses = $courses->map(fn ($course) => ['course' => $course]);
 
         $totalStudents = $courses->sum('enrollments_count');
 
@@ -96,9 +135,17 @@ class DashboardController extends Controller
         });
 
         return Inertia::render('user/Dashboard', [
-            'instructorCourses' => $instructorCourses->values(),
+            'instructorCourses' => $courses,
             'totalStudents'     => $totalStudents,
             'totalEarnings'     => $totalEarnings,
+            'averageRating'     => round((float) $courses->avg('rating_avg'), 1),
+            'recentEnrollments' => Enrollment::query()
+                ->where('status', 'active')
+                ->whereHas('course', fn ($query) => $query->where('creator_id', $user->id))
+                ->with(['user:id,name', 'course:id,title,slug'])
+                ->latest('enrolled_at')
+                ->take(5)
+                ->get(),
         ]);
     }
 }

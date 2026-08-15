@@ -1,238 +1,111 @@
-import { Head } from "@inertiajs/react"
-import AdminLayout from "@/components/templates/AdminLayout"
-import {
-  Users,
-  BookOpen,
-  DollarSign,
-  TrendingUp,
-  ArrowUpRight,
-} from "lucide-react"
+import { Head, Link, usePage } from '@inertiajs/react';
+import AdminLayout from '@/components/templates/AdminLayout';
+import PageHeader from '@/components/molecules/PageHeader';
+import { BookOpen, DollarSign, GraduationCap, Users } from 'lucide-react';
 
 export default function Dashboard() {
-  return (
-    <>
-      <Head title="Admin Dashboard" />
-
-      <div className="space-y-8">
-        {/* ===== Hero Section ===== */}
-        <div className="rounded-3xl p-8 bg-linear-to-br from-indigo-600 via-purple-600 to-blue-600 text-white shadow-xl">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div>
-              <h1 className="text-3xl font-bold">
-                Welcome back, Admin 👋
-              </h1>
-              <p className="text-indigo-100 mt-2 text-sm">
-                Here’s your platform performance overview today.
-              </p>
+    const { auth, metrics = {}, topCourses = [], recentEnrollments = [], recentCourses = [] } = usePage().props as any;
+    return (
+        <>
+            <Head title="Admin Dashboard" />
+            <div className="max-w-8xl mx-auto space-y-8">
+                <PageHeader
+                    breadcrumbs={[{ label: 'Admin' }, { label: 'Dashboard' }]}
+                    title={`Welcome back, ${auth.user.name}`}
+                    description="Monitor your platform's latest performance and activity."
+                />
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+                    <Kpi title="Total Users" value={metrics.totalUsers ?? 0} icon={<Users size={18} />} />
+                    <Kpi title="Total Courses" value={metrics.totalCourses ?? 0} icon={<BookOpen size={18} />} />
+                    <Kpi title="Active Enrollments" value={metrics.activeEnrollments ?? 0} icon={<GraduationCap size={18} />} />
+                    <Kpi title="Paid Revenue" value={rupiah(metrics.revenue ?? 0)} icon={<DollarSign size={18} />} compact />
+                </div>
+                <div className="grid gap-6 xl:grid-cols-3">
+                    <Panel title="Top Courses" className="xl:col-span-2">
+                        {topCourses.length ? (
+                            topCourses.map((course: any) => (
+                                <Link
+                                    key={course.id}
+                                    href={`/admin/courses/${course.slug}`}
+                                    className="flex items-center justify-between border-b border-slate-100 py-3 last:border-0 hover:text-purple-700"
+                                >
+                                    <p className="font-medium text-slate-700">{course.title}</p>
+                                    <span className="text-sm font-semibold text-purple-700">{course.enrollments_count} students</span>
+                                </Link>
+                            ))
+                        ) : (
+                            <Empty text="No course data yet." />
+                        )}
+                    </Panel>
+                    <Panel title="Recent Enrollments">
+                        {recentEnrollments.length ? (
+                            recentEnrollments.map((item: any) => (
+                                <div key={item.id} className="border-b border-slate-100 py-3 last:border-0">
+                                    <p className="font-medium text-slate-700">{item.user?.name ?? 'Student'}</p>
+                                    <p className="mt-0.5 text-xs text-slate-400">
+                                        {item.course?.title ?? 'Course'} · {date(item.enrolled_at)}
+                                    </p>
+                                </div>
+                            ))
+                        ) : (
+                            <Empty text="No enrollment yet." />
+                        )}
+                    </Panel>
+                </div>
+                <Panel title="Recent Courses">
+                    {recentCourses.length ? (
+                        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                            {recentCourses.map((course: any) => (
+                                <Link
+                                    key={course.id}
+                                    href={`/admin/courses/${course.slug}`}
+                                    className="border border-slate-200 p-4 transition hover:border-purple-300"
+                                >
+                                    <p className="line-clamp-2 font-medium text-slate-700">{course.title}</p>
+                                    <p className="mt-2 text-xs text-slate-400 capitalize">
+                                        {course.status} · {date(course.created_at)}
+                                    </p>
+                                </Link>
+                            ))}
+                        </div>
+                    ) : (
+                        <Empty text="No courses yet." />
+                    )}
+                </Panel>
             </div>
-
-            <div className="flex gap-3">
-              <button className="px-4 py-2 bg-white/20 backdrop-blur rounded-xl text-sm hover:bg-white/30 transition">
-                View Reports
-              </button>
-              <button className="px-4 py-2 bg-white text-indigo-700 rounded-xl text-sm font-semibold hover:bg-indigo-50 transition">
-                + Add Course
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* ===== KPI Cards ===== */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-          <KpiCard
-            title="Total Users"
-            value="1,284"
-            change="+12%"
-            icon={<Users size={18} />}
-          />
-          <KpiCard
-            title="Total Courses"
-            value="86"
-            change="+4%"
-            icon={<BookOpen size={18} />}
-          />
-          <KpiCard
-            title="Monthly Revenue"
-            value="$12,430"
-            change="+18%"
-            icon={<DollarSign size={18} />}
-          />
-          <KpiCard
-            title="Growth Rate"
-            value="24%"
-            change="+3.2%"
-            icon={<TrendingUp size={18} />}
-          />
-        </div>
-
-        {/* ===== Main Grid ===== */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Revenue Section */}
-          <div className="xl:col-span-2 bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-slate-800">
-                Revenue Overview
-              </h2>
-              <button className="text-sm text-indigo-600 hover:underline flex items-center gap-1">
-                Details <ArrowUpRight size={14} />
-              </button>
-            </div>
-
-            {/* Chart Placeholder */}
-            <div className="h-64 rounded-2xl bg-slate-50 border border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-sm">
-              Revenue Chart Area
-            </div>
-          </div>
-
-          {/* Top Courses */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-            <h2 className="text-lg font-semibold text-slate-800 mb-4">
-              Top Courses
-            </h2>
-
-            <div className="space-y-4">
-              <CourseItem
-                title="Laravel Mastery"
-                students="320 students"
-              />
-              <CourseItem
-                title="React Advanced"
-                students="270 students"
-              />
-              <CourseItem
-                title="Next.js Fullstack"
-                students="198 students"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* ===== Bottom Section ===== */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {/* Recent Enrollments */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-            <h2 className="text-lg font-semibold text-slate-800 mb-4">
-              Recent Enrollments
-            </h2>
-
-            <div className="space-y-3">
-              <EnrollmentItem
-                name="John Doe"
-                course="React Advanced"
-              />
-              <EnrollmentItem
-                name="Sarah"
-                course="Laravel Mastery"
-              />
-              <EnrollmentItem
-                name="Michael"
-                course="Next.js Fullstack"
-              />
-            </div>
-          </div>
-
-          {/* Activity Timeline */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-            <h2 className="text-lg font-semibold text-slate-800 mb-4">
-              Activity
-            </h2>
-
-            <div className="space-y-4 text-sm text-slate-600">
-              <TimelineItem text="New course created" time="2 hours ago" />
-              <TimelineItem text="User upgraded to premium" time="5 hours ago" />
-              <TimelineItem text="New review submitted" time="Yesterday" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  )
+        </>
+    );
 }
 
-Dashboard.layout = (page: React.ReactNode) => (
-  <AdminLayout>{page}</AdminLayout>
-)
-
-/* ================= Components ================= */
-
-function KpiCard({
-  title,
-  value,
-  change,
-  icon,
-}: {
-  title: string
-  value: string
-  change: string
-  icon: React.ReactNode
-}) {
-  return (
-    <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition">
-      <div className="flex items-center justify-between">
-        <div className="text-slate-500 text-sm">{title}</div>
-        <div className="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-          {icon}
+function Kpi({ title, value, icon, compact = false }: any) {
+    return (
+        <div className="border border-slate-200/80 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between text-sm text-slate-500">
+                <span>{title}</span>
+                <span className="bg-purple-50 p-2 text-purple-600">{icon}</span>
+            </div>
+            <p className={`mt-3 font-bold text-slate-800 ${compact ? 'text-xl' : 'text-2xl'}`}>{value}</p>
         </div>
-      </div>
-
-      <div className="mt-3">
-        <div className="text-2xl font-bold text-slate-800">
-          {value}
-        </div>
-        <div className="text-xs text-emerald-600 mt-1">
-          {change} from last month
-        </div>
-      </div>
-    </div>
-  )
+    );
+}
+function Panel({ title, children, className = '' }: any) {
+    return (
+        <section className={`border border-slate-200/80 bg-white p-6 shadow-sm ${className}`}>
+            <div className="mb-4 border-b border-slate-100 pb-4">
+                <h2 className="text-lg font-bold text-slate-900">{title}</h2>
+            </div>
+            {children}
+        </section>
+    );
+}
+function Empty({ text }: { text: string }) {
+    return <p className="py-8 text-center text-sm text-slate-400">{text}</p>;
+}
+function rupiah(value: number) {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
+}
+function date(value?: string) {
+    return value ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(new Date(value)) : 'Recently';
 }
 
-function CourseItem({ title, students }: { title: string; students: string }) {
-  return (
-    <div className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition">
-      <div>
-        <div className="text-sm font-medium text-slate-700">
-          {title}
-        </div>
-        <div className="text-xs text-slate-400">
-          {students}
-        </div>
-      </div>
-      <span className="text-xs text-indigo-600 font-medium">
-        View
-      </span>
-    </div>
-  )
-}
-
-function EnrollmentItem({ name, course }: { name: string; course: string }) {
-  return (
-    <div className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition">
-      <div>
-        <div className="text-sm font-medium text-slate-700">
-          {name}
-        </div>
-        <div className="text-xs text-slate-400">
-          Enrolled in {course}
-        </div>
-      </div>
-      <span className="text-xs text-slate-400">
-        Just now
-      </span>
-    </div>
-  )
-}
-
-function TimelineItem({ text, time }: { text: string; time: string }) {
-  return (
-    <div className="flex gap-3">
-      <div className="w-2 h-2 mt-2 bg-indigo-500 rounded-full" />
-      <div>
-        <div>{text}</div>
-        <div className="text-xs text-slate-400">
-          {time}
-        </div>
-      </div>
-    </div>
-  )
-}
+Dashboard.layout = (page: React.ReactNode) => <AdminLayout>{page}</AdminLayout>;

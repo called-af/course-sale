@@ -24,7 +24,7 @@ class CourseController extends Controller
     }
 
     /**
-     * List courses (admin)
+     * List courses (admin/instructor)
      */
     public function index(): Response
     {
@@ -39,10 +39,16 @@ class CourseController extends Controller
             $query->where('creator_id', Auth::id());
         }
 
-        return Inertia::render('admin/course/page', [
+        $data = [
             'courses' => $query->latest()->get()->append('thumbnail_url'),
             'categories' => Category::select('id', 'name', 'img', 'desc')->get(),
-        ]);
+        ];
+
+        if (Auth::user()->role === 'instructor') {
+            return Inertia::render('user/course/page', $data);
+        }
+
+        return Inertia::render('admin/course/page', $data);
     }
 
     /**
@@ -52,7 +58,11 @@ class CourseController extends Controller
     {
         $this->authorize('view', $course);
 
-        return Inertia::render('admin/course/[slug]/page', [
+        $view = Auth::user()->role === 'instructor'
+            ? 'user/course/[slug]/page'
+            : 'admin/course/[slug]/page';
+
+        return Inertia::render($view, [
             'course' => $course
                 ->load([
                     'creator:id,name',
@@ -80,13 +90,17 @@ class CourseController extends Controller
     }
 
     /**
-     * Preview course as learning interface (admin)
+     * Preview course as learning interface (admin/instructor)
      */
     public function preview(Course $course): Response
     {
         $this->authorize('view', $course);
 
-        return Inertia::render('admin/course/preview/page', [
+        $view = Auth::user()->role === 'instructor'
+            ? 'user/course/preview/page'
+            : 'admin/course/preview/page';
+
+        return Inertia::render($view, [
             'course' => $course
                 ->load([
                     'creator:id,name',

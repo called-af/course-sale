@@ -6,6 +6,8 @@ use App\Http\Controllers\Course\CourseController;
 use App\Http\Controllers\Course\MaterialContentController;
 use App\Http\Controllers\Course\MaterialController;
 use App\Http\Controllers\Course\ModuleController;
+use App\Http\Controllers\EnrollmentController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
@@ -25,6 +27,28 @@ Route::get('/course', function () {
             ->append('thumbnail_url'),
     ]);
 })->name('course.index');
+
+Route::get('/course/{course:slug}', function (Course $course) {
+    abort_unless($course->status === 'published', 404);
+
+    $user = Auth::user();
+    $isEnrolled = $user?->role === 'student'
+        && $course->enrollments()
+            ->where('user_id', $user->id)
+            ->where('status', 'active')
+            ->exists();
+
+    return Inertia::render('course/[slug]/page', [
+        'course' => $course
+            ->load(['creator:id,name', 'categories:id,name'])
+            ->append('thumbnail_url'),
+        'isEnrolled' => $isEnrolled,
+    ]);
+})->name('course.show');
+
+Route::post('/course/{course:slug}/enroll', [EnrollmentController::class, 'store'])
+    ->middleware(['auth', 'role:student'])
+    ->name('course.enroll');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthControllers::class, 'show'])->name('login');
@@ -81,8 +105,7 @@ Route::middleware(['auth', 'role'])->group(function () {
         ->name('admin.')
         ->group(function () {
 
-            Route::get('/dashboard', fn () => Inertia::render('admin/Dashboard')
-            )->name('dashboard');
+            Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
 
             Route::get('/courses', [CourseController::class, 'index'])
                 ->name('courses.index');
@@ -228,11 +251,10 @@ Route::middleware(['auth', 'role'])->group(function () {
         ->name('instructor.')
         ->group(function () {
 
-            Route::get('/dashboard', fn () => Inertia::render('user/Dashboard')
-            )->name('dashboard');
+            Route::get('/dashboard', [DashboardController::class, 'instructor'])->name('dashboard');
 
-            Route::get('/courses', fn () => Inertia::render('user/course/page')
-            )->name('courses.index');
+            Route::get('/courses', [CourseController::class, 'index'])
+                ->name('courses.index');
 
             Route::get('/courses/{course:slug}', [CourseController::class, 'show'])
                 ->name('courses.show');
@@ -257,16 +279,25 @@ Route::middleware(['auth', 'role'])->group(function () {
         ->name('student.')
         ->group(function () {
 
-            Route::get('/dashboard', fn () => Inertia::render('user/Dashboard')
-            )->name('dashboard');
+            Route::get('/dashboard', [DashboardController::class, 'student'])->name('dashboard');
 
-            Route::get('/courses', fn () => Inertia::render('user/course/page')
-            )->name('courses.index');
+            Route::get('/courses', function () {
+                $courses = Course::query()
+                    ->whereHas('enrollments', fn ($query) => $query
+                        ->where('user_id', Auth::id())
+                        ->where('status', 'active'))
+                    ->with(['creator:id,name', 'categories:id,name'])
+                    ->latest()
+                    ->get()
+                    ->append('thumbnail_url');
 
-            Route::get('/courses/{course:slug}', [CourseController::class, 'show'])
+                return Inertia::render('user/course/page', compact('courses'));
+            })->name('courses.index');
+
+            Route::get('/courses/{course:slug}', [EnrollmentController::class, 'show'])
                 ->name('courses.show');
 
-            Route::get('/courses/{course:slug}/preview', [CourseController::class, 'preview'])
-                ->name('courses.preview');
+            Route::post('/courses/{course:slug}/progress', [EnrollmentController::class, 'markProgress'])
+                ->name('courses.progress.store');
         });
 });

@@ -32,7 +32,11 @@ class CoursePolicy
             return $course->creator_id === $user->id;
         }
 
-        return $course->status === 'published';
+        return $user->role === 'student'
+            && $course->enrollments()
+                ->where('user_id', $user->id)
+                ->where('status', 'active')
+                ->exists();
     }
 
     /**

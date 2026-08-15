@@ -5,11 +5,16 @@ import Button from "@/components/atoms/Button"
 import { useState } from "react"
 import Modal from "@/components/atoms/Modal"
 import CourseAdd from "@/components/organism/Course/CourseAdd"
+import CourseGrid from "@/components/organism/Course/CourseGrid"
+import InputField from "@/components/molecules/InputField"
+import { useCourse } from "@/hooks/useCourse"
 
 export default function CoursePage() {
-  const { auth } = usePage().props as any
+  const { auth, courses = [] } = usePage().props as any
   const role = auth.user.role
   const [open, setOpen] = useState(false)
+
+  const { search, setSearch, filteredCourses } = useCourse(undefined, courses)
 
   return (
     <>
@@ -51,42 +56,60 @@ export default function CoursePage() {
 
         {/* Content */}
         <div className="bg-white border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-6">
-          <div className="pb-4 border-b border-slate-100">
-            <h2 className="text-lg font-bold text-slate-900">
-              {role === "instructor" ? "All My Courses (0)" : "Enrolled Courses (0)"}
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {role === "instructor"
-                ? "Courses you've created and published."
-                : "Courses you're currently enrolled in."}
-            </p>
-          </div>
-
-          {/* Empty State */}
-          <div className="py-20 flex flex-col items-center gap-4 text-center">
-            <div className="w-14 h-14 bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-300">
-              <BookOpen size={28} strokeWidth={1.5} />
-            </div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
             <div>
-              <p className="text-sm font-medium text-slate-600">
-                {role === "instructor" ? "No courses yet" : "No enrolled courses yet"}
-              </p>
-              <p className="text-xs text-slate-400 mt-1">
+              <h2 className="text-lg font-bold text-slate-900">
                 {role === "instructor"
-                  ? "Create your first course to get started."
-                  : "Browse the catalog and enroll in a course."}
+                  ? `All My Courses (${filteredCourses.length})`
+                  : `Enrolled Courses (${filteredCourses.length})`}
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {role === "instructor"
+                  ? "Courses you've created and published."
+                  : "Courses you're currently enrolled in."}
               </p>
             </div>
-            {role === "instructor" ? (
-              <Button onClick={() => setOpen(true)} leftIcon={<Plus size={15} />} className="!rounded-none">
-                Create Course
-              </Button>
-            ) : (
-              <Button variant="outline" className="!rounded-none">
-                Browse Courses
-              </Button>
+            {role === "instructor" && courses.length > 0 && (
+              <div className="w-full sm:w-80">
+                <InputField
+                  label=""
+                  placeholder="Search course title..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
             )}
           </div>
+
+          {filteredCourses.length > 0 ? (
+            <CourseGrid courses={filteredCourses} />
+          ) : (
+            /* Empty State */
+            <div className="py-20 flex flex-col items-center gap-4 text-center">
+              <div className="w-14 h-14 bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-300">
+                <BookOpen size={28} strokeWidth={1.5} />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-600">
+                  {role === "instructor" ? "No courses yet" : "No enrolled courses yet"}
+                </p>
+                <p className="text-xs text-slate-400 mt-1">
+                  {role === "instructor"
+                    ? "Create your first course to get started."
+                    : "Browse the catalog and enroll in a course."}
+                </p>
+              </div>
+              {role === "instructor" ? (
+                <Button onClick={() => setOpen(true)} leftIcon={<Plus size={15} />} className="!rounded-none">
+                  Create Course
+                </Button>
+              ) : (
+                <Button variant="outline" className="!rounded-none">
+                  Browse Courses
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
       </div>
@@ -99,6 +122,10 @@ export default function CoursePage() {
     </>
   )
 }
+
+CoursePage.layout = (page: React.ReactNode) => (
+  <UserLayout>{page}</UserLayout>
+)
 
 CoursePage.layout = (page: React.ReactNode) => (
   <UserLayout>{page}</UserLayout>
