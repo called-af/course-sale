@@ -20,7 +20,7 @@ class CategoryController extends Controller
             $request->validated()
         );
 
-        return back()->with('success', 'Category berhasil dibuat');
+        return back()->with('success', 'Category created successfully.');
     }
 
     public function update(
@@ -32,7 +32,7 @@ class CategoryController extends Controller
             $request->validated()
         );
 
-        return back()->with('success', 'Category berhasil diperbarui');
+        return back()->with('success', 'Category updated successfully.');
     }
 
     public function destroy(Category $category): RedirectResponse
@@ -40,6 +40,6 @@ class CategoryController extends Controller
         $this->authorize('delete', $category);
         $this->categoryService->delete($category);
 
-        return back()->with('success', 'Category berhasil dihapus');
+        return back()->with('success', 'Category deleted successfully.');
     }
 }

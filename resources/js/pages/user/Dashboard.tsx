@@ -13,7 +13,7 @@ export default function Dashboard() {
                 <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 p-6 text-white shadow-xl sm:p-8">
                     <div className="absolute -right-10 -bottom-10 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl" />
                     <div className="relative z-10">
-                        <p className="mb-1 text-sm font-medium text-purple-300">Welcome back 👋</p>
+                        <p className="mb-1 text-sm font-medium text-purple-300">Welcome back</p>
                         <h1 className="text-2xl font-bold sm:text-3xl">{props.auth.user.name}</h1>
                         <p className="mt-1 text-sm text-slate-400">
                             {role === 'instructor' ? 'See how your courses are performing.' : 'Continue learning from where you left off.'}

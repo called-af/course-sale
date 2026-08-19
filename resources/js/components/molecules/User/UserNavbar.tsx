@@ -57,7 +57,7 @@ export default function UserNavbar({ title }: UserNavbarProps) {
 
     return (
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-neutral-100 bg-white px-5">
-            <div className="relative flex w-full items-center justify-between gap-4">
+            <div className="relative flex w-full items-center justify-between gap-4 mx-auto max-w-screen-xl">
                 <div className="flex min-w-0 items-center gap-3">
                     <button
                         onClick={() => setMenuOpen((open) => !open)}

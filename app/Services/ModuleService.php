@@ -67,13 +67,13 @@ class ModuleService
             if (($data['status'] ?? null) === 'published') {
 
                 if ($module->isPublished()) {
-                    throw new DomainException('Module sudah dipublish');
+                    throw new DomainException('This module has already been published.');
                 }
 
                 Gate::authorize('publish', $module);
 
                 if (! $module->canBePublished()) {
-                    throw new DomainException('Module belum lengkap untuk dipublish');
+                    throw new DomainException('This module is incomplete and cannot be published.');
                 }
 
                 $data['published_at'] = now();

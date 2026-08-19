@@ -101,7 +101,7 @@ function QuestionCard({
 }) {
   return (
     <div className="border border-slate-200/90 bg-white shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
-      {/* Header Soal */}
+      {/* Question header */}
       <div className="flex items-center justify-between gap-3 px-4 py-3 bg-slate-50/80 border-b border-slate-100">
         <div className="flex items-center gap-2.5">
           <GripVertical size={16} className="text-slate-300 cursor-grab active:cursor-grabbing shrink-0" />
@@ -166,7 +166,7 @@ function QuestionCard({
           </div>
         </div>
 
-        {/* Pilihan Ganda */}
+        {/* Multiple choice */}
         {question.type === "multiple_choice" && (
           <div className="space-y-3 pt-2 border-t border-slate-100">
             <div className="flex items-center justify-between">
@@ -247,7 +247,7 @@ export default function QuizBuilder({ courseSlug, moduleId, materialId, contentI
 
   return (
     <div className="space-y-5">
-      {/* Header Bank Soal Card */}
+      {/* Question bank header */}
       <div className="p-4 bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-rose-100 text-rose-600 flex items-center justify-center font-bold">
@@ -282,7 +282,7 @@ export default function QuizBuilder({ courseSlug, moduleId, materialId, contentI
         </div>
       )}
 
-      {/* List Soal */}
+      {/* Question list */}
       <div className="space-y-4">
         {quiz.questions.map((q, i) => (
           <QuestionCard

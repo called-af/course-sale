@@ -50,7 +50,7 @@ export default function SlatePreview({ value }: Props) {
   if (isEmpty) {
     return (
       <div className="border border-dashed border-gray-200 rounded-xl p-8 text-center bg-gray-50/60">
-        <p className="text-sm text-gray-400">Preview akan muncul di sini saat kamu mulai menulis</p>
+        <p className="text-sm text-gray-400">Your preview will appear here when you start writing.</p>
       </div>
     )
   }

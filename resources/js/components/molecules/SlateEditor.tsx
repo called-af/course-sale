@@ -174,7 +174,7 @@ export default function SlateEditor({ value, onChange, initialValue: initialValu
             renderElement={renderElement}
             renderLeaf={renderLeaf}
             onKeyDown={onKeyDown}
-            placeholder="Mulai menulis konten kamu di sini..."
+            placeholder="Start writing your content here..."
             className="min-h-55 outline-none text-sm leading-relaxed"
           />
         </Slate>

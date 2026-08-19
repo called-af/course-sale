@@ -22,9 +22,9 @@ class EnrollmentController extends Controller
         $result = $this->enrollmentService->enroll($request->user(), $course);
 
         return match ($result) {
-            'already_enrolled' => redirect()->route('student.courses.show', $course->slug)->with('info', 'Anda sudah terdaftar di kursus ini.'),
-            'payment_required' => back()->with('info', 'Fitur pembelian segera hadir!'),
-            default => redirect()->route('student.courses.show', $course->slug)->with('success', 'Selamat! Anda berhasil mendaftar kursus.'),
+            'already_enrolled' => redirect()->route('student.courses.show', $course->slug)->with('info', 'You are already enrolled in this course.'),
+            'payment_required' => back()->with('info', 'Purchases will be available soon!'),
+            default => redirect()->route('student.courses.show', $course->slug)->with('success', 'Congratulations! You have successfully enrolled in the course.'),
         };
     }
 
@@ -36,7 +36,7 @@ class EnrollmentController extends Controller
         if (! $this->enrollmentService->isEnrolled($request->user(), $course)) {
             return redirect()
                 ->route('course.index')
-                ->with('error', 'Anda belum terdaftar di kursus ini.');
+                ->with('error', 'You are not enrolled in this course yet.');
         }
 
         return Inertia::render('user/course/[enroll]/page', $this->enrollmentService->learningData(

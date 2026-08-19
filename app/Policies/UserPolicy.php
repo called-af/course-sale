@@ -33,7 +33,7 @@ class UserPolicy
     public function delete(User $authUser, User $user): Response
     {
         if ($authUser->id === $user->id) {
-            return Response::deny('Tidak bisa menghapus akun sendiri');
+            return Response::deny('You cannot delete your own account.');
         }
 
         return $authUser->role === 'admin'

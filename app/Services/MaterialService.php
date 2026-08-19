@@ -34,13 +34,13 @@ class MaterialService
             if (($data['status'] ?? null) === 'published') {
 
                 if ($material->isPublished()) {
-                    throw new DomainException('Material sudah dipublish');
+                    throw new DomainException('This material has already been published.');
                 }
 
                 Gate::authorize('publish', $material);
 
                 if (! $material->canBePublished()) {
-                    throw new DomainException('Material belum lengkap untuk dipublish');
+                    throw new DomainException('This material is incomplete and cannot be published.');
                 }
 
                 $data['published_at'] = now();

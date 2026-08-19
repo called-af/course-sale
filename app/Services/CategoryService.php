@@ -54,7 +54,7 @@ class CategoryService
                 $data['slug'] = $this->generateUniqueSlug($data['name']);
             }
 
-            // ✅ FIX: hanya jalan kalau benar-benar ada file
+            // Only process the upload when a file is actually present.
             if (! empty($data['img'])) {
 
                 if ($category->img) {

@@ -87,11 +87,11 @@ class CourseController extends Controller
 
                 'admin' => redirect()
                     ->route('admin.courses.show', $course->slug)
-                    ->with('success', 'Course berhasil dibuat'),
+                    ->with('success', 'Course created successfully.'),
 
                 'instructor' => redirect()
                     ->route('instructor.courses.show', $course->slug)
-                    ->with('success', 'Course berhasil dibuat'),
+                    ->with('success', 'Course created successfully.'),
 
                 default => abort(403),
             };
@@ -122,7 +122,7 @@ class CourseController extends Controller
 
             return back()->with(
                 'success',
-                'Course berhasil diperbarui'
+                'Course updated successfully.'
             );
 
         } catch (DomainException $e) {

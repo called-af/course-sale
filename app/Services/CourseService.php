@@ -83,7 +83,7 @@ class CourseService
         });
     }
     /**
-     * Fungsi untuk membuat course
+     * Creates a course.
      */
     public function create(array $data, int $userId): Course
     {
@@ -145,24 +145,24 @@ class CourseService
             */
             if (($data['status'] ?? null) === 'review' && $course->status !== 'review') {
                 if (! $course->canBePublished()) {
-                    throw new DomainException('Course belum lengkap untuk dikirim ke review.');
+                    throw new DomainException('This course is incomplete and cannot be submitted for review.');
                 }
             }
 
             if (($data['status'] ?? null) === 'published') {
 
                 if ($course->status !== 'review') {
-                    throw new DomainException('Course harus dikirim ke review sebelum disetujui admin.');
+                    throw new DomainException('This course must be submitted for review before an administrator can approve it.');
                 }
 
                 if ($course->isPublished()) {
-                    throw new DomainException('Course sudah dipublish');
+                    throw new DomainException('This course has already been published.');
                 }
 
                 Gate::authorize('publish', $course);
 
                 if (! $course->canBePublished()) {
-                    throw new DomainException('Course belum lengkap untuk dipublish');
+                    throw new DomainException('This course is incomplete and cannot be published.');
                 }
 
                 $data['published_at'] = now();

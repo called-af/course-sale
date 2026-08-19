@@ -197,7 +197,7 @@ Route::middleware(['auth', 'role'])->group(function () {
                     [MaterialContentController::class, 'edit']
                 )->name('contents.edit');
 
-                // Letakkan setelah route contents.move yang sudah ada
+                // Keep this after the existing contents.move route.
 
                 /*
                 |--------------------------------------------------------------------------
