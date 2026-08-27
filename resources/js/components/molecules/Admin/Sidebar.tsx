@@ -39,6 +39,7 @@ const mainMenus: MenuItem[] = [
     children: [
       { label: "All Courses", href: "/admin/courses"    },
       { label: "Categories",  href: "/admin/categories" },
+      { label: "Tags",        href: "/admin/tags"       },
     ],
   },
   {

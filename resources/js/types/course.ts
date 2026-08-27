@@ -22,4 +22,10 @@ export interface Course {
     id: number
     name: string
   }[]
+
+  tags?: {
+    id: number
+    name: string
+    slug?: string
+  }[]
 }

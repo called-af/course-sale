@@ -13,19 +13,27 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Course\QuizController;
 use App\Http\Controllers\Admin\CourseApprovalController;
+use App\Http\Controllers\RecommendationController;
+use App\Http\Controllers\TagController;
+use App\Services\EventTrackingService;
 use App\Models\Course;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', [LandingController::class, 'show'])->name('home');
+Route::get('/courses/recommended', [RecommendationController::class, 'index'])->name('courses.recommended');
 Route::get('/course', function () {
+    $user = Auth::user();
+    $recommended = app(\App\Services\RecommendationService::class)->getRecommendations($user, 4);
+
     return Inertia::render('course/page', [
         'courses' => Course::where('status', 'published')
-            ->with(['creator:id,name', 'categories:id,name'])
+            ->with(['creator:id,name', 'categories:id,name', 'tags:id,name,slug'])
             ->latest()
             ->get()
             ->append('thumbnail_url'),
+        'recommendedCourses' => $recommended,
     ]);
 })->name('course.index');
 
@@ -33,6 +41,10 @@ Route::get('/course/{course:slug}', function (Course $course) {
     abort_unless($course->status === 'published', 404);
 
     $user = Auth::user();
+    if ($user) {
+        app(EventTrackingService::class)->trackCourseView($user, $course);
+    }
+
     $isEnrolled = $user?->role === 'student'
         && $course->enrollments()
             ->where('user_id', $user->id)
@@ -41,7 +53,7 @@ Route::get('/course/{course:slug}', function (Course $course) {
 
     return Inertia::render('course/[slug]/page', [
         'course' => $course
-            ->load(['creator:id,name', 'categories:id,name'])
+            ->load(['creator:id,name', 'categories:id,name', 'tags:id,name,slug'])
             ->append('thumbnail_url'),
         'isEnrolled' => $isEnrolled,
     ]);
@@ -85,10 +97,16 @@ Route::middleware(['auth', 'role'])->group(function () {
     Route::prefix('courses')->name('courses.')->group(function () {
 
         Route::get('/', function () {
+            $user = Auth::user();
+            $recommended = app(\App\Services\RecommendationService::class)->getRecommendations($user, 4);
+
             return Inertia::render('course/page', [
                 'courses' => Course::where('status', 'published')
+                    ->with(['creator:id,name', 'categories:id,name', 'tags:id,name,slug'])
                     ->latest()
-                    ->get(),
+                    ->get()
+                    ->append('thumbnail_url'),
+                'recommendedCourses' => $recommended,
             ]);
         })->name('index');
 
@@ -238,6 +256,18 @@ Route::middleware(['auth', 'role'])->group(function () {
             Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])
                 ->name('categories.destroy');
 
+            Route::get('/tags', [TagController::class, 'index'])
+                ->name('tags.index');
+
+            Route::post('/tags', [TagController::class, 'store'])
+                ->name('tags.store');
+
+            Route::put('/tags/{tag}', [TagController::class, 'update'])
+                ->name('tags.update');
+
+            Route::delete('/tags/{tag}', [TagController::class, 'destroy'])
+                ->name('tags.destroy');
+
             Route::resource('users', UserController::class)
                 ->except(['create', 'edit', 'delete']);
 
@@ -309,5 +339,8 @@ Route::middleware(['auth', 'role'])->group(function () {
 
             Route::post('/courses/{course:slug}/progress', [EnrollmentController::class, 'markProgress'])
                 ->name('courses.progress.store');
+
+            Route::post('/courses/{course:slug}/quiz/{content}/submit', [EnrollmentController::class, 'submitQuiz'])
+                ->name('courses.quiz.submit');
         });
 });

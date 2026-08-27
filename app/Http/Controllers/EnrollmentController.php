@@ -53,4 +53,35 @@ class EnrollmentController extends Controller
 
         return back();
     }
+
+    /**
+     * Submit a quiz attempt.
+     */
+    public function submitQuiz(
+        \Illuminate\Http\Request $request,
+        Course $course,
+        \App\Models\MaterialContent $content,
+        \App\Services\QuizService $quizService
+    ): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse {
+        $validated = $request->validate([
+            'answers' => ['required', 'array'],
+        ]);
+
+        $result = $quizService->submitQuiz(
+            $request->user(),
+            $content,
+            $validated['answers'],
+            $course
+        );
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Quiz submitted successfully.',
+                'data' => $result,
+            ]);
+        }
+
+        return back()->with('success', 'Quiz submitted successfully. Score: '.$result['score'].'%');
+    }
 }

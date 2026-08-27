@@ -11,6 +11,7 @@ interface CourseFormData {
   price: string | number
   thumbnail: File | null
   category_ids: number[]
+  tag_ids: number[]
 }
 
 export function useCourse(course?: Course, courses: Course[] = []) {
@@ -56,6 +57,7 @@ export function useCourse(course?: Course, courses: Course[] = []) {
     price: (course as any)?.price ?? "",
     thumbnail: null,
     category_ids: course?.categories?.map((c) => c.id) ?? [],
+    tag_ids: course?.tags?.map((t) => t.id) ?? [],
   })
 
   const { data, setData, processing, errors, reset } = form
@@ -94,7 +96,9 @@ export function useCourse(course?: Course, courses: Course[] = []) {
       data.price !== ((course as any)?.price ?? "") ||
       data.thumbnail !== null ||
       JSON.stringify(data.category_ids) !==
-        JSON.stringify(course.categories?.map((c) => c.id) ?? [])
+        JSON.stringify(course.categories?.map((c) => c.id) ?? []) ||
+      JSON.stringify(data.tag_ids) !==
+        JSON.stringify(course.tags?.map((t) => t.id) ?? [])
     : data.title.trim() !== ""
 
   /*
@@ -125,6 +129,13 @@ export function useCourse(course?: Course, courses: Course[] = []) {
         JSON.stringify(course.categories?.map((c) => c.id) ?? [])
       ) {
         payload.category_ids = data.category_ids
+      }
+
+      if (
+        JSON.stringify(data.tag_ids) !==
+        JSON.stringify(course.tags?.map((t) => t.id) ?? [])
+      ) {
+        payload.tag_ids = data.tag_ids
       }
 
       form.transform(() => payload)

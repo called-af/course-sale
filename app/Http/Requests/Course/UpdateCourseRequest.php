@@ -41,6 +41,8 @@ class UpdateCourseRequest extends FormRequest
             ],
             'category_ids' => ['sometimes', 'array'],
             'category_ids.*' => ['exists:categories,id'],
+            'tag_ids' => ['sometimes', 'array'],
+            'tag_ids.*' => ['exists:tags,id'],
 
             'thumbnail' => ['sometimes', 'image', 'max:2048'],
 

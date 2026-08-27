@@ -67,4 +67,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Enrollment::class, 'user_id');
     }
+
+    public function userEvents(): HasMany
+    {
+        return $this->hasMany(UserEvent::class, 'user_id');
+    }
 }

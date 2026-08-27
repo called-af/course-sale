@@ -40,6 +40,8 @@ class EnrollmentService
             }
         });
 
+        app(EventTrackingService::class)->trackCourseEnroll($user, $course);
+
         return 'enrolled';
     }
 
@@ -69,6 +71,14 @@ class EnrollmentService
         $currentContent ??= $currentMaterial?->contents->first();
         $materialIds = $course->modules->flatMap(fn ($module) => $module->materials->pluck('id'));
 
+        if ($currentMaterial) {
+            app(EventTrackingService::class)->trackMaterialView($user, $course, $currentMaterial, [
+                'content_id' => $currentContent?->id,
+                'content_title' => $currentContent?->title,
+                'content_type' => $currentContent?->type,
+            ]);
+        }
+
         return [
             'course' => $course->append('thumbnail_url'),
             'currentMaterial' => $currentMaterial,
@@ -84,5 +94,7 @@ class EnrollmentService
             ['user_id' => $user->id, 'material_id' => $material->id],
             ['is_completed' => true, 'completed_at' => now()],
         );
+
+        app(EventTrackingService::class)->trackMaterialComplete($user, $course, $material);
     }
 }

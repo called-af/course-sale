@@ -1,6 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import UserLayout from '@/components/templates/UserLayout';
-import { BookOpen, CheckCircle, Clock, DollarSign, LayoutGrid, Star, TrendingUp, Users } from 'lucide-react';
+import { BookOpen, CheckCircle, Clock, DollarSign, LayoutGrid, Sparkles, Star, TrendingUp, Users } from 'lucide-react';
 
 export default function Dashboard() {
     const props = usePage().props as any;
@@ -74,7 +74,14 @@ function InstructorDashboard({ instructorCourses = [], totalStudents = 0, totalE
     );
 }
 
-function StudentDashboard({ enrolledCourses = [], totalCompleted = 0, overallProgress = 0, completedMaterials = 0, learningMinutes = 0 }: any) {
+function StudentDashboard({
+    enrolledCourses = [],
+    totalCompleted = 0,
+    overallProgress = 0,
+    completedMaterials = 0,
+    learningMinutes = 0,
+    recommendedCourses = [],
+}: any) {
     return (
         <>
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -83,6 +90,7 @@ function StudentDashboard({ enrolledCourses = [], totalCompleted = 0, overallPro
                 <Stat icon={<Clock size={18} />} label="Learning Time" value={`${Math.round(learningMinutes / 60)}h`} color="amber" />
                 <Stat icon={<TrendingUp size={18} />} label="Overall Progress" value={`${overallProgress}%`} color="purple" />
             </div>
+
             <Section title="Continue Learning" description={`${completedMaterials} materials completed across your enrolled courses.`}>
                 {enrolledCourses.length ? (
                     <div className="grid gap-4 sm:grid-cols-2">
@@ -109,6 +117,72 @@ function StudentDashboard({ enrolledCourses = [], totalCompleted = 0, overallPro
                     <Empty text="You have not enrolled in a course yet." />
                 )}
             </Section>
+
+            {recommendedCourses && recommendedCourses.length > 0 && (
+                <Section
+                    title="Recommended for You"
+                    description="Personalized course suggestions based on your learning activity and interests."
+                >
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {recommendedCourses.map((course: any) => (
+                            <Link
+                                key={course.id}
+                                href={`/course/${course.slug}`}
+                                className="group flex flex-col border border-slate-200 bg-white transition hover:border-purple-300 hover:shadow-md"
+                            >
+                                <div className="aspect-video w-full overflow-hidden bg-slate-100 relative">
+                                    <img
+                                        src={course.thumbnail_url}
+                                        alt={course.title}
+                                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                                    />
+                                    {course.recommendation_reason && (
+                                        <div className="absolute top-2 left-2 bg-purple-900/80 backdrop-blur-xs text-white text-[10px] font-medium px-2 py-0.5 flex items-center gap-1">
+                                            <Sparkles size={11} className="text-amber-300" />
+                                            <span>Recommended</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex flex-1 flex-col justify-between p-3.5 space-y-2">
+                                    <div>
+                                        <p className="line-clamp-2 text-xs font-semibold text-slate-800 group-hover:text-purple-700">
+                                            {course.title}
+                                        </p>
+                                        <p className="mt-1 text-[11px] text-slate-400">
+                                            By {course.creator?.name ?? 'Instructor'}
+                                        </p>
+                                    </div>
+                                    <div className="space-y-2 pt-1 border-t border-slate-100">
+                                        <div className="flex flex-wrap gap-1">
+                                            {course.tags?.slice(0, 2).map((t: any) => (
+                                                <span key={t.id || t.name} className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5">
+                                                    {t.name}
+                                                </span>
+                                            ))}
+                                            {course.level && (
+                                                <span className="bg-purple-50 text-purple-700 text-[10px] px-1.5 py-0.5 capitalize">
+                                                    {course.level}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center justify-between text-xs font-bold">
+                                            <span className={course.type === 'free' ? 'text-emerald-600' : 'text-slate-800'}>
+                                                {course.type === 'free' ? 'FREE' : formatRupiah(course.price ?? 0)}
+                                            </span>
+                                            {course.rating_avg > 0 && (
+                                                <span className="flex items-center gap-0.5 text-amber-600 text-[11px]">
+                                                    <Star size={11} className="fill-amber-400 text-amber-400" />
+                                                    {course.rating_avg}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </Section>
+            )}
         </>
     );
 }

@@ -52,6 +52,7 @@ class DashboardService
         });
 
         $completedMaterialIds = MaterialProgress::where('user_id', $user->id)->where('is_completed', true)->pluck('material_id');
+        $recommendedCourses = app(RecommendationService::class)->getRecommendations($user, 4);
 
         return [
             'enrolledCourses' => $enrolledCourses->values(),
@@ -59,6 +60,7 @@ class DashboardService
             'overallProgress' => $enrolledCourses->count() ? (int) round($enrolledCourses->avg(fn ($item) => $item['course']['progress_percent'])) : 0,
             'completedMaterials' => $completedMaterialIds->count(),
             'learningMinutes' => MaterialContent::whereIn('material_id', $completedMaterialIds)->sum('duration'),
+            'recommendedCourses' => $recommendedCourses,
         ];
     }
 

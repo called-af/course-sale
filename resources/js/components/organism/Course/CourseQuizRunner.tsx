@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react"
+import { router } from "@inertiajs/react"
 import { HelpCircle, Clock, AlertCircle, CheckCircle2, RotateCcw, Eye, EyeOff } from "lucide-react"
 import Button from "@/components/atoms/Button"
 import PreviewQuizQuestion from "@/components/molecules/CoursePreview/PreviewQuizQuestion"
@@ -19,16 +20,21 @@ interface CourseQuizRunnerProps {
   title: string
   duration?: number | null
   quizQuestions?: QuizQuestion[]
+  courseSlug?: string
+  contentId?: number
 }
 
 export default function CourseQuizRunner({
   title,
   duration,
   quizQuestions = [],
+  courseSlug,
+  contentId,
 }: CourseQuizRunnerProps) {
   const [userAnswers, setUserAnswers] = useState<Record<number, number | string>>({})
   const [showAnswers, setShowAnswers] = useState(false)
   const [quizSubmitted, setQuizSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   const resetQuizState = () => {
     setUserAnswers({})
@@ -122,7 +128,21 @@ export default function CourseQuizRunner({
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => setQuizSubmitted(true)}
+                isLoading={submitting}
+                onClick={() => {
+                  setQuizSubmitted(true)
+                  if (courseSlug && contentId) {
+                    setSubmitting(true)
+                    router.post(
+                      `/student/courses/${courseSlug}/quiz/${contentId}/submit`,
+                      { answers: userAnswers },
+                      {
+                        preserveScroll: true,
+                        onFinish: () => setSubmitting(false),
+                      }
+                    )
+                  }
+                }}
                 className="!rounded-none"
               >
                 Submit Test

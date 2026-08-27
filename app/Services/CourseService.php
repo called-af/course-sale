@@ -2,8 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\Course;
 use App\Models\Category;
+use App\Models\Course;
+use App\Models\Tag;
 use App\Models\User;
 use DomainException;
 use Illuminate\Support\Facades\DB;
@@ -33,7 +34,7 @@ class CourseService
     {
         return [
             'course' => $course->load([
-                'creator:id,name', 'categories:id,name',
+                'creator:id,name', 'categories:id,name', 'tags:id,name,slug',
                 'modules' => fn ($modules) => $modules->select('id', 'course_id', 'title', 'sort_order', 'status')->orderBy('sort_order')->with([
                     'materials' => fn ($materials) => $materials->orderBy('sort_order')->with([
                         'contents' => fn ($contents) => $contents->orderBy('sort_order'),
@@ -41,6 +42,7 @@ class CourseService
                 ]),
             ])->append('thumbnail_url'),
             'categories' => Category::select('id', 'name', 'img', 'desc')->get(),
+            'tags' => Tag::select('id', 'name')->get(),
             'users' => User::select('avatar', 'name', 'email')->get(),
         ];
     }
@@ -182,6 +184,15 @@ class CourseService
             */
             if (array_key_exists('category_ids', $data)) {
                 $course->categories()->sync($data['category_ids']);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | TAG SYNC
+            |--------------------------------------------------------------------------
+            */
+            if (array_key_exists('tag_ids', $data)) {
+                $course->tags()->sync($data['tag_ids']);
             }
 
             return $course->refresh();

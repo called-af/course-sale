@@ -214,7 +214,7 @@ export default function LearningPage({ course, progress }: LearningPageProps) {
                                     </div>
                                 </div>
 
-                                <LessonViewer lesson={activeLesson} />
+                                <LessonViewer lesson={activeLesson} courseSlug={course.slug} />
 
                                 <div className="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
                                     <p className="text-sm text-slate-500">Finish this material when you are ready.</p>
@@ -236,13 +236,13 @@ export default function LearningPage({ course, progress }: LearningPageProps) {
     );
 }
 
-function LessonViewer({ lesson }: { lesson: Lesson }) {
+function LessonViewer({ lesson, courseSlug }: { lesson: Lesson; courseSlug?: string }) {
     const content = lesson.content;
     if (content.type === 'video') return <PreviewVideoViewer title={content.title} contentUrl={content.content_url} />;
     if (content.type === 'text') return <PreviewTextViewer contentText={content.content_text} />;
     if (content.type === 'file') return <PreviewFileViewer title={content.title} contentUrl={content.content_url} />;
     if (content.type === 'ppt') return <PreviewPptViewer title={content.title} contentUrl={content.content_url} />;
-    if (content.type === 'quiz') return <CourseQuizRunner title={content.title} duration={content.duration} quizQuestions={content.quiz_questions} />;
+    if (content.type === 'quiz') return <CourseQuizRunner title={content.title} duration={content.duration} quizQuestions={content.quiz_questions} courseSlug={courseSlug} contentId={content.id} />;
     return <div className="p-8 text-center text-sm text-slate-500">This lesson format is not supported.</div>;
 }
 

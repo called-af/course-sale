@@ -18,9 +18,10 @@ import { useState } from "react"
 interface CourseSlugProps {
   course: Course
   categories: { id: number; name: string }[]
+  tags?: { id: number; name: string }[]
 }
 
-export default function CourseSlug({ course, categories }: CourseSlugProps) {
+export default function CourseSlug({ course, categories, tags }: CourseSlugProps) {
   const { auth } = usePage().props as any
   const rolePrefix = auth?.user?.role ?? "admin"
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false)
@@ -125,20 +126,24 @@ export default function CourseSlug({ course, categories }: CourseSlugProps) {
               </p>
             </div>
 
-            {/* Categories */}
+            {/* Tags */}
             <div className="bg-white border border-slate-200/80 shadow-sm p-6 space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                  <Tag className="w-4 h-4 text-indigo-500" />
-                  Course Categories
+                  <Tag className="w-4 h-4 text-purple-500" />
+                  Course Tags
                 </h3>
+                <span className="text-[11px] text-slate-400">For Recommendations</span>
               </div>
               <MultiSelectField
                 label=""
-                value={data.category_ids ?? []}
-                onChange={(values) => setData("category_ids", values)}
-                options={(categories ?? []).map((c) => ({ label: c.name, value: c.id }))}
+                value={data.tag_ids ?? []}
+                onChange={(values) => setData("tag_ids", values)}
+                options={(tags ?? []).map((t) => ({ label: t.name, value: t.id }))}
               />
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Tags help student discovery and power personalized recommendations.
+              </p>
             </div>
           </div>
 
@@ -214,6 +219,20 @@ export default function CourseSlug({ course, categories }: CourseSlugProps) {
               />
             </div>
 
+            {/* Categories */}
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                  <Tag className="w-4 h-4 text-indigo-500" />
+                  Course Categories
+                </h3>
+              </div>
+              <MultiSelectField
+                label=""
+                value={data.category_ids ?? []}
+                onChange={(values) => setData("category_ids", values)}
+                options={(categories ?? []).map((c) => ({ label: c.name, value: c.id }))}
+              />
+
             <div className="flex items-center justify-between pt-4 border-t border-slate-100">
               <Button
                 onClick={save}
@@ -227,7 +246,9 @@ export default function CourseSlug({ course, categories }: CourseSlugProps) {
                 {hasChanges ? "Click save to apply changes." : "All changes saved."}
               </span>
             </div>
+            
           </div>
+          
         </div>
 
         <CourseStructure course={course} modules={course.modules ?? []} />
