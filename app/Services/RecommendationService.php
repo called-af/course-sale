@@ -6,24 +6,28 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\User;
 use App\Models\UserEvent;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class RecommendationService
 {
-    public const CACHE_TTL_SECONDS = 7200; // 2 hours (within 1-6 hours)
-
     /**
      * Get recommended courses for a user (or guest).
      */
     public function getRecommendations(?User $user, int $limit = 6): array
     {
+        // 1. Check master feature switch
+        if (! config('recommendation.enabled', true)) {
+            return [];
+        }
+
+        $ttl = (int) config('recommendation.cache_ttl', 7200);
         $cacheKey = $user ? "recommendations:user:{$user->id}:limit:{$limit}" : "recommendations:guest:limit:{$limit}";
 
         try {
-            return Cache::store('redis')->remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($user, $limit) {
+            return Cache::store('redis')->remember($cacheKey, $ttl, function () use ($user, $limit) {
                 return $this->computeRecommendations($user, $limit);
             });
         } catch (\Throwable $e) {
@@ -34,9 +38,114 @@ class RecommendationService
     }
 
     /**
-     * Compute recommendations using Content-Based Filtering with Popularity Fallback.
+     * Compute recommendations using configured driver (Python ML or Laravel native)
+     * with automatic fallback mechanism.
      */
     public function computeRecommendations(?User $user, int $limit = 6): array
+    {
+        $driver = config('recommendation.driver', 'python');
+
+        if ($driver === 'python') {
+            try {
+                $pythonResults = $this->fetchPythonRecommendations($user, $limit);
+                if (! empty($pythonResults)) {
+                    return $pythonResults;
+                }
+            } catch (\Throwable $e) {
+                $fallbackEnabled = config('recommendation.python.fallback_to_laravel', true);
+                Log::warning("[Recommendation] Python ML service unreachable or failed: {$e->getMessage()}. Fallback to Laravel engine: ".($fallbackEnabled ? 'YES' : 'NO'));
+
+                if (! $fallbackEnabled) {
+                    return [];
+                }
+            }
+
+            // Fallback to Laravel native Content-Based + Popularity engine
+            return $this->computeLaravelRecommendations($user, $limit);
+        }
+
+        // Native Laravel driver
+        return $this->computeLaravelRecommendations($user, $limit);
+    }
+
+    /**
+     * Fetch recommendations from the Python FastAPI microservice.
+     */
+    public function fetchPythonRecommendations(?User $user, int $limit = 6): ?array
+    {
+        $baseUrl = rtrim(config('recommendation.python.url', 'http://127.0.0.1:8001'), '/');
+        $timeout = (float) config('recommendation.python.timeout', 2.0);
+        $retry = (int) config('recommendation.python.retry', 1);
+
+        $endpoint = $user
+            ? "{$baseUrl}/api/v1/recommendations/user/{$user->id}?limit={$limit}"
+            : "{$baseUrl}/api/v1/recommendations/guest?limit={$limit}";
+
+        $response = Http::timeout($timeout)
+            ->retry($retry, 100)
+            ->get($endpoint);
+
+        if (! $response->successful()) {
+            throw new \RuntimeException("Python service returned HTTP status {$response->status()}: {$response->body()}");
+        }
+
+        $payload = $response->json();
+        $items = $payload['recommendations'] ?? [];
+
+        if (empty($items)) {
+            return null;
+        }
+
+        // Extract ordered course IDs and score metadata
+        $courseMeta = [];
+        $courseIds = [];
+        foreach ($items as $item) {
+            $cid = (int) ($item['course_id'] ?? 0);
+            if ($cid > 0) {
+                $courseIds[] = $cid;
+                $courseMeta[$cid] = [
+                    'score' => (float) ($item['score'] ?? 0.0),
+                    'reason' => (string) ($item['reason'] ?? 'Recommended for you'),
+                    'matching_tags' => (array) ($item['matching_tags'] ?? []),
+                ];
+            }
+        }
+
+        if (empty($courseIds)) {
+            return null;
+        }
+
+        // Hydrate Course models from database (ensuring they exist and are published)
+        $courses = Course::whereIn('id', $courseIds)
+            ->where('status', 'published')
+            ->with(['tags:id,name,slug', 'categories:id,name,slug', 'creator:id,name'])
+            ->get()
+            ->keyBy('id');
+
+        $result = [];
+        foreach ($courseIds as $cid) {
+            if ($courses->has($cid)) {
+                $course = $courses->get($cid);
+                $courseArray = $course->toArray();
+                $courseArray['thumbnail_url'] = $course->thumbnail_url;
+                $courseArray['recommendation_score'] = round($courseMeta[$cid]['score'] ?? 0.0, 2);
+                $courseArray['recommendation_reason'] = $courseMeta[$cid]['reason'] ?? 'Recommended for you';
+                $courseArray['matching_tags'] = ! empty($courseMeta[$cid]['matching_tags'])
+                    ? $courseMeta[$cid]['matching_tags']
+                    : $course->tags->pluck('name')->take(3)->toArray();
+
+                $result[] = $courseArray;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Compute recommendations natively in Laravel using Content-Based Filtering
+     * and Popularity Fallback.
+     */
+    public function computeLaravelRecommendations(?User $user, int $limit = 6): array
     {
         if (! $user) {
             return $this->getPopularCourses($limit);
@@ -58,14 +167,14 @@ class RecommendationService
         }
 
         // 3. Calculate weights for interacted courses
-        $eventWeights = [
+        $eventWeights = config('recommendation.laravel.weights', [
             UserEvent::TYPE_COURSE_ENROLL => 5,
             UserEvent::TYPE_QUIZ_COMPLETE => 4,
             UserEvent::TYPE_MATERIAL_COMPLETE => 4,
             UserEvent::TYPE_QUIZ_ATTEMPT => 3,
             UserEvent::TYPE_MATERIAL_VIEW => 2,
             UserEvent::TYPE_COURSE_VIEW => 1,
-        ];
+        ]);
 
         $courseInteractionScores = [];
         foreach ($userEvents as $event) {
@@ -150,9 +259,14 @@ class RecommendationService
      */
     public function getPopularCourses(int $limit = 6, array $excludeIds = []): array
     {
+        $windowDays = config('recommendation.laravel.popularity.window_days', 30);
+        $viewsWeight = config('recommendation.laravel.popularity.views_weight', 1.5);
+        $enrollmentsWeight = config('recommendation.laravel.popularity.enrollments_weight', 3.0);
+        $ratingWeight = config('recommendation.laravel.popularity.rating_weight', 2.0);
+
         // Count course views in the last 30 days
         $recentViewCounts = UserEvent::where('event_type', UserEvent::TYPE_COURSE_VIEW)
-            ->where('created_at', '>=', now()->subDays(30))
+            ->where('created_at', '>=', now()->subDays($windowDays))
             ->whereNotNull('course_id')
             ->select('course_id', DB::raw('COUNT(*) as views_count'))
             ->groupBy('course_id')
@@ -169,13 +283,13 @@ class RecommendationService
 
         $courses = $query->get();
 
-        $ranked = $courses->map(function (Course $course) use ($recentViewCounts) {
+        $ranked = $courses->map(function (Course $course) use ($recentViewCounts, $viewsWeight, $enrollmentsWeight, $ratingWeight) {
             $views = $recentViewCounts[$course->id] ?? 0;
             $enrollments = $course->enrollments_count ?? 0;
             $rating = (float) ($course->rating_avg ?? 0);
 
             // Composite popularity score
-            $popScore = ($views * 1.5) + ($enrollments * 3) + ($rating * 2);
+            $popScore = ($views * $viewsWeight) + ($enrollments * $enrollmentsWeight) + ($rating * $ratingWeight);
 
             $courseArray = $course->toArray();
             $courseArray['thumbnail_url'] = $course->thumbnail_url;
@@ -193,13 +307,53 @@ class RecommendationService
     }
 
     /**
+     * Get real-time status and health of the recommendation subsystem.
+     */
+    public function getStatus(): array
+    {
+        $enabled = (bool) config('recommendation.enabled', true);
+        $driver = config('recommendation.driver', 'python');
+        $pythonUrl = config('recommendation.python.url', 'http://127.0.0.1:8001');
+        $fallbackToLaravel = (bool) config('recommendation.python.fallback_to_laravel', true);
+
+        $pythonOnline = false;
+        $pythonHealth = null;
+
+        if ($enabled && $driver === 'python') {
+            try {
+                $res = Http::timeout(0.6)->get(rtrim($pythonUrl, '/').'/api/v1/health');
+                if ($res->successful()) {
+                    $pythonOnline = true;
+                    $pythonHealth = $res->json();
+                }
+            } catch (\Throwable) {
+                $pythonOnline = false;
+            }
+        }
+
+        return [
+            'enabled' => $enabled,
+            'driver' => $driver,
+            'python_url' => $pythonUrl,
+            'python_online' => $pythonOnline,
+            'python_health' => $pythonHealth,
+            'fallback_to_laravel' => $fallbackToLaravel,
+            'active_engine' => ! $enabled
+                ? 'DISABLED'
+                : ($driver === 'python'
+                    ? ($pythonOnline ? 'PYTHON_FASTAPI_ML' : ($fallbackToLaravel ? 'LARAVEL_NATIVE_FALLBACK' : 'PYTHON_OFFLINE_NO_FALLBACK'))
+                    : 'LARAVEL_NATIVE'),
+        ];
+    }
+
+    /**
      * Invalidate cached recommendations for a specific user.
      */
     public function invalidateUserCache(int $userId): void
     {
         try {
-            Cache::store('redis')->forget("recommendations:user:{$userId}:limit:6");
             Cache::store('redis')->forget("recommendations:user:{$userId}:limit:4");
+            Cache::store('redis')->forget("recommendations:user:{$userId}:limit:6");
             Cache::store('redis')->forget("recommendations:user:{$userId}:limit:8");
             Cache::store('redis')->forget("recommendations:user:{$userId}:limit:10");
         } catch (\Throwable $e) {
