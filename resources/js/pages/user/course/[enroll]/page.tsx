@@ -1,6 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
-import { ArrowLeft, Award, BookOpen, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Circle, Clock3, FileText, GraduationCap } from 'lucide-react';
+import { ArrowLeft, Award, BookOpen, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Circle, Clock3, FileText, GraduationCap, MessageSquare, Star } from 'lucide-react';
 import Badge from '@/components/atoms/Badge';
 import Button from '@/components/atoms/Button';
 import UserLayout from '@/components/templates/UserLayout';
@@ -9,7 +9,12 @@ import PreviewPptViewer from '@/components/molecules/CoursePreview/PreviewPptVie
 import PreviewTextViewer from '@/components/molecules/CoursePreview/PreviewTextViewer';
 import PreviewVideoViewer from '@/components/molecules/CoursePreview/PreviewVideoViewer';
 import CourseQuizRunner from '@/components/organism/Course/CourseQuizRunner';
-import { Course } from '@/types';
+import CommentThread from '@/components/molecules/CommentThread';
+import ReviewForm from '@/components/molecules/ReviewForm';
+import ReviewCard from '@/components/molecules/ReviewCard';
+import RatingSummary from '@/components/molecules/RatingSummary';
+import { Course, Review, RatingStats, Comment } from '@/types';
+import { usePage } from '@inertiajs/react';
 
 type Lesson = {
     content: any;
@@ -24,9 +29,15 @@ interface LearningPageProps {
         id: number;
         certificate_number: string;
     } | null;
+    comments: Comment[];
+    reviews: Review[];
+    ratingStats: RatingStats;
+    userReview?: Review | null;
 }
 
-export default function LearningPage({ course, progress, certificate }: LearningPageProps) {
+export default function LearningPage({ course, progress, certificate, comments, reviews: initialReviews, ratingStats: initialStats, userReview: initialUserReview }: LearningPageProps) {
+    const { auth } = usePage().props as any;
+    const user = auth?.user;
     const lessons = useMemo<Lesson[]>(
         () =>
             (course.modules ?? []).flatMap((module) =>
@@ -39,6 +50,32 @@ export default function LearningPage({ course, progress, certificate }: Learning
         Object.fromEntries((course.modules ?? []).map((module) => [module.id, true])),
     );
     const [markingComplete, setMarkingComplete] = useState(false);
+    const [bottomTab, setBottomTab] = useState<'discussion' | 'reviews'>('discussion');
+
+    // Reactive review state
+    const [reviews, setReviews] = useState<Review[]>(initialReviews)
+    const [ratingStats, setRatingStats] = useState<RatingStats>(initialStats)
+    const [userReview, setUserReview] = useState<Review | null>(initialUserReview ?? null)
+
+    const handleReviewSuccess = (review: Review, stats: RatingStats) => {
+        setRatingStats(stats)
+        setUserReview(review)
+        setReviews((prev) => {
+            const exists = prev.find((r) => r.id === review.id)
+            if (exists) return prev.map((r) => r.id === review.id ? review : r)
+            return [review, ...prev]
+        })
+    }
+    const handleReviewDeleted = (reviewId: number, stats: RatingStats) => {
+        setRatingStats(stats)
+        setReviews((prev) => prev.filter((r) => r.id !== reviewId))
+        if (userReview?.id === reviewId) setUserReview(null)
+    }
+    const handleReviewUpdated = (review: Review, stats: RatingStats) => {
+        setRatingStats(stats)
+        setReviews((prev) => prev.map((r) => r.id === review.id ? review : r))
+        if (userReview?.id === review.id) setUserReview(review)
+    }
 
     const activeIndex = lessons.findIndex((lesson) => lesson.content.id === selectedContentId);
     const activeLesson = lessons[activeIndex] ?? lessons[0];
@@ -269,6 +306,82 @@ export default function LearningPage({ course, progress, certificate }: Learning
                             </div>
                         )}
                     </main>
+                </div>
+
+                {/* Discussion & Reviews tabs */}
+                <div className="border border-slate-200 bg-white shadow-xs">
+                    <div className="border-b border-slate-200">
+                        <nav className="flex">
+                            <button
+                                type="button"
+                                onClick={() => setBottomTab('discussion')}
+                                className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold transition-colors border-b-2 ${bottomTab === 'discussion' ? 'border-purple-600 text-purple-700' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                            >
+                                <MessageSquare size={15} />
+                                Discussion {comments.length > 0 && <span className="text-xs font-normal text-slate-400">({comments.length})</span>}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setBottomTab('reviews')}
+                                className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold transition-colors border-b-2 ${bottomTab === 'reviews' ? 'border-purple-600 text-purple-700' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                            >
+                                <Star size={15} />
+                                Reviews {ratingStats.total > 0 && <span className="text-xs font-normal text-slate-400">({ratingStats.total})</span>}
+                            </button>
+                        </nav>
+                    </div>
+
+                    <div className="p-6">
+                        {bottomTab === 'discussion' && (
+                            <CommentThread
+                                comments={comments}
+                                courseSlug={course.slug}
+                                currentUserId={user?.id}
+                            />
+                        )}
+
+                        {bottomTab === 'reviews' && (
+                            <div className="space-y-6">
+                                {ratingStats.total > 0 && <RatingSummary stats={ratingStats} />}
+
+                                <div className="border border-slate-200 bg-slate-50 p-5">
+                                    <h3 className="mb-4 text-sm font-bold text-slate-800">
+                                        {userReview ? 'Your Review' : 'Write a Review'}
+                                    </h3>
+                                    {userReview ? (
+                                        <ReviewCard
+                                            review={userReview}
+                                            courseSlug={course.slug}
+                                            currentUserId={user?.id}
+                                            onDeleted={handleReviewDeleted}
+                                            onUpdated={handleReviewUpdated}
+                                        />
+                                    ) : (
+                                        <ReviewForm
+                                            courseSlug={course.slug}
+                                            onSuccess={handleReviewSuccess}
+                                        />
+                                    )}
+                                </div>
+
+                                {reviews.length > 0 && (
+                                    <div className="space-y-3">
+                                        <h3 className="text-sm font-bold text-slate-700">All Reviews ({reviews.length})</h3>
+                                        {reviews.map((review) => (
+                                            <ReviewCard
+                                                key={review.id}
+                                                review={review}
+                                                courseSlug={course.slug}
+                                                currentUserId={user?.id}
+                                                onDeleted={handleReviewDeleted}
+                                                onUpdated={handleReviewUpdated}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </>

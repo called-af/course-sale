@@ -28,14 +28,15 @@ class AuthControllers extends Controller
         ]);
 
         if (!Auth::attempt($credentials)) {
-            return back()->withErrors([
-                'email' => 'The email address or password is incorrect.',
-            ]);
+            return back()
+                ->withErrors(['email' => 'The email address or password is incorrect.'])
+                ->with('error', 'The email address or password is incorrect.');
         }
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('home.redirect'));
+        return redirect()->intended(route('home.redirect'))
+            ->with('success', 'Welcome back!');
     }
 
     public function register(Request $request)
@@ -55,7 +56,8 @@ class AuthControllers extends Controller
 
         Auth::login($user);
 
-        return redirect('/choose-role');
+        return redirect('/choose-role')
+            ->with('success', 'Registration successful! Please choose your role.');
     }
 
 

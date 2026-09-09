@@ -10,6 +10,8 @@ import {
   ExternalLink,
   Globe,
   LayoutTemplate,
+  Star,
+  MessageSquare,
 } from "lucide-react"
 import clsx from "clsx"
 import { useState } from "react"
@@ -46,6 +48,14 @@ const mainMenus: MenuItem[] = [
     label: "Users",
     href: "/admin/users",
     icon: Users,
+  },
+  {
+    label: "Community",
+    icon: MessageSquare,
+    children: [
+      { label: "Reviews",  href: "/admin/reviews"  },
+      { label: "Comments", href: "/admin/comments" },
+    ],
   },
 ]
 

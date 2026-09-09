@@ -39,9 +39,25 @@ class EnrollmentController extends Controller
                 ->with('error', 'You are not enrolled in this course yet.');
         }
 
-        return Inertia::render('user/course/[enroll]/page', $this->enrollmentService->learningData(
+        $learningData = $this->enrollmentService->learningData(
             $request->user(), $course, $request->integer('material'), $request->integer('content')
-        ));
+        );
+
+        /** @var \App\Services\CommentService $commentService */
+        $commentService = app(\App\Services\CommentService::class);
+
+        /** @var \App\Services\ReviewService $reviewService */
+        $reviewService = app(\App\Services\ReviewService::class);
+
+        $reviewData = $reviewService->getCourseReviews($course);
+        $userReview = $reviewService->getUserReview($course, $request->user()->id);
+
+        return Inertia::render('user/course/[enroll]/page', array_merge($learningData, [
+            'comments'    => $commentService->getCourseComments($course),
+            'reviews'     => $reviewData['reviews'],
+            'ratingStats' => $reviewData['rating_stats'],
+            'userReview'  => $userReview,
+        ]));
     }
 
     /**

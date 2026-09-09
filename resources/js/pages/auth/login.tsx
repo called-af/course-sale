@@ -1,10 +1,11 @@
 import LoginForm from "@/components/organism/LoginForm"
 import Title from "@/components/atoms/Title"
 import { Head } from "@inertiajs/react"
+import LoginLayout from "@/components/templates/LoginLayout"
 
 export default function Login() {
   return (
-    <>
+    <LoginLayout>
     <Head title="Sign In"/>
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
       <div
@@ -20,6 +21,6 @@ export default function Login() {
         </div>
       </div>
     </div>
-    </>
+    </LoginLayout>
   )
 }

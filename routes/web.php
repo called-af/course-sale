@@ -17,6 +17,8 @@ use App\Http\Controllers\Course\QuizController;
 use App\Http\Controllers\Admin\CourseApprovalController;
 use App\Http\Controllers\RecommendationController;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\CommentController;
 use App\Services\EventTrackingService;
 use App\Models\Course;
 use Illuminate\Support\Facades\Auth;
@@ -54,11 +56,27 @@ Route::get('/course/{course:slug}', function (Course $course) {
             ->where('status', 'active')
             ->exists();
 
+    /** @var \App\Services\ReviewService $reviewService */
+    $reviewService = app(\App\Services\ReviewService::class);
+    $reviewData = $reviewService->getCourseReviews($course);
+
+    $userReview = ($user?->role === 'student')
+        ? $reviewService->getUserReview($course, $user->id)
+        : null;
+
+    /** @var \App\Services\CommentService $commentService */
+    $commentService = app(\App\Services\CommentService::class);
+    $comments = $commentService->getCourseComments($course);
+
     return Inertia::render('course/[slug]/page', [
         'course' => $course
             ->load(['creator:id,name', 'categories:id,name', 'tags:id,name,slug'])
             ->append('thumbnail_url'),
-        'isEnrolled' => $isEnrolled,
+        'isEnrolled'   => $isEnrolled,
+        'reviews'      => $reviewData['reviews'],
+        'ratingStats'  => $reviewData['rating_stats'],
+        'userReview'   => $userReview,
+        'comments'     => $comments,
     ]);
 })->name('course.show');
 
@@ -363,5 +381,91 @@ Route::middleware(['auth', 'role'])->group(function () {
 
             Route::get('/certificates/{certificate}/download', [CertificateController::class, 'download'])
                 ->name('certificates.download');
+
+            /*
+            |--------------------------------------------------------------------------
+            | REVIEWS (Student)
+            |--------------------------------------------------------------------------
+            */
+            Route::post('/courses/{course:slug}/reviews', [ReviewController::class, 'store'])
+                ->name('reviews.store');
+
+            Route::delete('/courses/{course:slug}/reviews/{review}', [ReviewController::class, 'destroy'])
+                ->name('reviews.destroy');
+
+            /*
+            |--------------------------------------------------------------------------
+            | COMMENTS / DISCUSSION (Student)
+            |--------------------------------------------------------------------------
+            */
+            Route::post('/courses/{course:slug}/comments', [CommentController::class, 'store'])
+                ->name('comments.store');
+
+            Route::put('/courses/{course:slug}/comments/{comment}', [CommentController::class, 'update'])
+                ->name('comments.update');
+
+            Route::delete('/courses/{course:slug}/comments/{comment}', [CommentController::class, 'destroy'])
+                ->name('comments.destroy');
         });
 });
+
+/*
+|--------------------------------------------------------------------------
+| ADMIN — Review & Comment Moderation
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+
+        Route::get('/reviews', function () {
+            $reviews = app(\App\Services\ReviewService::class)->getAdminReviews();
+
+            return \Inertia\Inertia::render('admin/reviews/page', [
+                'reviews' => $reviews->map(fn ($r) => [
+                    'id'          => $r->id,
+                    'rating'      => $r->rating,
+                    'comment'     => $r->comment,
+                    'is_approved' => $r->is_approved,
+                    'created_at'  => $r->created_at,
+                    'user'        => ['id' => $r->user->id, 'name' => $r->user->name],
+                    'course'      => ['id' => $r->course->id, 'title' => $r->course->title, 'slug' => $r->course->slug],
+                ]),
+            ]);
+        })->name('reviews.index');
+
+        Route::put('/reviews/{review}/approve', [ReviewController::class, 'approve'])
+            ->name('reviews.approve');
+
+        Route::put('/reviews/{review}/reject', [ReviewController::class, 'reject'])
+            ->name('reviews.reject');
+
+        Route::delete('/reviews/{review}', [ReviewController::class, 'adminDestroy'])
+            ->name('reviews.destroy');
+
+        Route::get('/comments', function () {
+            $comments = app(\App\Services\CommentService::class)->getAdminComments();
+
+            return \Inertia\Inertia::render('admin/comments/page', [
+                'comments' => $comments->map(fn ($c) => [
+                    'id'          => $c->id,
+                    'body'        => $c->body,
+                    'parent_id'   => $c->parent_id,
+                    'is_approved' => $c->is_approved,
+                    'created_at'  => $c->created_at,
+                    'user'        => ['id' => $c->user->id, 'name' => $c->user->name],
+                    'course'      => ['id' => $c->course->id, 'title' => $c->course->title, 'slug' => $c->course->slug],
+                ]),
+            ]);
+        })->name('comments.index');
+
+        Route::put('/comments/{comment}/approve', [CommentController::class, 'approve'])
+            ->name('comments.approve');
+
+        Route::put('/comments/{comment}/reject', [CommentController::class, 'reject'])
+            ->name('comments.reject');
+
+        Route::delete('/comments/{comment}', [CommentController::class, 'adminDestroy'])
+            ->name('comments.destroy');
+    });

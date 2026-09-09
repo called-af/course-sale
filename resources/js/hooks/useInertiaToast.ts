@@ -14,8 +14,14 @@ export function useInertiaToast() {
       toast.error(flash.error)
     }
 
-    if (errors?.status) {
-      toast.error(errors.status)
+    // Show first validation error as a toast (for pages without inline error display)
+    if (errors && typeof errors === "object" && !flash?.error) {
+      const firstError = Object.values(errors).find(
+        (v) => typeof v === "string"
+      ) as string | undefined
+      if (firstError) {
+        toast.error(firstError)
+      }
     }
   }, [flash, errors])
 }
