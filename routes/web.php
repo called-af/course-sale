@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AuthControllers;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CertificateController;
+use App\Http\Controllers\CertificateTemplateController;
 use App\Http\Controllers\Course\CourseController;
 use App\Http\Controllers\Course\MaterialContentController;
 use App\Http\Controllers\Course\MaterialController;
@@ -22,6 +24,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', [LandingController::class, 'show'])->name('home');
+Route::get('/certificate/{certificateNumber}', [CertificateController::class, 'verify'])->name('certificate.verify');
 Route::get('/courses/recommended', [RecommendationController::class, 'index'])->name('courses.recommended');
 Route::get('/course', function () {
     $user = Auth::user();
@@ -146,6 +149,12 @@ Route::middleware(['auth', 'role'])->group(function () {
 
             Route::delete('/courses/{course:slug}', [CourseController::class, 'destroy'])
                 ->name('courses.destroy');
+
+            Route::get('/courses/{course:slug}/certificate-template', [CertificateTemplateController::class, 'show'])
+                ->name('courses.certificate-template.show');
+
+            Route::put('/courses/{course:slug}/certificate-template', [CertificateTemplateController::class, 'update'])
+                ->name('courses.certificate-template.update');
 
             Route::prefix('courses/{course:slug}')->group(function () {
 
@@ -307,6 +316,12 @@ Route::middleware(['auth', 'role'])->group(function () {
 
             Route::delete('/courses/{course:slug}', [CourseController::class, 'destroy'])
                 ->name('courses.destroy');
+
+            Route::get('/courses/{course:slug}/certificate-template', [CertificateTemplateController::class, 'show'])
+                ->name('courses.certificate-template.show');
+
+            Route::put('/courses/{course:slug}/certificate-template', [CertificateTemplateController::class, 'update'])
+                ->name('courses.certificate-template.update');
         });
 
     /*
@@ -342,5 +357,11 @@ Route::middleware(['auth', 'role'])->group(function () {
 
             Route::post('/courses/{course:slug}/quiz/{content}/submit', [EnrollmentController::class, 'submitQuiz'])
                 ->name('courses.quiz.submit');
+
+            Route::get('/certificates', [CertificateController::class, 'index'])
+                ->name('certificates.index');
+
+            Route::get('/certificates/{certificate}/download', [CertificateController::class, 'download'])
+                ->name('certificates.download');
         });
 });

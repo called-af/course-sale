@@ -29,6 +29,7 @@ class Course extends Model
         'approved_at',
         'rating_avg',
         'rating_count',
+        'certificate_template',
     ];
 
     protected $appends = ['thumbnail_url'];
@@ -42,6 +43,7 @@ class Course extends Model
             'published_at' => 'datetime',
             'approved_at' => 'datetime',
             'rating_avg' => 'decimal:2',
+            'certificate_template' => 'array',
         ];
     }
 

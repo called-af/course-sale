@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Material;
@@ -84,6 +85,7 @@ class EnrollmentService
             'currentMaterial' => $currentMaterial,
             'currentContent' => $currentContent,
             'progress' => MaterialProgress::where('user_id', $user->id)->whereIn('material_id', $materialIds)->pluck('is_completed', 'material_id')->toArray(),
+            'certificate' => Certificate::where('user_id', $user->id)->where('course_id', $course->id)->select('id', 'certificate_number')->first(),
         ];
     }
 
@@ -96,5 +98,8 @@ class EnrollmentService
         );
 
         app(EventTrackingService::class)->trackMaterialComplete($user, $course, $material);
+
+        // Auto-generate certificate when course is 100% complete
+        app(CertificateService::class)->generateIfCompleted($user, $course);
     }
 }

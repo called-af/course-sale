@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { Bell, BookOpen, CheckCircle, Compass, GraduationCap, LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
+import { Award, Bell, BookOpen, CheckCircle, Compass, GraduationCap, LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
 import clsx from 'clsx';
 import { useEffect, useRef, useState } from 'react';
 
@@ -24,6 +24,7 @@ function buildNavigation(role: string): NavigationItem[] {
     return [
         { label: 'Dashboard', href: '/student/dashboard', icon: LayoutDashboard },
         { label: 'My Learning', href: '/student/courses', icon: GraduationCap },
+        { label: 'My Certificates', href: '/student/certificates', icon: Award },
         { label: 'Explore', href: '/course', icon: Compass },
     ];
 }

@@ -8,11 +8,12 @@ import MultiSelectField from "@/components/molecules/MultiSelectField"
 import ChooseFile from "@/components/molecules/ChooseFile"
 import PageHeader from "@/components/molecules/PageHeader"
 import CourseStructure from "@/components/organism/Course/CourseStructure"
+import CertificateTemplateEditor from "@/components/organism/Course/CertificateTemplateEditor"
 
 import { Course } from "@/types"
 import { useCourse } from "@/hooks/useCourse"
 import { Head, Link, router, usePage } from "@inertiajs/react"
-import { ArrowLeft, CheckCircle, Eye, Image, Save, Tag } from "lucide-react"
+import { ArrowLeft, Award, CheckCircle, Eye, Image, Save, Tag } from "lucide-react"
 import { useState } from "react"
 
 interface CourseSlugProps {
@@ -252,6 +253,34 @@ export default function CourseSlug({ course, categories, tags }: CourseSlugProps
         </div>
 
         <CourseStructure course={course} modules={course.modules ?? []} />
+
+        {/* Certificate Template Editor */}
+        <div className="bg-white border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-6">
+          <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+            <div className="flex h-8 w-8 items-center justify-center bg-purple-50">
+              <Award className="w-4 h-4 text-purple-600" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-slate-900">Certificate Template</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Customize the certificate design issued to students who complete this course.
+              </p>
+            </div>
+          </div>
+          <CertificateTemplateEditor
+            courseSlug={course.slug}
+            rolePrefix="admin"
+            initialTemplate={{
+              primary_color:  course.certificate_template?.primary_color  ?? '#7c3aed',
+              accent_color:   course.certificate_template?.accent_color   ?? '#a78bfa',
+              bg_style:       (course.certificate_template?.bg_style       ?? 'dark') as 'dark' | 'light' | 'gradient',
+              show_signature: course.certificate_template?.show_signature  ?? false,
+              signature_name: course.certificate_template?.signature_name  ?? '',
+              custom_title:   course.certificate_template?.custom_title    ?? '',
+              footer_note:    course.certificate_template?.footer_note     ?? '',
+            }}
+          />
+        </div>
       </div>
 
       <Modal

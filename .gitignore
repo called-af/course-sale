@@ -27,3 +27,4 @@ yarn-error.log
 /.zed
 /recommendation-service/venv
 task.md
+design.md

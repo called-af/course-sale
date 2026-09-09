@@ -1,6 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
-import { ArrowLeft, BookOpen, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Circle, Clock3, FileText, GraduationCap } from 'lucide-react';
+import { ArrowLeft, Award, BookOpen, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Circle, Clock3, FileText, GraduationCap } from 'lucide-react';
 import Badge from '@/components/atoms/Badge';
 import Button from '@/components/atoms/Button';
 import UserLayout from '@/components/templates/UserLayout';
@@ -20,9 +20,13 @@ type Lesson = {
 interface LearningPageProps {
     course: Course;
     progress: Record<number, boolean>;
+    certificate?: {
+        id: number;
+        certificate_number: string;
+    } | null;
 }
 
-export default function LearningPage({ course, progress }: LearningPageProps) {
+export default function LearningPage({ course, progress, certificate }: LearningPageProps) {
     const lessons = useMemo<Lesson[]>(
         () =>
             (course.modules ?? []).flatMap((module) =>
@@ -93,6 +97,41 @@ export default function LearningPage({ course, progress }: LearningPageProps) {
                         </div>
                     </div>
                 </header>
+
+                {/* Congratulations banner — shown when 100% complete */}
+                {progressPercent === 100 && (
+                    <div className="flex flex-col gap-4 border border-amber-200 bg-amber-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-start gap-3">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-amber-100">
+                                <Award size={20} className="text-amber-600" />
+                            </div>
+                            <div>
+                                <p className="font-semibold text-amber-900">🎉 Congratulations! You've completed this course!</p>
+                                <p className="mt-0.5 text-sm text-amber-700">
+                                    Your certificate of completion has been generated and is ready to download.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex shrink-0 gap-2">
+                            {certificate && (
+                                <a
+                                    href={`/student/certificates/${certificate.id}/download`}
+                                    className="flex items-center gap-1.5 border border-amber-400 bg-amber-400 px-4 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-300 transition-colors"
+                                    download
+                                >
+                                    <Award size={15} />
+                                    Download Certificate
+                                </a>
+                            )}
+                            <Link
+                                href="/student/certificates"
+                                className="flex items-center gap-1.5 border border-amber-300 bg-white px-4 py-2 text-sm font-medium text-amber-800 hover:bg-amber-50 transition-colors"
+                            >
+                                View All Certificates
+                            </Link>
+                        </div>
+                    </div>
+                )}
 
                 <div className="grid items-start gap-6 lg:grid-cols-12">
                     <aside className="space-y-4 lg:sticky lg:top-20 lg:col-span-4">

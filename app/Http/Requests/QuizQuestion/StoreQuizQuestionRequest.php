@@ -44,7 +44,7 @@ class StoreQuizQuestionRequest extends FormRequest
                     if (!is_array($options) || count($options) < 2) {
                         $validator->errors()->add(
                             "questions.{$index}.options",
-                            'Soal pilihan ganda minimal memiliki 2 pilihan jawaban.'
+                            'Multiple choice questions must have at least 2 answer options.'
                         );
                     } else {
                         $hasEmpty = false;
@@ -60,13 +60,13 @@ class StoreQuizQuestionRequest extends FormRequest
                         if ($hasEmpty) {
                             $validator->errors()->add(
                                 "questions.{$index}.options",
-                                'Semua opsi pilihan ganda harus memiliki teks jawaban.'
+                                'All multiple choice options must have answer text.'
                             );
                         }
                         if (!$hasCorrect) {
                             $validator->errors()->add(
                                 "questions.{$index}.options",
-                                'Soal pilihan ganda harus memilih minimal 1 jawaban yang benar.'
+                                'Multiple choice questions must have at least 1 correct answer.'
                             );
                         }
                     }
@@ -78,8 +78,8 @@ class StoreQuizQuestionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'questions.*.options.required_if' => 'Opsi wajib diisi untuk soal pilihan ganda.',
-            'questions.*.options.prohibited_if' => 'Soal essay tidak boleh memiliki opsi jawaban.',
+            'questions.*.options.required_if' => 'Options are required for multiple choice questions.',
+            'questions.*.options.prohibited_if' => 'Essay questions must not have answer options.',
         ];
     }
 }

@@ -1,0 +1,135 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Certificate;
+use App\Models\Course;
+use App\Models\Material;
+use App\Models\MaterialProgress;
+use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
+class CertificateService
+{
+    /**
+     * Check if user has already completed the course (100% progress).
+     */
+    public function isCourseCompleted(User $user, Course $course): bool
+    {
+        $course->loadMissing(['modules.materials']);
+
+        $materialIds = $course->modules
+            ->flatMap(fn ($module) => $module->materials->pluck('id'))
+            ->filter()
+            ->values();
+
+        if ($materialIds->isEmpty()) {
+            return false;
+        }
+
+        $completedCount = MaterialProgress::where('user_id', $user->id)
+            ->whereIn('material_id', $materialIds)
+            ->where('is_completed', true)
+            ->count();
+
+        return $completedCount >= $materialIds->count();
+    }
+
+    /**
+     * Generate (or retrieve existing) certificate for a user + course.
+     * Called from EnrollmentService@markProgress when 100% complete.
+     */
+    public function generateIfCompleted(User $user, Course $course): ?Certificate
+    {
+        // Already has a certificate for this course
+        $existing = Certificate::where('user_id', $user->id)
+            ->where('course_id', $course->id)
+            ->first();
+
+        if ($existing) {
+            return $existing;
+        }
+
+        if (! $this->isCourseCompleted($user, $course)) {
+            return null;
+        }
+
+        return $this->generate($user, $course);
+    }
+
+    /**
+     * Force-generate a certificate (used internally when completion is confirmed).
+     */
+    public function generate(User $user, Course $course): Certificate
+    {
+        $certificateNumber = $this->generateCertificateNumber();
+        $issuedAt = now();
+
+        // Create DB record first
+        $certificate = Certificate::create([
+            'user_id'            => $user->id,
+            'course_id'          => $course->id,
+            'certificate_number' => $certificateNumber,
+            'issued_at'          => $issuedAt,
+        ]);
+
+        // Generate PDF
+        $pdfPath = $this->generatePdf($certificate);
+
+        $certificate->update(['pdf_path' => $pdfPath]);
+
+        return $certificate;
+    }
+
+    /**
+     * Render and store the certificate PDF. Returns storage path.
+     */
+    public function generatePdf(Certificate $certificate): string
+    {
+        $certificate->loadMissing(['user', 'course.creator']);
+
+        $course    = $certificate->course;
+        $template  = $course->certificate_template ?? [];
+        $verifyUrl = url('/certificate/'.$certificate->certificate_number);
+
+        $pdf = Pdf::loadView('pdf.certificate', [
+            'studentName'       => $certificate->user->name,
+            'courseTitle'       => $course->title,
+            'instructorName'    => $course->creator?->name ?? 'KursusIO',
+            'issuedAt'          => $certificate->issued_at->format('d F Y'),
+            'certificateNumber' => $certificate->certificate_number,
+            'verifyUrl'         => $verifyUrl,
+
+            // Template customisations (dengan fallback ke default)
+            'primaryColor'   => $template['primary_color']  ?? '#7c3aed',
+            'accentColor'    => $template['accent_color']   ?? '#a78bfa',
+            'bgStyle'        => $template['bg_style']       ?? 'dark',
+            'showSignature'  => (bool) ($template['show_signature'] ?? false),
+            'signatureName'  => $template['signature_name'] ?? ($course->creator?->name ?? 'KursusIO'),
+            'customTitle'    => filled($template['custom_title'] ?? '') ? $template['custom_title'] : 'Certificate of Completion',
+            'footerNote'     => $template['footer_note']   ?? '',
+        ]);
+
+        $pdf->setPaper('a4', 'landscape');
+
+        $filename = 'certificates/'.$certificate->certificate_number.'.pdf';
+        Storage::disk('public')->put($filename, $pdf->output());
+
+        return $filename;
+    }
+
+    /**
+     * Generate a unique certificate number.
+     * Format: KRSIO-YYYYMM-XXXXXXXX (e.g. KRSIO-202609-A3F2B1C4)
+     */
+    private function generateCertificateNumber(): string
+    {
+        do {
+            $number = 'KRSIO-'.now()->format('Ym').'-'.strtoupper(Str::random(8));
+        } while (Certificate::where('certificate_number', $number)->exists());
+
+        return $number;
+    }
+}
