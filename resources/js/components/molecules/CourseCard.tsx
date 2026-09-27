@@ -19,7 +19,6 @@ export default function CourseCard({ course }: CourseCardProps) {
     const [openDelete, setOpenDelete] = useState(false);
 
     const { auth } = usePage().props as any;
-    const { url } = usePage();
     const user = auth?.user;
 
     const creatorId = typeof course.creator === 'object' ? (course.creator as any)?.id : ((course as any).creator_id ?? course.creator);
@@ -27,11 +26,12 @@ export default function CourseCard({ course }: CourseCardProps) {
         user && (user.role === 'admin' || (user.role === 'instructor' && (creatorId === user.id || (course as any).creator_id === user.id)));
 
     const rolePrefix = user?.role ?? 'admin';
+    // All non-owner cards (including students in My Learning) go to
+    // the course detail page (/course/slug) first. Enrolled students continue via Resume.
+    // The owning instructor still goes to their management page.
     const courseHref = isCourseOwner
         ? `/${rolePrefix}/courses/${course.slug}`
-        : user?.role === 'student' && url.startsWith('/student/courses')
-          ? `/student/courses/${course.slug}`
-          : `/course/${course.slug}`;
+        : `/course/${course.slug}`;
 
     return (
         <>
@@ -39,7 +39,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                 onClick={() => router.visit(courseHref)}
                 className="group cursor-pointer border border-neutral-100 bg-white transition-shadow duration-200 hover:shadow-md"
             >
-                {/* Thumbnail — bersih tanpa overlay */}
+                {/* Thumbnail — clean, no overlay */}
                 <div className="aspect-video w-full overflow-hidden bg-neutral-100">
                     <img
                         src={course.thumbnail_url}

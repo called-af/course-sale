@@ -64,6 +64,25 @@ Route::get('/course/{course:slug}', function (Course $course) {
         ? $reviewService->getUserReview($course, $user->id)
         : null;
 
+    // Progress + review flag for the sidebar resume & review form (100% only).
+    $canReview = false;
+    $progressPercent = 0;
+    $completedCount = 0;
+    $totalMaterials = 0;
+    if ($isEnrolled && $user) {
+        /** @var \App\Services\EnrollmentService $enrollmentService */
+        $enrollmentService = app(\App\Services\EnrollmentService::class);
+        $canReview = $enrollmentService->isCompleted($user, $course);
+        $course->load(['modules.materials:id,module_id']);
+        $allMaterialIds = $course->modules->flatMap(fn ($m) => $m->materials->pluck('id'));
+        $totalMaterials = $allMaterialIds->count();
+        $completedCount = \App\Models\MaterialProgress::where('user_id', $user->id)
+            ->whereIn('material_id', $allMaterialIds)
+            ->where('is_completed', true)
+            ->count();
+        $progressPercent = $totalMaterials > 0 ? (int) round(($completedCount / $totalMaterials) * 100) : 0;
+    }
+
     /** @var \App\Services\CommentService $commentService */
     $commentService = app(\App\Services\CommentService::class);
     $comments = $commentService->getCourseComments($course);
@@ -72,7 +91,11 @@ Route::get('/course/{course:slug}', function (Course $course) {
         'course' => $course
             ->load(['creator:id,name', 'categories:id,name', 'tags:id,name,slug'])
             ->append('thumbnail_url'),
-        'isEnrolled'   => $isEnrolled,
+        'isEnrolled'      => $isEnrolled,
+        'canReview'       => $canReview,
+        'progressPercent' => $progressPercent,
+        'completedCount'  => $completedCount,
+        'totalMaterials'  => $totalMaterials,
         'reviews'      => $reviewData['reviews'],
         'ratingStats'  => $reviewData['rating_stats'],
         'userReview'   => $userReview,

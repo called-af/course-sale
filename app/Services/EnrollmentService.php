@@ -53,6 +53,8 @@ class EnrollmentService
                 'contents' => fn ($contentQuery) => $contentQuery->orderBy('sort_order')->with(['quizQuestions.quizOptions']),
             ]),
         ])]);
+        $course->loadMissing(['creator:id,name', 'categories:id,name']);
+        $course->append('thumbnail_url');
 
         $currentMaterial = null;
         $currentContent = null;
@@ -80,13 +82,57 @@ class EnrollmentService
             ]);
         }
 
+        $progress = MaterialProgress::where('user_id', $user->id)->whereIn('material_id', $materialIds)->pluck('is_completed', 'material_id')->toArray();
+
         return [
-            'course' => $course->append('thumbnail_url'),
+            'course' => $course,
             'currentMaterial' => $currentMaterial,
             'currentContent' => $currentContent,
-            'progress' => MaterialProgress::where('user_id', $user->id)->whereIn('material_id', $materialIds)->pluck('is_completed', 'material_id')->toArray(),
+            'progress' => $progress,
             'certificate' => Certificate::where('user_id', $user->id)->where('course_id', $course->id)->select('id', 'certificate_number')->first(),
+            ...$this->progressMeta($course, $progress),
         ];
+    }
+
+    /**
+     * Calculate total / completed / percent plus the resume target.
+     */
+    public function progressMeta(Course $course, array $progress): array
+    {
+        $materials = $course->modules->flatMap(fn ($module) => $module->materials);
+        $total = $materials->count();
+        $completed = $materials->filter(fn ($material) => ! empty($progress[$material->id]))->count();
+        $percent = $total > 0 ? (int) round(($completed / $total) * 100) : 0;
+
+        $resumeMaterial = $materials->first(fn ($material) => empty($progress[$material->id])) ?? $materials->first();
+
+        return [
+            'totalMaterials' => $total,
+            'completedCount' => $completed,
+            'progressPercent' => $percent,
+            'canReview' => $total > 0 && $completed === $total,
+            'resume' => $resumeMaterial ? [
+                'material_id' => $resumeMaterial->id,
+                'content_id' => $resumeMaterial->contents->first()?->id,
+            ] : null,
+        ];
+    }
+
+    public function isCompleted(User $user, Course $course): bool
+    {
+        $materialIds = $course->modules()->with('materials:id,module_id')->get()
+            ->flatMap(fn ($module) => $module->materials->pluck('id'));
+
+        if ($materialIds->isEmpty()) {
+            return false;
+        }
+
+        $completed = MaterialProgress::where('user_id', $user->id)
+            ->whereIn('material_id', $materialIds)
+            ->where('is_completed', true)
+            ->count();
+
+        return $completed >= $materialIds->count();
     }
 
     public function markProgress(User $user, Course $course, int $materialId): void

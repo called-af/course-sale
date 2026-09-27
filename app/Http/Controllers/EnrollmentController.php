@@ -29,7 +29,8 @@ class EnrollmentController extends Controller
     }
 
     /**
-     * Show the student's learning page for an enrolled course.
+     * Show the student's learning player for an enrolled course.
+     * My Learning routes here directly. Discussion & ratings live on the course detail page.
      */
     public function show(\Illuminate\Http\Request $request, Course $course): Response|RedirectResponse
     {
@@ -43,21 +44,7 @@ class EnrollmentController extends Controller
             $request->user(), $course, $request->integer('material'), $request->integer('content')
         );
 
-        /** @var \App\Services\CommentService $commentService */
-        $commentService = app(\App\Services\CommentService::class);
-
-        /** @var \App\Services\ReviewService $reviewService */
-        $reviewService = app(\App\Services\ReviewService::class);
-
-        $reviewData = $reviewService->getCourseReviews($course);
-        $userReview = $reviewService->getUserReview($course, $request->user()->id);
-
-        return Inertia::render('user/course/[enroll]/page', array_merge($learningData, [
-            'comments'    => $commentService->getCourseComments($course),
-            'reviews'     => $reviewData['reviews'],
-            'ratingStats' => $reviewData['rating_stats'],
-            'userReview'  => $userReview,
-        ]));
+        return Inertia::render('user/course/[enroll]/page', $learningData);
     }
 
     /**

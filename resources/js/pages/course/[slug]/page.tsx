@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, BookOpen, CheckCircle2, Clock3, GraduationCap, Layers, MessageSquare, Star, UserRound } from 'lucide-react';
+import { ArrowLeft, BookOpen, CheckCircle2, Clock3, Layers, Lock, MessageSquare, PlayCircle, Star, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import Badge from '@/components/atoms/Badge';
 import Button from '@/components/atoms/Button';
@@ -14,6 +14,10 @@ import type { Course, Review, RatingStats, Comment } from '@/types';
 interface CourseDetailPageProps {
     course: Course;
     isEnrolled: boolean;
+    canReview?: boolean;
+    progressPercent?: number;
+    completedCount?: number;
+    totalMaterials?: number;
     reviews: Review[];
     ratingStats: RatingStats;
     userReview?: Review | null;
@@ -23,15 +27,22 @@ interface CourseDetailPageProps {
 export default function CourseDetailPage({
     course,
     isEnrolled,
-    reviews,
-    ratingStats,
-    userReview,
+    canReview = false,
+    progressPercent = 0,
+    completedCount = 0,
+    totalMaterials = 0,
+    reviews: initialReviews,
+    ratingStats: initialStats,
+    userReview: initialUserReview,
     comments,
 }: CourseDetailPageProps) {
     const { auth } = usePage().props as any;
     const user = auth?.user;
     const [processing, setProcessing] = useState(false);
-    const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'discussion'>('overview');
+
+    const [reviews, setReviews] = useState<Review[]>(initialReviews);
+    const [ratingStats, setRatingStats] = useState<RatingStats>(initialStats);
+    const [userReview, setUserReview] = useState<Review | null>(initialUserReview ?? null);
 
     const enroll = () => {
         setProcessing(true);
@@ -40,6 +51,26 @@ export default function CourseDetailPage({
             {},
             { onFinish: () => setProcessing(false) },
         );
+    };
+
+    const handleReviewSuccess = (review: Review, stats: RatingStats) => {
+        setRatingStats(stats);
+        setUserReview(review);
+        setReviews((prev) => {
+            const exists = prev.find((r) => r.id === review.id);
+            if (exists) return prev.map((r) => (r.id === review.id ? review : r));
+            return [review, ...prev];
+        });
+    };
+    const handleReviewDeleted = (reviewId: number, stats: RatingStats) => {
+        setRatingStats(stats);
+        setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+        if (userReview?.id === reviewId) setUserReview(null);
+    };
+    const handleReviewUpdated = (review: Review, stats: RatingStats) => {
+        setRatingStats(stats);
+        setReviews((prev) => prev.map((r) => (r.id === review.id ? review : r)));
+        if (userReview?.id === review.id) setUserReview(review);
     };
 
     return (
@@ -75,7 +106,6 @@ export default function CourseDetailPage({
                                     <p className="mb-2 text-sm font-medium text-purple-700">Course</p>
                                     <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">{course.title}</h1>
 
-                                    {/* Rating summary inline */}
                                     {ratingStats.total > 0 && (
                                         <div className="mt-3 flex items-center gap-2">
                                             <StarRating value={Math.round(ratingStats.average)} readonly size="sm" />
@@ -90,261 +120,175 @@ export default function CourseDetailPage({
                                     <CourseInfo icon={<Layers size={18} />} label="Level" value={course.level || 'All levels'} />
                                     <CourseInfo icon={<Clock3 size={18} />} label="Access" value="Learn at your pace" />
                                 </div>
-                            </div>
 
-                            {/* Tab navigation */}
-                            <div className="border-b border-slate-200">
-                                <nav className="flex gap-0">
-                                    {(['overview', 'reviews', 'discussion'] as const).map((tab) => (
-                                        <button
-                                            key={tab}
-                                            type="button"
-                                            onClick={() => setActiveTab(tab)}
-                                            className={`px-5 py-3 text-sm font-semibold capitalize transition-colors border-b-2 ${
-                                                activeTab === tab
-                                                    ? 'border-purple-600 text-purple-700'
-                                                    : 'border-transparent text-slate-500 hover:text-slate-700'
-                                            }`}
-                                        >
-                                            {tab === 'reviews' && (
-                                                <span className="flex items-center gap-1.5">
-                                                    <Star size={14} /> Reviews {ratingStats.total > 0 && `(${ratingStats.total})`}
-                                                </span>
-                                            )}
-                                            {tab === 'discussion' && (
-                                                <span className="flex items-center gap-1.5">
-                                                    <MessageSquare size={14} /> Discussion {comments.length > 0 && `(${comments.length})`}
-                                                </span>
-                                            )}
-                                            {tab === 'overview' && 'Overview'}
-                                        </button>
-                                    ))}
-                                </nav>
-                            </div>
-
-                            {/* Tab content */}
-                            {activeTab === 'overview' && (
                                 <div className="prose prose-slate max-w-none">
+                                    <h3 className="text-base font-bold text-slate-900">About this course</h3>
                                     <p className="leading-relaxed whitespace-pre-line text-slate-600">
                                         {course.description || 'Course description is not available yet.'}
                                     </p>
                                 </div>
-                            )}
-
-                            {activeTab === 'reviews' && (
-                                <ReviewSection
-                                    courseSlug={course.slug}
-                                    reviews={reviews}
-                                    ratingStats={ratingStats}
-                                    userReview={userReview ?? null}
-                                    isEnrolled={isEnrolled}
-                                    user={user}
-                                />
-                            )}
-
-                            {activeTab === 'discussion' && (
-                                <CommentThread
-                                    comments={comments}
-                                    courseSlug={course.slug}
-                                    currentUserId={isEnrolled ? user?.id : undefined}
-                                />
-                            )}
+                            </div>
                         </section>
 
-                        {/* Sidebar */}
+                        {/* Sidebar — becomes resume when already enrolled */}
                         <aside className="h-fit border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-24">
-                            <p className="text-sm font-medium text-slate-500">Course access</p>
-                            <p className="mt-1 text-2xl font-bold text-slate-900">
-                                {course.type === 'free' ? 'Free' : `Rp ${Number(course.price ?? 0).toLocaleString('id-ID')}`}
-                            </p>
+                            {isEnrolled ? (
+                                <>
+                                    <p className="inline-flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                                        <CheckCircle2 size={14} /> Enrolled
+                                    </p>
+                                    <p className="mt-3 text-sm font-medium text-slate-500">Your progress</p>
+                                    <p className="mt-1 text-2xl font-bold text-slate-900">{progressPercent}%</p>
+                                    <div className="mt-2 h-2 overflow-hidden bg-slate-100">
+                                        <div className="h-full bg-purple-500 transition-all" style={{ width: `${progressPercent}%` }} />
+                                    </div>
+                                    <p className="mt-2 text-xs text-slate-500">
+                                        {completedCount} of {totalMaterials} materials completed
+                                    </p>
 
-                            {ratingStats.total > 0 && (
-                                <div className="mt-2 flex items-center gap-1.5">
-                                    <StarRating value={Math.round(ratingStats.average)} readonly size="sm" />
-                                    <span className="text-xs text-slate-500">
-                                        {ratingStats.average.toFixed(1)} ({ratingStats.total})
-                                    </span>
+                                    <div className="my-5 border-t border-slate-100" />
+
+                                    <Link href={`/student/courses/${course.slug}`} className="block">
+                                        <Button widthFull leftIcon={<PlayCircle size={18} />}>
+                                            {progressPercent === 100 ? 'Review Course' : completedCount > 0 ? 'Resume Learning' : 'Start Learning'}
+                                        </Button>
+                                    </Link>
+                                    <Link href="/student/courses" className="mt-2 block text-center text-xs font-medium text-purple-700 hover:underline">
+                                        Back to My Learning
+                                    </Link>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-sm font-medium text-slate-500">Course access</p>
+                                    <p className="mt-1 text-2xl font-bold text-slate-900">
+                                        {course.type === 'free' ? 'Free' : `Rp ${Number(course.price ?? 0).toLocaleString('id-ID')}`}
+                                    </p>
+
+                                    {ratingStats.total > 0 && (
+                                        <div className="mt-2 flex items-center gap-1.5">
+                                            <StarRating value={Math.round(ratingStats.average)} readonly size="sm" />
+                                            <span className="text-xs text-slate-500">
+                                                {ratingStats.average.toFixed(1)} ({ratingStats.total})
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    <div className="my-5 border-t border-slate-100" />
+
+                                    {user?.role === 'student' ? (
+                                        <Button widthFull onClick={enroll} isLoading={processing} leftIcon={<BookOpen size={18} />}>
+                                            {course.type === 'free' ? 'Enroll Now' : 'Buy Course'}
+                                        </Button>
+                                    ) : !user ? (
+                                        <Link href="/login" className="block">
+                                            <Button widthFull leftIcon={<BookOpen size={18} />}>Sign in to enroll</Button>
+                                        </Link>
+                                    ) : null}
+
+                                    <div className="mt-5 space-y-3 text-sm text-slate-600">
+                                        <p className="flex items-center gap-2">
+                                            <CheckCircle2 size={17} className="text-emerald-600" /> Full course access after enrollment
+                                        </p>
+                                        <p className="flex items-center gap-2">
+                                            <CheckCircle2 size={17} className="text-emerald-600" /> Learn anytime, at your own pace
+                                        </p>
+                                    </div>
+                                </>
+                            )}
+                        </aside>
+                    </div>
+
+                    {/* Discussion — bottom of the page */}
+                    <section className="mt-8 border border-slate-200 bg-white p-6 shadow-sm">
+                        <CommentThread
+                            comments={comments}
+                            courseSlug={course.slug}
+                            currentUserId={isEnrolled ? user?.id : undefined}
+                        />
+                    </section>
+
+                    {/* Ratings — bottom of the page, form only at 100%, list always visible */}
+                    <section className="mt-8 border border-slate-200 bg-white p-6 shadow-sm">
+                        <div className="mb-5 flex items-center gap-2">
+                            <Star size={18} className="text-purple-600" />
+                            <h2 className="text-base font-bold text-slate-800">
+                                Ratings {ratingStats.total > 0 && <span className="font-normal text-slate-400">({ratingStats.total})</span>}
+                            </h2>
+                        </div>
+
+                        <div className="space-y-6">
+                            {ratingStats.total > 0 && <RatingSummary stats={ratingStats} />}
+
+                            <div className="border border-slate-200 bg-slate-50 p-5">
+                                <h3 className="mb-4 text-sm font-bold text-slate-800">
+                                    {userReview ? 'Your Review' : 'Write a Review'}
+                                </h3>
+                                {canReview ? (
+                                    userReview ? (
+                                        <ReviewCard
+                                            review={userReview}
+                                            courseSlug={course.slug}
+                                            currentUserId={user?.id}
+                                            onDeleted={handleReviewDeleted}
+                                            onUpdated={handleReviewUpdated}
+                                        />
+                                    ) : (
+                                        <ReviewForm courseSlug={course.slug} onSuccess={handleReviewSuccess} />
+                                    )
+                                ) : isEnrolled ? (
+                                    <div className="flex items-start gap-3 border border-amber-200 bg-amber-50 p-4">
+                                        <Lock size={16} className="mt-0.5 shrink-0 text-amber-600" />
+                                        <div>
+                                            <p className="text-sm font-semibold text-amber-900">Reviews unlock at 100% completion</p>
+                                            <p className="mt-1 text-sm text-amber-700">
+                                                Your progress is {progressPercent}% ({completedCount}/{totalMaterials} materials).
+                                                Finish all materials to leave a rating. You can still read other students&apos; reviews below.
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : !user ? (
+                                    <div className="border border-slate-100 bg-white p-4 text-center text-sm text-slate-500">
+                                        <a href="/login" className="font-medium text-purple-600 hover:underline">Sign in</a> and enroll to leave a review after finishing 100% of the course.
+                                    </div>
+                                ) : (
+                                    <div className="border border-slate-100 bg-white p-4 text-center text-sm text-slate-500">
+                                        Enroll in this course to leave a review after finishing 100% of the course.
+                                    </div>
+                                )}
+                            </div>
+
+                            {reviews.length > 0 && (
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                        <MessageSquare size={15} className="text-slate-400" />
+                                        <h3 className="text-sm font-bold text-slate-700">All Reviews ({reviews.length})</h3>
+                                    </div>
+                                    {reviews.map((review) => (
+                                        <ReviewCard
+                                            key={review.id}
+                                            review={review}
+                                            courseSlug={course.slug}
+                                            currentUserId={user?.id}
+                                            onDeleted={handleReviewDeleted}
+                                            onUpdated={handleReviewUpdated}
+                                        />
+                                    ))}
                                 </div>
                             )}
 
-                            <div className="my-5 border-t border-slate-100" />
-
-                            {isEnrolled ? (
-                                <Link href={`/student/courses/${course.slug}`} className="block">
-                                    <Button widthFull leftIcon={<GraduationCap size={18} />}>Continue Learning</Button>
-                                </Link>
-                            ) : user?.role === 'student' ? (
-                                <Button widthFull onClick={enroll} isLoading={processing} leftIcon={<BookOpen size={18} />}>
-                                    {course.type === 'free' ? 'Enroll Now' : 'Buy Course'}
-                                </Button>
-                            ) : !user ? (
-                                <Link href="/login" className="block">
-                                    <Button widthFull leftIcon={<BookOpen size={18} />}>Sign in to enroll</Button>
-                                </Link>
-                            ) : null}
-
-                            <div className="mt-5 space-y-3 text-sm text-slate-600">
-                                <p className="flex items-center gap-2">
-                                    <CheckCircle2 size={17} className="text-emerald-600" /> Full course access after enrollment
-                                </p>
-                                <p className="flex items-center gap-2">
-                                    <CheckCircle2 size={17} className="text-emerald-600" /> Learn anytime, at your own pace
-                                </p>
-                            </div>
-                        </aside>
-                    </div>
+                            {reviews.length === 0 && (
+                                <div className="py-6 text-center text-slate-400">
+                                    <Star size={32} className="mx-auto mb-2 opacity-30" />
+                                    <p className="text-sm">No reviews yet. Be the first to share your experience!</p>
+                                </div>
+                            )}
+                        </div>
+                    </section>
                 </div>
             </div>
         </>
     );
 }
-
-/* ------------------------------------------------------------------ */
-/* Review Section                                                        */
-/* ------------------------------------------------------------------ */
-
-interface ReviewSectionProps {
-    courseSlug: string;
-    reviews: Review[];
-    ratingStats: RatingStats;
-    userReview: Review | null;
-    isEnrolled: boolean;
-    user: any;
-}
-
-function ReviewSection({ courseSlug, reviews: initialReviews, ratingStats: initialStats, userReview: initialUserReview, isEnrolled, user }: ReviewSectionProps) {
-    const [reviews, setReviews] = useState<Review[]>(initialReviews)
-    const [ratingStats, setRatingStats] = useState<RatingStats>(initialStats)
-    const [userReview, setUserReview] = useState<Review | null>(initialUserReview ?? null)
-    const [showForm, setShowForm] = useState(!initialUserReview)
-    const [successMsg, setSuccessMsg] = useState('')
-
-    const showSuccess = (msg: string) => {
-        setSuccessMsg(msg)
-        setTimeout(() => setSuccessMsg(''), 3000)
-    }
-
-    const handleReviewSuccess = (review: Review, stats: RatingStats) => {
-        setRatingStats(stats)
-        setUserReview(review)
-        setShowForm(false)
-        // Update dalam daftar review
-        setReviews((prev) => {
-            const exists = prev.find((r) => r.id === review.id)
-            if (exists) return prev.map((r) => r.id === review.id ? review : r)
-            return [review, ...prev]
-        })
-        showSuccess('Your review has been submitted. Thank you!')
-    }
-
-    const handleReviewDeleted = (reviewId: number, stats: RatingStats) => {
-        setRatingStats(stats)
-        setReviews((prev) => prev.filter((r) => r.id !== reviewId))
-        if (userReview?.id === reviewId) {
-            setUserReview(null)
-            setShowForm(true)
-        }
-        showSuccess('Your review has been removed.')
-    }
-
-    const handleReviewUpdated = (review: Review, stats: RatingStats) => {
-        setRatingStats(stats)
-        setReviews((prev) => prev.map((r) => r.id === review.id ? review : r))
-        if (userReview?.id === review.id) setUserReview(review)
-        showSuccess('Your review has been updated.')
-    }
-
-    return (
-        <div className="space-y-6">
-            {/* Success message */}
-            {successMsg && (
-                <div className="border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-                    ✓ {successMsg}
-                </div>
-            )}
-
-            {/* Rating distribution */}
-            {ratingStats.total > 0 && (
-                <RatingSummary stats={ratingStats} />
-            )}
-
-            {/* Write / edit review */}
-            {isEnrolled && (
-                <div className="border border-slate-200 bg-white p-5">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-slate-800">
-                            {userReview ? 'Your Review' : 'Write a Review'}
-                        </h3>
-                        {userReview && (
-                            <button
-                                type="button"
-                                onClick={() => setShowForm((v) => !v)}
-                                className="text-xs text-purple-600 hover:underline"
-                            >
-                                {showForm ? 'Cancel' : 'Edit review'}
-                            </button>
-                        )}
-                    </div>
-
-                    {userReview && !showForm ? (
-                        <ReviewCard
-                            review={userReview}
-                            courseSlug={courseSlug}
-                            currentUserId={user?.id}
-                            onDeleted={handleReviewDeleted}
-                            onUpdated={handleReviewUpdated}
-                        />
-                    ) : (
-                        <ReviewForm
-                            courseSlug={courseSlug}
-                            existing={userReview}
-                            onSuccess={handleReviewSuccess}
-                            onCancel={userReview ? () => setShowForm(false) : undefined}
-                        />
-                    )}
-                </div>
-            )}
-
-            {!isEnrolled && !user && (
-                <div className="border border-slate-100 bg-slate-50 p-4 text-sm text-slate-500 text-center">
-                    <a href="/login" className="font-medium text-purple-600 hover:underline">Sign in</a> and enroll to leave a review.
-                </div>
-            )}
-
-            {!isEnrolled && user?.role === 'student' && (
-                <div className="border border-slate-100 bg-slate-50 p-4 text-sm text-slate-500 text-center">
-                    Enroll in this course to leave a review.
-                </div>
-            )}
-
-            {/* All reviews list */}
-            {reviews.length === 0 ? (
-                <div className="py-10 text-center text-slate-400">
-                    <Star size={32} className="mx-auto mb-2 opacity-30" />
-                    <p className="text-sm">No reviews yet. Be the first to share your experience!</p>
-                </div>
-            ) : (
-                <div className="space-y-3">
-                    <h3 className="text-sm font-bold text-slate-700">All Reviews ({reviews.length})</h3>
-                    {reviews.map((review) => (
-                        <ReviewCard
-                            key={review.id}
-                            review={review}
-                            courseSlug={courseSlug}
-                            currentUserId={user?.id}
-                            onDeleted={handleReviewDeleted}
-                            onUpdated={handleReviewUpdated}
-                        />
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-}
-
-/* ------------------------------------------------------------------ */
-/* Helpers                                                              */
-/* ------------------------------------------------------------------ */
 
 function CourseInfo({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
     return (

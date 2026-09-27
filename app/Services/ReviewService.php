@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 class ReviewService
 {
     /**
-     * Ambil semua review yang approved untuk sebuah kursus beserta statistik rating.
+     * Get all approved reviews for a course along with rating statistics.
      */
     public function getCourseReviews(Course $course): array
     {
@@ -42,7 +42,7 @@ class ReviewService
     }
 
     /**
-     * Hitung statistik distribusi rating (1-5 bintang).
+     * Calculate the rating distribution statistics (1-5 stars).
      */
     public function getRatingStats(Course $course): array
     {
@@ -73,8 +73,8 @@ class ReviewService
     }
 
     /**
-     * Simpan atau update review dari student.
-     * Student hanya bisa review kursus yang sudah di-enroll.
+     * Store or update a student review.
+     * Students can only review enrolled courses AFTER reaching 100% completion.
      */
     public function storeOrUpdate(Course $course, int $userId, int $rating, ?string $comment): Review
     {
@@ -85,6 +85,12 @@ class ReviewService
 
         if (! $enrolled) {
             throw new \DomainException('You must be enrolled in this course to leave a review.');
+        }
+
+        if (! app(\App\Services\EnrollmentService::class)->isCompleted(
+            \App\Models\User::findOrFail($userId), $course
+        )) {
+            throw new \DomainException('You can leave a review after completing 100% of the course.');
         }
 
         $review = Review::updateOrCreate(
@@ -101,7 +107,7 @@ class ReviewService
     }
 
     /**
-     * Hapus review milik user.
+     * Delete a review owned by the user.
      */
     public function destroy(Review $review, int $userId): void
     {
@@ -115,7 +121,7 @@ class ReviewService
     }
 
     /**
-     * Admin: approve atau reject review.
+     * Admin: approve or reject a review.
      */
     public function setApproval(Review $review, bool $approved): void
     {
@@ -128,7 +134,7 @@ class ReviewService
     }
 
     /**
-     * Cek apakah user sudah pernah review kursus ini.
+     * Check whether the user has already reviewed this course.
      */
     public function getUserReview(Course $course, int $userId): ?Review
     {
@@ -139,8 +145,8 @@ class ReviewService
     }
 
     /**
-     * Recalculate rating_avg dan rating_count di tabel courses.
-     * Public agar bisa dipanggil dari controller.
+     * Recalculate rating_avg and rating_count on the courses table.
+     * Public so it can be called from controllers.
      */
     public function recalculateCourseRatingPublic(Course $course): void
     {
@@ -148,7 +154,7 @@ class ReviewService
     }
 
     /**
-     * Recalculate rating_avg dan rating_count di tabel courses.
+     * Recalculate rating_avg and rating_count on the courses table.
      */
     private function recalculateCourseRating(Course $course): void
     {
@@ -164,7 +170,7 @@ class ReviewService
     }
 
     /**
-     * Admin: ambil semua review (termasuk pending) dengan filter.
+     * Admin: get all reviews (including pending) with filters.
      */
     public function getAdminReviews(?string $status = null, ?int $courseId = null): \Illuminate\Database\Eloquent\Collection
     {

@@ -97,7 +97,7 @@ function StudentDashboard({
                         {enrolledCourses.map(({ course }: any) => (
                             <Link
                                 key={course.id}
-                                href={`/student/courses/${course.slug}`}
+                                href={`/course/${course.slug}`}
                                 className="border border-slate-200 p-4 transition hover:border-purple-300 hover:shadow-sm"
                             >
                                 <div className="flex items-start justify-between gap-3">
