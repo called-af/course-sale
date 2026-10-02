@@ -1,7 +1,7 @@
 import { Head } from "@inertiajs/react"
 import AdminLayout from "@/components/templates/AdminLayout"
 import Title from "@/components/atoms/Title"
-import UserProfile from "@/components/organism/UserProfile"
+import UserProfile from "@/components/organisms/UserProfile"
 import type { User } from "@/types/user"
 import BreadCrumb from "@/components/atoms/BreadCrumb"
 

@@ -7,8 +7,8 @@ import SelectField from "@/components/molecules/SelectField"
 import MultiSelectField from "@/components/molecules/MultiSelectField"
 import ChooseFile from "@/components/molecules/ChooseFile"
 import PageHeader from "@/components/molecules/PageHeader"
-import CourseStructure from "@/components/organism/Course/CourseStructure"
-import CertificateTemplateEditor from "@/components/organism/Course/CertificateTemplateEditor"
+import CourseStructure from "@/components/organisms/Course/CourseStructure"
+import CertificateTemplateEditor from "@/components/organisms/Course/CertificateTemplateEditor"
 
 import { Course } from "@/types"
 import { useCourse } from "@/hooks/useCourse"
@@ -105,13 +105,13 @@ export default function CourseSlug({ course, categories, tags }: CourseSlugProps
           {/* Left Column */}
           <div className="lg:col-span-5 space-y-6">
             {/* Thumbnail */}
-            <div className="bg-white border border-slate-200/80 shadow-sm p-6 space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+            <div className="bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-sm p-6 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700">
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider flex items-center gap-2">
                   <Image className="w-4 h-4 text-purple-500" />
                   Course Thumbnail
                 </h3>
-                <span className="text-[11px] text-slate-400">16:9 Ratio</span>
+                <span className="text-[11px] text-slate-400 dark:text-slate-500">16:9 Ratio</span>
               </div>
               <ChooseFile
                 label=""
@@ -122,19 +122,19 @@ export default function CourseSlug({ course, categories, tags }: CourseSlugProps
               {errors.thumbnail && (
                 <p className="text-xs text-red-500 font-medium">{errors.thumbnail}</p>
               )}
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
                 Use a high-resolution 16:9 ratio image for optimal catalog presentation.
               </p>
             </div>
 
             {/* Tags */}
-            <div className="bg-white border border-slate-200/80 shadow-sm p-6 space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+            <div className="bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-sm p-6 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700">
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider flex items-center gap-2">
                   <Tag className="w-4 h-4 text-purple-500" />
                   Course Tags
                 </h3>
-                <span className="text-[11px] text-slate-400">For Recommendations</span>
+                <span className="text-[11px] text-slate-400 dark:text-slate-500">For Recommendations</span>
               </div>
               <MultiSelectField
                 label=""
@@ -142,23 +142,23 @@ export default function CourseSlug({ course, categories, tags }: CourseSlugProps
                 onChange={(values) => setData("tag_ids", values)}
                 options={(tags ?? []).map((t) => ({ label: t.name, value: t.id }))}
               />
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
                 Tags help student discovery and power personalized recommendations.
               </p>
             </div>
           </div>
 
           {/* Right Column */}
-          <div className="lg:col-span-7 bg-white border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+          <div className="lg:col-span-7 bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-sm p-6 sm:p-8 space-y-6">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700">
               <div>
-                <h2 className="text-lg font-bold text-slate-900">Course Information & Details</h2>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Course Information & Details</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Manage title, description, pricing, and accessibility level.
                 </p>
               </div>
               {hasChanges && (
-                <span className="text-xs font-semibold px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
+                <span className="text-xs font-semibold px-3 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/50 animate-pulse">
                   Unsaved Changes
                 </span>
               )}
@@ -221,8 +221,8 @@ export default function CourseSlug({ course, categories, tags }: CourseSlugProps
             </div>
 
             {/* Categories */}
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700">
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider flex items-center gap-2">
                   <Tag className="w-4 h-4 text-indigo-500" />
                   Course Categories
                 </h3>
@@ -234,7 +234,7 @@ export default function CourseSlug({ course, categories, tags }: CourseSlugProps
                 options={(categories ?? []).map((c) => ({ label: c.name, value: c.id }))}
               />
 
-            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+            <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700">
               <Button
                 onClick={save}
                 disabled={!hasChanges || processing}
@@ -243,7 +243,7 @@ export default function CourseSlug({ course, categories, tags }: CourseSlugProps
               >
                 {processing ? "Saving Changes..." : "Save Course Changes"}
               </Button>
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-slate-400 dark:text-slate-500">
                 {hasChanges ? "Click save to apply changes." : "All changes saved."}
               </span>
             </div>
@@ -255,14 +255,14 @@ export default function CourseSlug({ course, categories, tags }: CourseSlugProps
         <CourseStructure course={course} modules={course.modules ?? []} />
 
         {/* Certificate Template Editor */}
-        <div className="bg-white border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-6">
-          <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-            <div className="flex h-8 w-8 items-center justify-center bg-purple-50">
-              <Award className="w-4 h-4 text-purple-600" />
+        <div className="bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-sm p-6 sm:p-8 space-y-6">
+          <div className="flex items-center gap-3 pb-4 border-b border-slate-100 dark:border-slate-700">
+            <div className="flex h-8 w-8 items-center justify-center bg-purple-50 dark:bg-purple-950/40">
+              <Award className="w-4 h-4 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900">Certificate Template</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">Certificate Template</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Customize the certificate design issued to students who complete this course.
               </p>
             </div>
@@ -306,8 +306,8 @@ export default function CourseSlug({ course, categories, tags }: CourseSlugProps
           </>
         }
       >
-        <p>Are you sure you want to approve this course?</p>
-        <p className="mt-2 text-gray-500">
+        <p className="text-sm text-gray-700 dark:text-slate-200">Are you sure you want to approve this course?</p>
+        <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">
           Once approved, “{course.title}” will be published and become visible in the public course catalog.
         </p>
       </Modal>

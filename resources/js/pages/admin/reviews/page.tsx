@@ -80,7 +80,7 @@ export default function AdminReviewsPage({ reviews }: Props) {
                 </div>
 
                 {/* Filter tabs */}
-                <div className="flex gap-1 border-b border-slate-200">
+                <div className="flex gap-1 border-b border-slate-200 dark:border-slate-700">
                     {(['all', 'approved', 'pending'] as const).map((f) => (
                         <button
                             key={f}
@@ -88,8 +88,8 @@ export default function AdminReviewsPage({ reviews }: Props) {
                             onClick={() => setFilter(f)}
                             className={`px-4 py-2.5 text-sm font-semibold capitalize transition-colors border-b-2 ${
                                 filter === f
-                                    ? 'border-purple-600 text-purple-700'
-                                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                                    ? 'border-purple-600 text-purple-700 dark:text-purple-400'
+                                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                             }`}
                         >
                             {f}
@@ -104,32 +104,32 @@ export default function AdminReviewsPage({ reviews }: Props) {
 
                 {/* Table */}
                 {filtered.length === 0 ? (
-                    <div className="py-16 text-center text-slate-400">
+                    <div className="py-16 text-center text-slate-400 dark:text-slate-500">
                         <Star size={32} className="mx-auto mb-2 opacity-30" />
                         <p className="text-sm">No reviews found.</p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto border border-slate-200 bg-white shadow-sm">
+                    <div className="overflow-x-auto border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
                         <table className="w-full text-sm">
-                            <thead className="border-b border-slate-200 bg-slate-50">
+                            <thead className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Student</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Course</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Rating</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Comment</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</th>
-                                    <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Actions</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Student</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Course</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Rating</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Comment</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Status</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Date</th>
+                                    <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {filtered.map((review) => (
-                                    <tr key={review.id} className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-4 py-3 font-medium text-slate-700">{review.user.name}</td>
+                                    <tr key={review.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                        <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-200">{review.user.name}</td>
                                         <td className="px-4 py-3">
                                             <Link
                                                 href={`/admin/courses/${review.course.slug}`}
-                                                className="font-medium text-purple-600 hover:underline line-clamp-1"
+                                                className="font-medium text-purple-600 dark:text-purple-400 hover:underline line-clamp-1"
                                             >
                                                 {review.course.title}
                                             </Link>
@@ -137,11 +137,11 @@ export default function AdminReviewsPage({ reviews }: Props) {
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-1.5">
                                                 <StarRating value={review.rating} readonly size="sm" />
-                                                <span className="text-xs font-semibold text-slate-600">{review.rating}</span>
+                                                <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{review.rating}</span>
                                             </div>
                                         </td>
                                         <td className="px-4 py-3 max-w-xs">
-                                            <p className="line-clamp-2 text-slate-600">{review.comment || <span className="text-slate-400 italic">No comment</span>}</p>
+                                            <p className="line-clamp-2 text-slate-600 dark:text-slate-300">{review.comment || <span className="text-slate-400 dark:text-slate-500 italic">No comment</span>}</p>
                                         </td>
                                         <td className="px-4 py-3">
                                             {review.is_approved ? (
@@ -150,7 +150,7 @@ export default function AdminReviewsPage({ reviews }: Props) {
                                                 <Badge variant="warning">Pending</Badge>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3 text-xs text-slate-400 whitespace-nowrap">
+                                        <td className="px-4 py-3 text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
                                             {formatDate(review.created_at)}
                                         </td>
                                         <td className="px-4 py-3">
@@ -162,7 +162,7 @@ export default function AdminReviewsPage({ reviews }: Props) {
                                                         onClick={() => approve(review.id)}
                                                         isLoading={processingId === review.id}
                                                         leftIcon={<CheckCircle2 size={13} />}
-                                                        className="!text-emerald-600 hover:!bg-emerald-50"
+                                                        className="!text-emerald-600 hover:!bg-emerald-50 dark:hover:!bg-emerald-950/30"
                                                     >
                                                         Approve
                                                     </Button>
@@ -173,7 +173,7 @@ export default function AdminReviewsPage({ reviews }: Props) {
                                                         onClick={() => reject(review.id)}
                                                         isLoading={processingId === review.id}
                                                         leftIcon={<XCircle size={13} />}
-                                                        className="!text-amber-600 hover:!bg-amber-50"
+                                                        className="!text-amber-600 hover:!bg-amber-50 dark:hover:!bg-amber-950/30"
                                                     >
                                                         Hide
                                                     </Button>
@@ -184,7 +184,7 @@ export default function AdminReviewsPage({ reviews }: Props) {
                                                     onClick={() => destroy(review.id)}
                                                     isLoading={processingId === review.id}
                                                     leftIcon={<Trash2 size={13} />}
-                                                    className="!text-red-500 hover:!bg-red-50"
+                                                    className="!text-red-500 hover:!bg-red-50 dark:hover:!bg-red-950/30"
                                                 >
                                                     Delete
                                                 </Button>
@@ -203,13 +203,13 @@ export default function AdminReviewsPage({ reviews }: Props) {
 
 function StatCard({ label, value, color = 'slate' }: { label: string; value: number; color?: string }) {
     const colorMap: Record<string, string> = {
-        slate: 'text-slate-800',
-        emerald: 'text-emerald-600',
-        amber: 'text-amber-600',
+        slate: 'text-slate-800 dark:text-white',
+        emerald: 'text-emerald-600 dark:text-emerald-400',
+        amber: 'text-amber-600 dark:text-amber-400',
     };
     return (
-        <div className="border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</p>
+        <div className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">{label}</p>
             <p className={`mt-2 text-3xl font-extrabold tabular-nums ${colorMap[color] ?? colorMap.slate}`}>{value}</p>
         </div>
     );

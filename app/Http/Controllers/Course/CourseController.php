@@ -32,7 +32,7 @@ class CourseController extends Controller
         $data = $this->courseService->indexData(Auth::user());
 
         if (Auth::user()->role === 'instructor') {
-            return Inertia::render('user/course/page', $data);
+            return Inertia::render('student/course/page', $data);
         }
 
         return Inertia::render('admin/course/page', $data);
@@ -46,7 +46,7 @@ class CourseController extends Controller
         $this->authorize('view', $course);
 
         $view = Auth::user()->role === 'instructor'
-            ? 'user/course/[slug]/page'
+            ? 'student/course/[slug]/page'
             : 'admin/course/[slug]/page';
 
         return Inertia::render($view, $this->courseService->detailData($course));
@@ -60,7 +60,7 @@ class CourseController extends Controller
         $this->authorize('view', $course);
 
         $view = Auth::user()->role === 'instructor'
-            ? 'user/course/preview/page'
+            ? 'student/course/preview/page'
             : 'admin/course/preview/page';
 
         return Inertia::render($view, $this->courseService->previewData($course));

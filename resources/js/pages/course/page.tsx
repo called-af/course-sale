@@ -51,7 +51,7 @@ export default function CoursePage({
     <>
       <Head title="Explore Courses" />
 
-      <div className="pt-24 pb-20 bg-[#FAFAF8] min-h-screen">
+      <div className="pt-24 pb-20 bg-[#FAFAF8] dark:bg-[#0f0f0f] min-h-screen">
         {/* Header Hero Section (Clean, no recommended button) */}
         <div className="bg-[#1a1a1a] text-white py-16 px-6 sm:px-8 mb-10">
           <div className="max-w-7xl mx-auto space-y-4">
@@ -69,7 +69,7 @@ export default function CoursePage({
 
         <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-6">
           {/* Search & Filter Bar */}
-          <div className="bg-white border border-slate-200 p-6 flex flex-col md:flex-row md:items-end justify-between gap-6 shadow-xs">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-6 flex flex-col md:flex-row md:items-end justify-between gap-6 shadow-xs">
             <div className="w-full md:w-80">
               <InputField
                 label="Search Course"
@@ -83,13 +83,13 @@ export default function CoursePage({
             <div className="flex flex-wrap items-center gap-4">
               {/* Level Filter */}
               <div className="flex flex-col gap-1">
-                <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
                   <Filter className="w-3 h-3" /> Level
                 </span>
                 <select
                   value={selectedLevel}
                   onChange={(e) => setSelectedLevel(e.target.value)}
-                  className="border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-purple-700 focus:ring-1 focus:ring-purple-700"
+                  className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 outline-none focus:border-purple-700 dark:focus:border-purple-500 focus:ring-1 focus:ring-purple-700 dark:focus:ring-purple-500"
                 >
                   <option value="all">All Levels</option>
                   <option value="beginner">Beginner</option>
@@ -100,8 +100,8 @@ export default function CoursePage({
 
               {/* Recommended Filter (Right next to Level select) */}
               <div className="flex flex-col gap-1">
-                <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-purple-600" /> Recommendation
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-purple-600 dark:text-purple-400" /> Recommendation
                 </span>
                 <button
                   type="button"
@@ -109,7 +109,7 @@ export default function CoursePage({
                   className={`inline-flex items-center gap-2 border px-3 py-2 text-sm font-semibold transition cursor-pointer ${
                     onlyRecommended
                       ? "bg-purple-700 border-purple-700 text-white shadow-xs"
-                      : "bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700"
+                      : "bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-950/60 border-purple-200 dark:border-purple-900/50 text-purple-700 dark:text-purple-300"
                   }`}
                 >
                   <span>{onlyRecommended ? "Recommended: ON" : "Recommended for You"}</span>
@@ -118,7 +118,7 @@ export default function CoursePage({
                       className={`text-[10px] font-bold px-1.5 py-0.2 ${
                         onlyRecommended
                           ? "bg-amber-400 text-slate-900"
-                          : "bg-purple-200 text-purple-800"
+                          : "bg-purple-200 dark:bg-purple-900/60 text-purple-800 dark:text-purple-300"
                       }`}
                     >
                       {recommendedCourses.length}
@@ -129,11 +129,11 @@ export default function CoursePage({
 
               {/* Access Type Filter */}
               <div className="flex flex-col gap-1">
-                <span className="text-xs font-semibold text-slate-500">Type</span>
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Type</span>
                 <select
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value)}
-                  className="border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-purple-700 focus:ring-1 focus:ring-purple-700"
+                  className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 outline-none focus:border-purple-700 dark:focus:border-purple-500 focus:ring-1 focus:ring-purple-700 dark:focus:ring-purple-500"
                 >
                   <option value="all">All Types</option>
                   <option value="free">Free</option>
@@ -145,9 +145,9 @@ export default function CoursePage({
 
           {/* Banner notification when Recommended Filter is Active */}
           {onlyRecommended && (
-            <div className="bg-purple-50 border border-purple-200 p-4 flex items-center justify-between gap-3 text-xs text-purple-900">
+            <div className="bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900/50 p-4 flex items-center justify-between gap-3 text-xs text-purple-900 dark:text-purple-200">
               <div className="flex items-center gap-2">
-                <Sparkles size={16} className="text-purple-600 shrink-0" />
+                <Sparkles size={16} className="text-purple-600 dark:text-purple-400 shrink-0" />
                 <span>
                   Showing <strong>{filteredCourses.length} personalized recommendations</strong> based on your learning activity and interests.
                 </span>
@@ -155,7 +155,7 @@ export default function CoursePage({
               <button
                 type="button"
                 onClick={() => setOnlyRecommended(false)}
-                className="inline-flex items-center gap-1 font-semibold text-purple-700 hover:text-purple-900 cursor-pointer"
+                className="inline-flex items-center gap-1 font-semibold text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-100 cursor-pointer"
               >
                 <X size={14} /> Clear
               </button>
@@ -168,8 +168,8 @@ export default function CoursePage({
               {filteredCourses.map((course) => (
                 <div key={course.id || course.slug} className="flex flex-col">
                   {onlyRecommended && (course as RecommendedCourse).recommendation_reason && (
-                    <div className="mb-2 bg-purple-50 border border-purple-200 px-2.5 py-1 text-[11px] text-purple-800 font-medium flex items-center gap-1.5">
-                      <Sparkles size={12} className="text-purple-600 shrink-0" />
+                    <div className="mb-2 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900/50 px-2.5 py-1 text-[11px] text-purple-800 dark:text-purple-300 font-medium flex items-center gap-1.5">
+                      <Sparkles size={12} className="text-purple-600 dark:text-purple-400 shrink-0" />
                       <span className="truncate">{(course as RecommendedCourse).recommendation_reason}</span>
                     </div>
                   )}
@@ -178,11 +178,11 @@ export default function CoursePage({
               ))}
             </div>
           ) : (
-            <div className="py-20 bg-white border border-slate-200 p-8 text-center space-y-4 shadow-xs">
-              <BookOpen className="w-12 h-12 text-slate-300 mx-auto" />
+            <div className="py-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-8 text-center space-y-4 shadow-xs">
+              <BookOpen className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto" />
               <div className="space-y-1">
-                <h3 className="text-lg font-bold text-slate-800">No Courses Found</h3>
-                <p className="text-xs text-slate-500">
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">No Courses Found</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   {onlyRecommended
                     ? "No recommended courses match the current filter. Try resetting filters."
                     : "Try adjusting your search terms or filter options."}

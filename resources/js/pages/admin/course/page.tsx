@@ -5,8 +5,8 @@ import Modal from "@/components/atoms/Modal"
 import { useState } from "react"
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
 
-import CourseAdd from "@/components/organism/Course/CourseAdd"
-import CourseGrid from "@/components/organism/Course/CourseGrid"
+import CourseAdd from "@/components/organisms/Course/CourseAdd"
+import CourseGrid from "@/components/organisms/Course/CourseGrid"
 import InputField from "@/components/molecules/InputField"
 import PageHeader from "@/components/molecules/PageHeader"
 
@@ -52,13 +52,13 @@ export default function Course() {
         />
 
         {/* Content Card */}
-        <div className="bg-white border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-sm p-6 sm:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-700 pb-4">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                 All Courses ({coursePaginator.total})
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Filter or search through all active courses.
               </p>
             </div>
@@ -75,8 +75,8 @@ export default function Course() {
           <CourseGrid courses={filteredCourses} />
 
           {coursePaginator.last_page > 1 && (
-            <div className="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs text-slate-500">
+            <div className="flex flex-col gap-3 border-t border-slate-100 dark:border-slate-700 pt-5 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Showing {courseItems.length === 0 ? 0 : (coursePaginator.current_page - 1) * 10 + 1}
                 –{Math.min(coursePaginator.current_page * 10, coursePaginator.total)} of {coursePaginator.total} courses
               </p>
@@ -90,7 +90,7 @@ export default function Course() {
                 >
                   Previous
                 </Button>
-                <span className="px-2 text-xs font-medium text-slate-500">
+                <span className="px-2 text-xs font-medium text-slate-500 dark:text-slate-400">
                   Page {coursePaginator.current_page} of {coursePaginator.last_page}
                 </span>
                 <Button

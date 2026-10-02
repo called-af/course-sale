@@ -37,10 +37,10 @@ export default function CourseCard({ course }: CourseCardProps) {
         <>
             <div
                 onClick={() => router.visit(courseHref)}
-                className="group cursor-pointer border border-neutral-100 bg-white transition-shadow duration-200 hover:shadow-md"
+                className="group cursor-pointer border border-neutral-100 bg-white transition-shadow duration-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:shadow-slate-900/50"
             >
                 {/* Thumbnail — clean, no overlay */}
-                <div className="aspect-video w-full overflow-hidden bg-neutral-100">
+                <div className="aspect-video w-full overflow-hidden bg-neutral-100 dark:bg-slate-800">
                     <img
                         src={course.thumbnail_url}
                         alt={course.title}
@@ -51,15 +51,15 @@ export default function CourseCard({ course }: CourseCardProps) {
                 {/* Content */}
                 <div className="space-y-3 p-4">
                     {/* Title */}
-                    <Title as="h2" className="line-clamp-2 text-sm leading-snug font-semibold text-neutral-800">
+                    <Title as="h2" className="line-clamp-2 text-sm leading-snug font-semibold text-neutral-800 dark:text-slate-100">
                         {course.title}
                     </Title>
 
                     {/* Creator */}
-                    <Label className="text-xs text-neutral-400">By {course.creator?.name ?? '—'}</Label>
+                    <Label className="text-xs text-neutral-400 dark:text-slate-500">By {course.creator?.name ?? '—'}</Label>
 
                     {/* Description */}
-                    <Label className="line-clamp-2 text-xs leading-relaxed text-neutral-500">{course.description}</Label>
+                    <Label className="line-clamp-2 text-xs leading-relaxed text-neutral-500 dark:text-slate-400">{course.description}</Label>
 
                     {/* Meta row */}
                     <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -71,10 +71,10 @@ export default function CourseCard({ course }: CourseCardProps) {
                     </div>
 
                     {isCourseOwner && (
-                        <div className="mt-1 space-y-2 border-t border-neutral-100 pt-3" onClick={(e) => e.stopPropagation()}>
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-neutral-400">
+                        <div className="mt-1 space-y-2 border-t border-neutral-100 pt-3 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-neutral-400 dark:text-slate-500">
                                 <span>Categories</span>
-                                <span className="truncate text-right font-medium text-neutral-700">
+                                <span className="truncate text-right font-medium text-neutral-700 dark:text-slate-200">
                                     {course.categories?.map((category) => category.name).join(', ') || '—'}
                                 </span>
                             </div>
@@ -82,7 +82,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                             <div className="grid grid-cols-2 gap-2 pt-1">
                                 <Link
                                     href={`/${rolePrefix}/courses/${course.slug}/preview`}
-                                    className="inline-flex items-center justify-center gap-1 border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 transition-colors hover:bg-purple-100"
+                                    className="inline-flex items-center justify-center gap-1 border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 transition-colors hover:bg-purple-100 dark:border-purple-900/50 dark:bg-purple-950/40 dark:text-purple-300 dark:hover:bg-purple-950/60"
                                 >
                                     <Eye className="h-3.5 w-3.5" /> Preview
                                 </Link>

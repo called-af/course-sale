@@ -84,7 +84,7 @@ function CommentForm({ courseSlug, parentId, defaultValue = '', placeholder, sub
                 placeholder={placeholder ?? 'Write a comment...'}
                 rows={3}
                 maxLength={2000}
-                className="w-full border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100 resize-none"
+                className="w-full border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100 resize-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:placeholder-slate-500 dark:focus:border-purple-500 dark:focus:ring-purple-900/50"
             />
             {error && <p className="text-xs text-red-500">{error}</p>}
             <div className="flex items-center gap-2">
@@ -96,7 +96,7 @@ function CommentForm({ courseSlug, parentId, defaultValue = '', placeholder, sub
                         Cancel
                     </Button>
                 )}
-                <span className="ml-auto text-xs text-slate-400">{body.length}/2000</span>
+                <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">{body.length}/2000</span>
             </div>
         </form>
     )
@@ -172,22 +172,22 @@ function CommentItem({ comment, courseSlug, currentUserId, isReply = false }: Co
     if (deleted) return null
 
     return (
-        <div className={isReply ? 'ml-10 border-l-2 border-slate-100 pl-4' : ''}>
+        <div className={isReply ? 'ml-10 border-l-2 border-slate-100 pl-4 dark:border-slate-800' : ''}>
             <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-slate-100">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-slate-100 dark:bg-slate-700">
                     {comment.user.avatar_url ? (
                         <img src={comment.user.avatar_url} alt={comment.user.name} className="h-8 w-8 object-cover" />
                     ) : (
-                        <UserRound size={15} className="text-slate-500" />
+                        <UserRound size={15} className="text-slate-500 dark:text-slate-400" />
                     )}
                 </div>
 
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-semibold text-slate-800">{comment.user.name}</span>
-                        <span className="text-xs text-slate-400">{formatDate(comment.created_at)}</span>
+                        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{comment.user.name}</span>
+                        <span className="text-xs text-slate-400 dark:text-slate-500">{formatDate(comment.created_at)}</span>
                         {comment.updated_at !== comment.created_at && (
-                            <span className="text-xs text-slate-300">(edited)</span>
+                            <span className="text-xs text-slate-300 dark:text-slate-600">(edited)</span>
                         )}
                     </div>
 
@@ -199,7 +199,7 @@ function CommentItem({ comment, courseSlug, currentUserId, isReply = false }: Co
                                 rows={2}
                                 maxLength={2000}
                                 autoFocus
-                                className="w-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 resize-none"
+                                className="w-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 resize-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-purple-500 dark:focus:ring-purple-900/50"
                             />
                             <div className="flex gap-2">
                                 <Button type="submit" size="sm">Save</Button>
@@ -207,7 +207,7 @@ function CommentItem({ comment, courseSlug, currentUserId, isReply = false }: Co
                             </div>
                         </form>
                     ) : (
-                        <p className="mt-1 text-sm text-slate-600 leading-relaxed">{body}</p>
+                        <p className="mt-1 text-sm text-slate-600 leading-relaxed dark:text-slate-300">{body}</p>
                     )}
 
                     <div className="mt-2 flex items-center gap-3">
@@ -215,7 +215,7 @@ function CommentItem({ comment, courseSlug, currentUserId, isReply = false }: Co
                             <button
                                 type="button"
                                 onClick={() => setShowReplyForm((v) => !v)}
-                                className="flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-purple-600 transition-colors"
+                                className="flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-purple-600 transition-colors dark:text-slate-500 dark:hover:text-purple-400"
                             >
                                 <Reply size={13} /> Reply
                             </button>
@@ -225,14 +225,14 @@ function CommentItem({ comment, courseSlug, currentUserId, isReply = false }: Co
                                 <button
                                     type="button"
                                     onClick={() => setEditing((v) => !v)}
-                                    className="flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-purple-600 transition-colors"
+                                    className="flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-purple-600 transition-colors dark:text-slate-500 dark:hover:text-purple-400"
                                 >
                                     <Pencil size={12} /> Edit
                                 </button>
                                 <button
                                     type="button"
                                     onClick={handleDelete}
-                                    className="flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-red-500 transition-colors"
+                                    className="flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-red-500 transition-colors dark:text-slate-500 dark:hover:text-red-400"
                                 >
                                     <Trash2 size={12} /> Delete
                                 </button>
@@ -284,15 +284,15 @@ export default function CommentThread({ comments: initialComments, courseSlug, c
             {/* Header */}
             <div className="flex items-center gap-2">
                 <MessageSquare size={18} className="text-purple-600" />
-                <h3 className="text-base font-bold text-slate-800">
-                    Discussion <span className="text-slate-400 font-normal">({comments.length})</span>
+                <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
+                    Discussion <span className="text-slate-400 font-normal dark:text-slate-500">({comments.length})</span>
                 </h3>
             </div>
 
             {/* New comment form */}
             {currentUserId ? (
-                <div className="border border-slate-200 bg-slate-50 p-4">
-                    <p className="mb-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">Start a discussion</p>
+                <div className="border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
+                    <p className="mb-3 text-xs font-semibold text-slate-600 uppercase tracking-wide dark:text-slate-300">Start a discussion</p>
                     <CommentForm
                         courseSlug={courseSlug}
                         onSuccess={handleNewComment}
@@ -300,14 +300,14 @@ export default function CommentThread({ comments: initialComments, courseSlug, c
                     />
                 </div>
             ) : (
-                <div className="border border-slate-200 bg-slate-50 p-4 text-center text-sm text-slate-500">
-                    <a href="/login" className="font-medium text-purple-600 hover:underline">Sign in</a> to join the discussion.
+                <div className="border border-slate-200 bg-slate-50 p-4 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                    <a href="/login" className="font-medium text-purple-600 hover:underline dark:text-purple-400">Sign in</a> to join the discussion.
                 </div>
             )}
 
             {/* Comments list */}
             {comments.length === 0 ? (
-                <div className="py-10 text-center text-slate-400">
+                <div className="py-10 text-center text-slate-400 dark:text-slate-500">
                     <MessageSquare size={32} className="mx-auto mb-2 opacity-30" />
                     <p className="text-sm">No discussion yet. Be the first to post!</p>
                 </div>

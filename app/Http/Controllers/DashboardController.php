@@ -18,11 +18,11 @@ class DashboardController extends Controller
 
     public function student(): Response
     {
-        return Inertia::render('user/Dashboard', $this->dashboardService->studentData(Auth::user()));
+        return Inertia::render('student/Dashboard', $this->dashboardService->studentData(Auth::user()));
     }
 
     public function instructor(): Response
     {
-        return Inertia::render('user/Dashboard', $this->dashboardService->instructorData(Auth::user()));
+        return Inertia::render('student/Dashboard', $this->dashboardService->instructorData(Auth::user()));
     }
 }

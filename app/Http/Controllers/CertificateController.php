@@ -37,7 +37,7 @@ class CertificateController extends Controller
                 ],
             ]);
 
-        return Inertia::render('user/certificates/page', [
+        return Inertia::render('student/certificates/page', [
             'certificates' => $certificates,
         ]);
     }

@@ -15,15 +15,15 @@ export default function BreadCrumb({ items, variant = "light" }: Props) {
   const linkCls =
     variant === "dark"
       ? "text-slate-300 hover:text-white transition-colors font-medium"
-      : "text-neutral-500 hover:text-neutral-900 transition-colors"
+      : "text-neutral-500 hover:text-neutral-900 transition-colors dark:text-slate-400 dark:hover:text-white"
 
   const activeCls =
     variant === "dark"
       ? "text-purple-200 font-medium"
-      : "text-neutral-900 font-medium"
+      : "text-neutral-900 font-medium dark:text-white"
 
   const separatorCls =
-    variant === "dark" ? "text-slate-500" : "text-neutral-400"
+    variant === "dark" ? "text-slate-500" : "text-neutral-400 dark:text-slate-500"
 
   return (
     <nav className="flex items-center text-sm">

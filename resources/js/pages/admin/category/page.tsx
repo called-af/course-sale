@@ -6,7 +6,7 @@ import AdminLayout from "@/components/templates/AdminLayout"
 import Button from "@/components/atoms/Button"
 import PageHeader from "@/components/molecules/PageHeader"
 import ConfirmationDelete from "@/components/molecules/ConfirmationDelete"
-import CategoryForm from "@/components/organism/CategoryForm"
+import CategoryForm from "@/components/organisms/CategoryForm"
 
 interface Category {
   id: number
@@ -49,19 +49,19 @@ export default function CategoryPage({ categories }: { categories: Category[] })
         />
 
         {/* Content Card */}
-        <div className="bg-white border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-4">
-          <div className="pb-4 border-b border-slate-100">
-            <h2 className="text-lg font-bold text-slate-900">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-sm p-6 sm:p-8 space-y-4">
+          <div className="pb-4 border-b border-slate-100 dark:border-slate-700">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
               All Categories ({categories.length})
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Click edit or delete to manage each category.
             </p>
           </div>
 
-          <div className="divide-y divide-neutral-100 border border-neutral-200">
+          <div className="divide-y divide-neutral-100 dark:divide-slate-700 border border-neutral-200 dark:border-slate-700">
             {categories.length === 0 && (
-              <p className="text-sm text-neutral-400 text-center py-10">
+              <p className="text-sm text-neutral-400 dark:text-slate-500 text-center py-10">
                 No categories yet.
               </p>
             )}
@@ -69,28 +69,28 @@ export default function CategoryPage({ categories }: { categories: Category[] })
             {categories.map((category) => (
               <div
                 key={category.id}
-                className="flex items-center justify-between p-4 bg-white hover:bg-neutral-50 transition-colors"
+                className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 hover:bg-neutral-50 dark:hover:bg-slate-700 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-neutral-100 overflow-hidden flex items-center justify-center">
+                  <div className="w-10 h-10 bg-neutral-100 dark:bg-slate-700 overflow-hidden flex items-center justify-center">
                     {category.img_url ? (
                       <img
                         src={category.img_url}
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="text-xs text-neutral-400">IMG</span>
+                      <span className="text-xs text-neutral-400 dark:text-slate-500">IMG</span>
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-neutral-800">
+                    <p className="text-sm font-medium text-neutral-800 dark:text-slate-100">
                       {category.name}
                     </p>
-                    <p className="text-xs text-neutral-400 font-mono">
+                    <p className="text-xs text-neutral-400 dark:text-slate-500 font-mono">
                       /{category.slug}
                     </p>
                     {category.desc && (
-                      <p className="text-xs text-neutral-500 line-clamp-1">
+                      <p className="text-xs text-neutral-500 dark:text-slate-400 line-clamp-1">
                         {category.desc}
                       </p>
                     )}
@@ -100,7 +100,7 @@ export default function CategoryPage({ categories }: { categories: Category[] })
                 <div className="flex gap-2">
                   <button
                     onClick={() => startEdit(category)}
-                    className="w-8 h-8 flex items-center justify-center text-neutral-400 hover:text-purple-600"
+                    className="w-8 h-8 flex items-center justify-center text-neutral-400 hover:text-purple-600 dark:hover:text-purple-400"
                   >
                     <Pencil size={14} />
                   </button>

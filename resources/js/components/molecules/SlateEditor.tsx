@@ -15,13 +15,13 @@ const renderElement = ({ attributes, children, element }: RenderElementProps) =>
   switch ((element as any).type) {
     case "heading-one":
       return (
-        <h1 {...attributes} className="text-2xl font-bold mb-3 text-gray-900 leading-tight">
+        <h1 {...attributes} className="text-2xl font-bold mb-3 text-gray-900 dark:text-white leading-tight">
           {children}
         </h1>
       )
     case "heading-two":
       return (
-        <h2 {...attributes} className="text-xl font-semibold mb-2 text-gray-800 leading-snug">
+        <h2 {...attributes} className="text-xl font-semibold mb-2 text-gray-800 dark:text-slate-100 leading-snug">
           {children}
         </h2>
       )
@@ -29,7 +29,7 @@ const renderElement = ({ attributes, children, element }: RenderElementProps) =>
       return (
         <blockquote
           {...attributes}
-          className="border-l-4 border-violet-400 pl-4 italic text-gray-500 my-3 bg-violet-50/40 py-2 pr-3 rounded-r-md"
+          className="border-l-4 border-violet-400 pl-4 italic text-gray-500 dark:text-slate-400 my-3 bg-violet-50/40 dark:bg-purple-950/20 py-2 pr-3 rounded-r-md"
         >
           {children}
         </blockquote>
@@ -57,13 +57,13 @@ const renderElement = ({ attributes, children, element }: RenderElementProps) =>
       )
     case "list-item":
       return (
-        <li {...attributes} className="text-gray-700">
+        <li {...attributes} className="text-gray-700 dark:text-slate-200">
           {children}
         </li>
       )
     default:
       return (
-        <p {...attributes} className="mb-2 text-gray-700 leading-relaxed">
+        <p {...attributes} className="mb-2 text-gray-700 dark:text-slate-200 leading-relaxed">
           {children}
         </p>
       )
@@ -162,6 +162,8 @@ export default function SlateEditor({ value, onChange, initialValue: initialValu
       focus-within:border-purple-700
       focus-within:ring-1 focus-within:ring-purple-700
       transition-all
+      dark:bg-slate-900 dark:border-slate-600
+      dark:focus-within:border-purple-500 dark:focus-within:ring-purple-500
     ">
 
       <div className="px-4 pt-3">
@@ -175,21 +177,21 @@ export default function SlateEditor({ value, onChange, initialValue: initialValu
             renderLeaf={renderLeaf}
             onKeyDown={onKeyDown}
             placeholder="Start writing your content here..."
-            className="min-h-55 outline-none text-sm leading-relaxed"
+            className="min-h-55 outline-none text-sm leading-relaxed text-slate-900 dark:text-slate-100"
           />
         </Slate>
       </div>
 
-      <div className="px-4 py-2 border-t border-gray-100 bg-gray-50/60 flex items-center justify-between">
-        <span className="text-xs text-gray-400">
+      <div className="px-4 py-2 border-t border-gray-100 bg-gray-50/60 flex items-center justify-between dark:border-slate-700 dark:bg-slate-800/60">
+        <span className="text-xs text-gray-400 dark:text-slate-500">
           {wordCount} {wordCount === 1 ? "kata" : "kata"}
         </span>
-        <span className="text-xs text-gray-400 hidden sm:block">
-          <kbd className="px-1 py-0.5 bg-gray-200 rounded text-gray-500 font-mono text-xs">Ctrl+B</kbd>{" "}
+        <span className="text-xs text-gray-400 hidden sm:block dark:text-slate-500">
+          <kbd className="px-1 py-0.5 bg-gray-200 rounded text-gray-500 font-mono text-xs dark:bg-slate-700 dark:text-slate-400">Ctrl+B</kbd>{" "}
           Bold ·{" "}
-          <kbd className="px-1 py-0.5 bg-gray-200 rounded text-gray-500 font-mono text-xs">Ctrl+I</kbd>{" "}
+          <kbd className="px-1 py-0.5 bg-gray-200 rounded text-gray-500 font-mono text-xs dark:bg-slate-700 dark:text-slate-400">Ctrl+I</kbd>{" "}
           Italic ·{" "}
-          <kbd className="px-1 py-0.5 bg-gray-200 rounded text-gray-500 font-mono text-xs">Ctrl+U</kbd>{" "}
+          <kbd className="px-1 py-0.5 bg-gray-200 rounded text-gray-500 font-mono text-xs dark:bg-slate-700 dark:text-slate-400">Ctrl+U</kbd>{" "}
           Underline
         </span>
       </div>

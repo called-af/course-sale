@@ -14,7 +14,7 @@ export default function EditorToolbarButton({ active, onMouseDown, children, too
           ${
             active
               ? "bg-violet-600 text-white shadow-sm"
-              : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+              : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white"
           }
         `}
       >

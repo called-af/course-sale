@@ -1,6 +1,6 @@
 import { Head, Link, usePage } from "@inertiajs/react"
 import AdminLayout from "@/components/templates/AdminLayout"
-import EditMaterialContent from "@/components/organism/Course/EditMaterialContent"
+import EditMaterialContent from "@/components/organisms/Course/EditMaterialContent"
 import Button from "@/components/atoms/Button"
 import Badge from "@/components/atoms/Badge"
 import PageHeader from "@/components/molecules/PageHeader"
@@ -24,12 +24,12 @@ export default function MaterialPage({
 
   if (!content) {
     return (
-      <div className="min-h-[400px] flex flex-col items-center justify-center p-8 bg-white border border-slate-200 shadow-xs text-center space-y-3">
-        <div className="w-12 h-12 bg-amber-50 text-amber-500 flex items-center justify-center">
+      <div className="min-h-[400px] flex flex-col items-center justify-center p-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xs text-center space-y-3">
+        <div className="w-12 h-12 bg-amber-50 dark:bg-amber-950/40 text-amber-500 flex items-center justify-center">
           <FileText className="w-6 h-6" />
         </div>
-        <h3 className="text-lg font-bold text-slate-800">Content Not Found</h3>
-        <p className="text-xs text-slate-500 max-w-md">
+        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Content Not Found</h3>
+        <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md">
           The requested content is unavailable or may have been deleted.
         </p>
         <Link href={`/${rolePrefix}/courses/${course?.slug || ""}`}>

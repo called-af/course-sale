@@ -15,7 +15,7 @@ class LandingController extends Controller
             return redirect()->route('home.redirect');
         }
 
-        return Inertia::render('welcome', [
+        return Inertia::render('landing/page', [
             'courses' => Course::where('status', 'published')
                 ->with('creator', 'categories')
                 ->latest()

@@ -387,7 +387,7 @@ Route::middleware(['auth', 'role'])->group(function () {
                     ->get()
                     ->append('thumbnail_url');
 
-                return Inertia::render('user/course/page', compact('courses'));
+                return Inertia::render('student/course/page', compact('courses'));
             })->name('courses.index');
 
             Route::get('/courses/{course:slug}', [EnrollmentController::class, 'show'])

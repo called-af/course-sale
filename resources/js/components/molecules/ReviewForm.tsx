@@ -53,7 +53,7 @@ export default function ReviewForm({ courseSlug, existing, onSuccess, onCancel }
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
                     Your Rating <span className="text-red-500">*</span>
                 </label>
                 <StarRating value={rating} onChange={(v) => { setRating(v); setErrors({}) }} size="lg" showLabel />
@@ -61,8 +61,8 @@ export default function ReviewForm({ courseSlug, existing, onSuccess, onCancel }
             </div>
 
             <div>
-                <label htmlFor="review-comment" className="mb-2 block text-sm font-semibold text-slate-700">
-                    Your Review <span className="text-slate-400 font-normal">(optional)</span>
+                <label htmlFor="review-comment" className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    Your Review <span className="text-slate-400 font-normal dark:text-slate-500">(optional)</span>
                 </label>
                 <textarea
                     id="review-comment"
@@ -71,19 +71,19 @@ export default function ReviewForm({ courseSlug, existing, onSuccess, onCancel }
                     placeholder="Share your experience with this course..."
                     rows={4}
                     maxLength={2000}
-                    className="w-full border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100 resize-none"
+                    className="w-full border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100 resize-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:placeholder-slate-500 dark:focus:border-purple-500 dark:focus:ring-purple-900/50"
                 />
                 <div className="mt-1 flex justify-between">
                     {errors.comment
                         ? <p className="text-xs text-red-500">{errors.comment}</p>
                         : <span />
                     }
-                    <span className="text-xs text-slate-400">{comment.length}/2000</span>
+                    <span className="text-xs text-slate-400 dark:text-slate-500">{comment.length}/2000</span>
                 </div>
             </div>
 
             {errors.general && (
-                <p className="text-sm text-red-500 bg-red-50 border border-red-200 px-3 py-2">{errors.general}</p>
+                <p className="text-sm text-red-500 bg-red-50 border border-red-200 px-3 py-2 dark:bg-red-950/30 dark:border-red-900/50">{errors.general}</p>
             )}
 
             <div className="flex gap-3">

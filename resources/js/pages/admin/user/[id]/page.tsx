@@ -1,6 +1,6 @@
 import { Head } from "@inertiajs/react"
 import AdminLayout from "@/components/templates/AdminLayout"
-import UserProfile from "@/components/organism/UserProfile"
+import UserProfile from "@/components/organisms/UserProfile"
 import Badge from "@/components/atoms/Badge"
 import PageHeader from "@/components/molecules/PageHeader"
 import type { User } from "@/types/user"

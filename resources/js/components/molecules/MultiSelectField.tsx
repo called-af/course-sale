@@ -21,12 +21,10 @@ export default function MultiSelectField({
 }: MultiSelectFieldProps) {
 
   const toggleValue = (optionValue: number) => {
-
     if (value.includes(optionValue)) {
       onChange(value.filter(v => v !== optionValue))
       return
     }
-
     onChange([...value, optionValue])
   }
 
@@ -34,12 +32,9 @@ export default function MultiSelectField({
     <div className="flex flex-col gap-2">
       <Label>{label}</Label>
 
-      <div className="flex flex-wrap gap-2 border border-neutral-300 rounded-none p-2">
-
+      <div className="flex flex-wrap gap-2 border border-neutral-300 dark:border-slate-600 rounded-none p-2">
         {options.map(option => {
-
           const selected = value.includes(option.value)
-
           return (
             <Button
               key={option.value}

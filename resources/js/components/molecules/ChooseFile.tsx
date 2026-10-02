@@ -52,6 +52,7 @@ export default function ChooseFile({
         onClick={() => inputRef.current?.click()}
         className={clsx(
           "relative w-full border border-dashed border-neutral-300 rounded-none overflow-hidden cursor-pointer bg-neutral-50 hover:bg-neutral-100 transition flex items-center justify-center",
+          "dark:border-slate-600 dark:bg-slate-900 dark:hover:bg-slate-800",
           aspect === "square" && "aspect-square",
           aspect === "video" && "aspect-video",
           className
@@ -64,7 +65,7 @@ export default function ChooseFile({
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
-          <span className="text-[10px] text-neutral-400">
+          <span className="text-[10px] text-neutral-400 dark:text-slate-500">
             IMG
           </span>
         )}

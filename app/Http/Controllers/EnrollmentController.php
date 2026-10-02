@@ -44,7 +44,7 @@ class EnrollmentController extends Controller
             $request->user(), $course, $request->integer('material'), $request->integer('content')
         );
 
-        return Inertia::render('user/course/[enroll]/page', $learningData);
+        return Inertia::render('student/course/[enroll]/page', $learningData);
     }
 
     /**

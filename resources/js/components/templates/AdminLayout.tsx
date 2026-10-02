@@ -1,7 +1,7 @@
 import { usePage } from "@inertiajs/react"
 import { useState, useEffect } from "react"
-import Navbar from "@/components/molecules/Admin/Navbar"
-import Sidebar from "@/components/molecules/Admin/Sidebar"
+import Navbar from "@/components/organisms/admin/AdminNavbar"
+import Sidebar from "@/components/organisms/admin/AdminSidebar"
 import { ToastContainer } from "react-toastify"
 import { useInertiaToast } from "@/hooks/useInertiaToast"
 
@@ -16,7 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [sidebarOpen])
 
   return (
-    <div className="h-screen flex overflow-hidden bg-neutral-50">
+    <div className="h-screen flex overflow-hidden bg-neutral-50 dark:bg-slate-900">
 
       <Sidebar
         open={sidebarOpen}

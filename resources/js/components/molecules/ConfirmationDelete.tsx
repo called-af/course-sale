@@ -43,7 +43,7 @@ export default function ConfirmationDelete({
         </>
       }
     >
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-gray-600 dark:text-slate-300">
         {message}
       </p>
     </Modal>

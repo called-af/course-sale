@@ -36,7 +36,7 @@ export default function ChooseRole() {
     <LoginLayout>
       <Head title="Choose Your Role" />
 
-      <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
+      <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-white dark:bg-slate-900">
         {/* Left — decorative panel */}
         <div
           className="hidden md:block bg-cover bg-center"
@@ -49,7 +49,7 @@ export default function ChooseRole() {
             {/* Header */}
             <div className="space-y-2 text-center">
               <Title as="h2">Choose your role</Title>
-              <p className="text-sm text-neutral-500">
+              <p className="text-sm text-neutral-500 dark:text-slate-400">
                 Select how you want to use the platform. You can always change this later.
               </p>
             </div>
@@ -71,8 +71,8 @@ export default function ChooseRole() {
                         "focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2",
                         "cursor-pointer",
                         isSelected
-                          ? "border-purple-500 bg-purple-50/60 shadow-md shadow-purple-500/10"
-                          : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
+                          ? "border-purple-500 bg-purple-50/60 dark:bg-purple-950/40 shadow-md shadow-purple-500/10"
+                          : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm"
                       )}
                     >
                       <div className="flex items-start gap-4">
@@ -82,7 +82,7 @@ export default function ChooseRole() {
                             "flex h-11 w-11 shrink-0 items-center justify-center transition-colors duration-200",
                             isSelected
                               ? "bg-gradient-to-b from-purple-500 to-purple-700 text-white shadow-md shadow-purple-500/25"
-                              : "bg-slate-100 text-slate-500"
+                              : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
                           )}
                         >
                           <Icon className="h-5 w-5" />
@@ -91,7 +91,7 @@ export default function ChooseRole() {
                         {/* Content */}
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center justify-between">
-                            <span className="text-base font-semibold text-gray-900">
+                            <span className="text-base font-semibold text-gray-900 dark:text-white">
                               {role.label}
                             </span>
 
@@ -101,7 +101,7 @@ export default function ChooseRole() {
                                 "flex h-5 w-5 shrink-0 items-center justify-center border-2 transition-all duration-200",
                                 isSelected
                                   ? "border-purple-600 bg-purple-600"
-                                  : "border-slate-300"
+                                  : "border-slate-300 dark:border-slate-600"
                               )}
                             >
                               {isSelected && (
@@ -110,7 +110,7 @@ export default function ChooseRole() {
                             </div>
                           </div>
 
-                          <p className="text-sm leading-relaxed text-neutral-500">
+                          <p className="text-sm leading-relaxed text-neutral-500 dark:text-slate-400">
                             {role.description}
                           </p>
 
@@ -121,7 +121,7 @@ export default function ChooseRole() {
                                 key={feature}
                                 className={clsx(
                                   "flex items-center gap-1.5 text-xs font-medium",
-                                  isSelected ? "text-purple-600" : "text-neutral-400"
+                                  isSelected ? "text-purple-600 dark:text-purple-400" : "text-neutral-400 dark:text-slate-500"
                                 )}
                               >
                                 <Check className="h-3 w-3" strokeWidth={3} />

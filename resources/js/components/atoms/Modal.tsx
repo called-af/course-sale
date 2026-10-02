@@ -25,13 +25,13 @@ export default function Modal({
         onClick={onClose}
       />
 
-      <div className="relative z-10 w-full max-w-lg bg-white border border-gray-200 shadow-lg">
+      <div className="relative z-10 w-full max-w-lg bg-white border border-gray-200 shadow-lg dark:bg-slate-900 dark:border-slate-700">
         {title && (
-          <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-            <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
+          <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-slate-700">
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{title}</h2>
             <button
               onClick={onClose}
-              className="p-1 text-gray-500 hover:text-gray-900"
+              className="p-1 text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white"
               aria-label="Close modal"
             >
               <X className="h-4 w-4" />
@@ -39,12 +39,12 @@ export default function Modal({
           </div>
         )}
 
-        <div className="px-4 py-3 text-sm text-gray-700">
+        <div className="px-4 py-3 text-sm text-gray-700 dark:text-slate-200">
           {children}
         </div>
 
         {footer && (
-          <div className="flex justify-end gap-2 border-t border-gray-200 px-4 py-3">
+          <div className="flex justify-end gap-2 border-t border-gray-200 px-4 py-3 dark:border-slate-700">
             {footer}
           </div>
         )}
