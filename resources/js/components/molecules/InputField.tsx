@@ -3,7 +3,7 @@ import Input from "@/components/atoms/Input"
 import Label from "@/components/atoms/Label"
 
 type InputFieldProps = InputHTMLAttributes<HTMLInputElement> & {
-  label: string
+  label?: string
 }
 
 export default function InputField({
@@ -17,7 +17,7 @@ export default function InputField({
 
   return (
     <div className="flex flex-col gap-1">
-      <Label htmlFor={inputId}>{label}</Label>
+      {label && <Label htmlFor={inputId}>{label}</Label>}
 
       <Input
         id={inputId}

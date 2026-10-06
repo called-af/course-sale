@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'nvidia' => [
+        'api_key' => env('NVIDIA_API_KEY'),
+        'base_url' => env('NVIDIA_BASE_URL'),
+        'model' => env('NVIDIA_MODEL'),
+    ],
+
+    'recommendation' => [
+        'url' => env('RECOMMENDATION_SERVICE_URL', 'http://127.0.0.1:8001'),
+    ],
+
 ];

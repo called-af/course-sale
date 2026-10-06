@@ -1,6 +1,7 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import UserLayout from '@/components/templates/UserLayout';
 import { BookOpen, CheckCircle, Clock, DollarSign, LayoutGrid, Sparkles, Star, TrendingUp, Users } from 'lucide-react';
+import FloatingAIChat from '@/components/ai/FloatingAIChat';
 
 export default function Dashboard() {
     const props = usePage().props as any;
@@ -22,6 +23,7 @@ export default function Dashboard() {
                 </div>
                 {role === 'instructor' ? <InstructorDashboard {...props} /> : <StudentDashboard {...props} />}
             </div>
+            <FloatingAIChat />
         </>
     );
 }

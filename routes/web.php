@@ -492,3 +492,19 @@ Route::middleware(['auth', 'role:admin'])
         Route::delete('/comments/{comment}', [CommentController::class, 'adminDestroy'])
             ->name('comments.destroy');
     });
+
+/*
+|--------------------------------------------------------------------------
+| AI Chat
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:student,instructor'])->group(function () {
+    Route::get('/ai/chat/sessions', [\App\Http\Controllers\AI\ChatController::class, 'getSessions'])->name('ai.chat.sessions');
+    Route::post('/ai/chat', [\App\Http\Controllers\AI\ChatController::class, 'store'])->name('ai.chat.store');
+    Route::get('/ai/chat/{session}', [\App\Http\Controllers\AI\ChatController::class, 'show'])->name('ai.chat.show');
+    Route::delete('/ai/chat/{session}', [\App\Http\Controllers\AI\ChatController::class, 'destroy'])->name('ai.chat.destroy');
+    Route::get('/ai/chat/{session}/messages', [\App\Http\Controllers\AI\ChatController::class, 'messages'])->name('ai.chat.messages');
+    Route::post('/ai/chat/{session}/messages', [\App\Http\Controllers\AI\ChatController::class, 'storeMessage'])
+        ->name('ai.chat.storeMessage')
+        ->middleware('throttle:10,1');
+});
