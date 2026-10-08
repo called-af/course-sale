@@ -6,6 +6,7 @@ import FloatingAIChat from '@/components/ai/FloatingAIChat';
 export default function Dashboard() {
     const props = usePage().props as any;
     const role = props.auth.user.role;
+    const aiEnabled = Boolean(props.ai?.enabled && props.ai?.is_configured);
 
     return (
         <>
@@ -23,7 +24,7 @@ export default function Dashboard() {
                 </div>
                 {role === 'instructor' ? <InstructorDashboard {...props} /> : <StudentDashboard {...props} />}
             </div>
-            <FloatingAIChat />
+            {aiEnabled && <FloatingAIChat />}
         </>
     );
 }
@@ -171,7 +172,7 @@ function StudentDashboard({
                                             <span className={course.type === 'free' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-800 dark:text-slate-100'}>
                                                 {course.type === 'free' ? 'FREE' : formatRupiah(course.price ?? 0)}
                                             </span>
-                                            {course.rating_avg > 0 && (
+                                            {course.rating_count > 0 && course.rating_avg > 0 && (
                                                 <span className="flex items-center gap-0.5 text-amber-600 dark:text-amber-400 text-[11px]">
                                                     <Star size={11} className="fill-amber-400 text-amber-400" />
                                                     {course.rating_avg}

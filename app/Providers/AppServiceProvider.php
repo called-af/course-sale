@@ -2,15 +2,28 @@
 
 namespace App\Providers;
 
+use App\Models\Category;
+use App\Models\Course;
+use App\Models\Material;
+use App\Models\MaterialContent;
+use App\Models\Module;
+use App\Models\User;
+use App\Policies\CategoryPolicy;
+use App\Policies\CoursePolicy;
+use App\Policies\MaterialContentPolicy;
+use App\Policies\MaterialPolicy;
+use App\Policies\ModulePolicy;
+use App\Policies\UserPolicy;
+use App\Services\CourseStructureService;
 use Carbon\CarbonImmutable;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
-use App\Models\{Category, Course, Material, MaterialContent, Module, User};
-use App\Policies\{CategoryPolicy, CoursePolicy, MaterialContentPolicy, MaterialPolicy, ModulePolicy, UserPolicy};
-use App\Services\CourseStructureService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,6 +48,12 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Material::class, MaterialPolicy::class);
         Gate::policy(MaterialContent::class, MaterialContentPolicy::class);
         Gate::policy(User::class, UserPolicy::class);
+
+        Gate::define('manage-settings', fn ($user = null) => (bool) $user?->hasRole('admin'));
+
+        RateLimiter::for('ai-settings-update', function (Request $request) {
+            return Limit::perMinute(5)->by($request->user()?->id ?: $request->ip());
+        });
     }
 
     protected function configureDefaults(): void

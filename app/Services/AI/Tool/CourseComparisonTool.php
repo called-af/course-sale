@@ -42,9 +42,11 @@ class CourseComparisonTool
             $comparison[] = [
                 'id' => $course->id,
                 'title' => $course->title,
-                'price' => $course->price,
+                'type' => $course->type,
+                'price' => $course->type === 'free' ? null : $course->price,
                 'level' => $course->level,
-                'rating' => $course->rating_avg,
+                'rating' => $course->rating_count > 0 ? (float) $course->rating_avg : null,
+                'rating_count' => (int) $course->rating_count,
                 'modules_count' => $course->modules->count(),
                 'categories' => $course->categories->pluck('name')->toArray(),
             ];

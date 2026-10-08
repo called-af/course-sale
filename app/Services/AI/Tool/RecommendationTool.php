@@ -54,7 +54,10 @@ class RecommendationTool
             $courseIds = array_column($recommendations, 'course_id');
             
             // Retrieve actual course data from Laravel DB
-            $courses = Course::whereIn('id', $courseIds)->get()->keyBy('id');
+            $courses = Course::whereIn('id', $courseIds)
+                ->where('status', 'published')
+                ->get()
+                ->keyBy('id');
 
             $results = [];
             foreach ($recommendations as $rec) {
@@ -64,8 +67,11 @@ class RecommendationTool
                         'id' => $course->id,
                         'slug' => $course->slug,
                         'title' => $course->title,
-                        'price' => $course->price,
+                        'type' => $course->type,
+                        'price' => $course->type === 'free' ? null : $course->price,
                         'level' => $course->level,
+                        'rating' => $course->rating_count > 0 ? (float) $course->rating_avg : null,
+                        'rating_count' => (int) $course->rating_count,
                         'score' => $rec['score'] ?? null,
                         'reason' => $rec['reason'] ?? 'Recommended for you'
                     ];
@@ -82,9 +88,10 @@ class RecommendationTool
     protected function getFallbackRecommendations($limit)
     {
         $courses = Course::where('status', 'published')
-                         ->orderBy('rating_avg', 'desc')
+                         ->orderByDesc('rating_count')
+                         ->orderByDesc('rating_avg')
                          ->take($limit)
-                         ->get(['id', 'title', 'price', 'level']);
+                         ->get(['id', 'title', 'slug', 'type', 'price', 'level', 'rating_avg', 'rating_count']);
                          
         $results = [];
         foreach ($courses as $course) {
@@ -92,9 +99,12 @@ class RecommendationTool
                 'id' => $course->id,
                 'slug' => $course->slug,
                 'title' => $course->title,
-                'price' => $course->price,
+                'type' => $course->type,
+                'price' => $course->type === 'free' ? null : $course->price,
                 'level' => $course->level,
-                'reason' => 'Highly rated course'
+                'rating' => $course->rating_count > 0 ? (float) $course->rating_avg : null,
+                'rating_count' => (int) $course->rating_count,
+                'reason' => $course->rating_count > 0 ? 'Highly rated course' : 'Course rekomendasi'
             ];
         }
         

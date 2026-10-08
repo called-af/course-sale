@@ -4,6 +4,7 @@ import Label from "@/components/atoms/Label"
 
 type InputFieldProps = InputHTMLAttributes<HTMLInputElement> & {
   label?: string
+  error?: string
 }
 
 export default function InputField({
@@ -11,6 +12,7 @@ export default function InputField({
   id,
   name,
   className,
+  error,
   ...props
 }: InputFieldProps) {
   const inputId = id ?? name
@@ -27,6 +29,7 @@ export default function InputField({
         `}
         {...props}
       />
+      {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
     </div>
   )
 }

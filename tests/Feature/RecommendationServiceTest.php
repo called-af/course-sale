@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Course;
+use App\Models\RecommendationSetting;
 use App\Models\Tag;
 use App\Models\User;
 use App\Models\UserEvent;
@@ -63,6 +64,19 @@ class RecommendationServiceTest extends TestCase
 
         $this->assertIsArray($result);
         $this->assertEmpty($result);
+    }
+
+    public function test_admin_python_toggle_disables_recommendations(): void
+    {
+        RecommendationSetting::create(['id' => 1, 'enabled' => false]);
+        Config::set('recommendation.enabled', true);
+        Config::set('recommendation.driver', 'python');
+
+        $service = app(RecommendationService::class);
+        $result = $service->getRecommendations($this->user, 4);
+
+        $this->assertSame([], $result);
+        $this->assertSame('DISABLED', $service->getStatus()['active_engine']);
     }
 
     public function test_recommendations_use_laravel_driver_directly(): void

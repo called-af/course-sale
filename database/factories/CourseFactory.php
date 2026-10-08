@@ -12,19 +12,21 @@ class CourseFactory extends Factory
      */
     public function definition(): array
     {
+        $type = fake()->randomElement(['free', 'paid']);
+
         return [
             'creator_id' => User::factory(),
             'title' => fake()->sentence(4),
             'slug' => fake()->slug(),
             'description' => fake()->text(),
             'thumbnail' => fake()->word(),
-            'type' => fake()->randomElement(["free","paid"]),
-            'price' => fake()->randomFloat(2, 0, 99999999.99),
+            'type' => $type,
+            'price' => $type === 'paid' ? fake()->randomFloat(2, 1000, 99999999.99) : null,
             'level' => fake()->randomElement(["beginner","intermediate","advanced"]),
             'status' => fake()->randomElement(["draft","review","published","archived"]),
             'published_at' => fake()->dateTime(),
-            'rating_avg' => fake()->randomFloat(2, 0, 9.99),
-            'rating_count' => fake()->numberBetween(-10000, 10000),
+            'rating_avg' => 0,
+            'rating_count' => 0,
         ];
     }
 }

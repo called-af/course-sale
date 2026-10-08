@@ -17,9 +17,11 @@ export interface CourseSummary {
   id: number | string;
   title: string;
   slug?: string;
-  price?: number | null;
+  type?: 'free' | 'paid';
+  price?: number | string | null;
   level?: string | null;
   rating?: number | null;
+  rating_count?: number | null;
   score?: number | null;
   reason?: string | null;
   thumbnail_url?: string | null;
@@ -30,9 +32,11 @@ export interface CourseSummary {
 export interface ComparisonCourse {
   id: number | string;
   title: string;
-  price?: number | null;
+  type?: 'free' | 'paid';
+  price?: number | string | null;
   level?: string | null;
   rating?: number | null;
+  rating_count?: number | null;
   modules_count?: number | null;
   categories?: string[];
 }

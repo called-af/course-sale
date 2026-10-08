@@ -62,10 +62,24 @@ class CourseSearchTool
             }
 
             if (isset($arguments['max_price'])) {
-                $query->where('price', '<=', $arguments['max_price']);
+                $query->where(fn ($query) => $query
+                    ->whereNull('price')
+                    ->orWhere('price', '<=', $arguments['max_price']));
             }
 
-            return $query->take(5)->get(['id', 'title', 'price', 'level', 'rating_avg'])->toArray();
+            return $query->take(5)
+                ->get(['id', 'title', 'slug', 'type', 'price', 'level', 'rating_avg', 'rating_count'])
+                ->map(fn ($course) => [
+                    'id' => $course->id,
+                    'title' => $course->title,
+                    'slug' => $course->slug,
+                    'type' => $course->type,
+                    'price' => $course->type === 'free' ? null : $course->price,
+                    'level' => $course->level,
+                    'rating' => $course->rating_count > 0 ? (float) $course->rating_avg : null,
+                    'rating_count' => (int) $course->rating_count,
+                ])
+                ->all();
         });
 
         return ['courses' => $courses];

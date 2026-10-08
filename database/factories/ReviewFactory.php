@@ -16,7 +16,7 @@ class ReviewFactory extends Factory
         return [
             'user_id' => User::factory(),
             'course_id' => Course::factory(),
-            'rating' => fake()->numberBetween(-10000, 10000),
+            'rating' => fake()->numberBetween(1, 5),
             'comment' => fake()->text(),
         ];
     }

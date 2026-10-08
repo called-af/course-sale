@@ -39,6 +39,7 @@ class RecommendationStatusCommand extends Command
             ['Configuration Setting', 'Value'],
             [
                 ['Master Switch (RECOMMENDATION_ENABLED)', $status['enabled'] ? '<info>ENABLED (true)</info>' : '<comment>DISABLED (false)</comment>'],
+                ['Admin Python Recommendation Toggle', $status['admin_enabled'] ? '<info>ENABLED (true)</info>' : '<comment>DISABLED (false)</comment>'],
                 ['Configured Driver (RECOMMENDATION_DRIVER)', "<info>{$status['driver']}</info>"],
                 ['Python Service URL', $status['python_url']],
                 ['Python Service Connectivity', $status['python_online'] ? '<info>ONLINE (Connected)</info>' : '<fg=red>OFFLINE (Unreachable / Stopped)</>'],

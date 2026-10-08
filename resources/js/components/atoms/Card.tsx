@@ -23,7 +23,7 @@ export default function Card({
   return (
     <div
       className={clsx(
-        "rounded-2xl p-6 transition-all duration-200",
+        "p-6 transition-all duration-200",
         variantStyles[variant],
         className
       )}

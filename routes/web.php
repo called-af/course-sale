@@ -19,6 +19,7 @@ use App\Http\Controllers\RecommendationController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\Admin\GeneralSettingsController;
 use App\Services\EventTrackingService;
 use App\Models\Course;
 use Illuminate\Support\Facades\Auth;
@@ -102,6 +103,12 @@ Route::get('/course/{course:slug}', function (Course $course) {
         'comments'     => $comments,
     ]);
 })->name('course.show');
+
+Route::get('/course/id/{course}', function (Course $course) {
+    abort_unless($course->status === 'published', 404);
+
+    return redirect()->route('course.show', ['course' => $course->slug]);
+})->name('course.show-by-id');
 
 Route::post('/course/{course:slug}/enroll', [EnrollmentController::class, 'store'])
     ->middleware(['auth', 'role:student'])
@@ -323,6 +330,22 @@ Route::middleware(['auth', 'role'])->group(function () {
 
             Route::get('/profile', [UserController::class, 'profile'])
                 ->name('admin.profile');
+
+            Route::get('/settings/general', [GeneralSettingsController::class, 'edit'])
+                ->name('settings.general');
+
+            Route::post('/settings/ai/verify-password', [GeneralSettingsController::class, 'verifyPassword'])
+                ->name('settings.ai.verify-password');
+
+            Route::patch('/settings/ai/toggle', [GeneralSettingsController::class, 'toggleAi'])
+                ->name('settings.ai.toggle');
+
+            Route::patch('/settings/recommendation/toggle', [GeneralSettingsController::class, 'toggleRecommendation'])
+                ->name('settings.recommendation.toggle');
+
+            Route::put('/settings/ai', [GeneralSettingsController::class, 'updateAi'])
+                ->middleware('throttle:ai-settings-update')
+                ->name('settings.ai.update');
         });
 
     /*

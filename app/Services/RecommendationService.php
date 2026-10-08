@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\RecommendationSetting;
 use App\Models\User;
 use App\Models\UserEvent;
 use Illuminate\Support\Facades\Cache;
@@ -18,8 +19,10 @@ class RecommendationService
      */
     public function getRecommendations(?User $user, int $limit = 6): array
     {
-        // 1. Check master feature switch
-        if (! config('recommendation.enabled', true)) {
+        // 1. Check both the legacy environment switch and the admin-managed
+        // Python recommendation switch. They remain separate from AI NVIDIA.
+        if (! config('recommendation.enabled', true)
+            || ! RecommendationSetting::isEnabled()) {
             return [];
         }
 
@@ -311,7 +314,8 @@ class RecommendationService
      */
     public function getStatus(): array
     {
-        $enabled = (bool) config('recommendation.enabled', true);
+        $legacyEnabled = (bool) config('recommendation.enabled', true);
+        $adminEnabled = RecommendationSetting::isEnabled();
         $driver = config('recommendation.driver', 'python');
         $pythonUrl = config('recommendation.python.url', 'http://127.0.0.1:8001');
         $fallbackToLaravel = (bool) config('recommendation.python.fallback_to_laravel', true);
@@ -319,7 +323,7 @@ class RecommendationService
         $pythonOnline = false;
         $pythonHealth = null;
 
-        if ($enabled && $driver === 'python') {
+        if ($legacyEnabled && $adminEnabled && $driver === 'python') {
             try {
                 $res = Http::timeout(0.6)->get(rtrim($pythonUrl, '/').'/api/v1/health');
                 if ($res->successful()) {
@@ -332,13 +336,14 @@ class RecommendationService
         }
 
         return [
-            'enabled' => $enabled,
+            'enabled' => $legacyEnabled,
+            'admin_enabled' => $adminEnabled,
             'driver' => $driver,
             'python_url' => $pythonUrl,
             'python_online' => $pythonOnline,
             'python_health' => $pythonHealth,
             'fallback_to_laravel' => $fallbackToLaravel,
-            'active_engine' => ! $enabled
+            'active_engine' => ! $legacyEnabled || ! $adminEnabled
                 ? 'DISABLED'
                 : ($driver === 'python'
                     ? ($pythonOnline ? 'PYTHON_FASTAPI_ML' : ($fallbackToLaravel ? 'LARAVEL_NATIVE_FALLBACK' : 'PYTHON_OFFLINE_NO_FALLBACK'))

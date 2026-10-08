@@ -61,6 +61,7 @@ class DashboardService
             'completedMaterials' => $completedMaterialIds->count(),
             'learningMinutes' => MaterialContent::whereIn('material_id', $completedMaterialIds)->sum('duration'),
             'recommendedCourses' => $recommendedCourses,
+            'ai' => app(AiSettings::class)->forDisplay(),
         ];
     }
 
@@ -78,6 +79,7 @@ class DashboardService
             'recentEnrollments' => Enrollment::where('status', 'active')
                 ->whereHas('course', fn ($query) => $query->where('creator_id', $user->id))
                 ->with(['user:id,name', 'course:id,title,slug'])->latest('enrolled_at')->take(5)->get(),
+            'ai' => app(AiSettings::class)->forDisplay(),
         ];
     }
 }

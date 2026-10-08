@@ -52,8 +52,6 @@ class CourseSeeder extends Seeder
                 'price' => 350000,
                 'level' => 'intermediate',
                 'status' => 'published',
-                'rating_avg' => 4.9,
-                'rating_count' => 48,
                 'description' => 'Master fullstack modern web development with RESTful APIs, database design, modern frontend frameworks, and clean code architecture.',
                 'modules' => [
                     [
@@ -154,8 +152,6 @@ class CourseSeeder extends Seeder
                 'price' => 0,
                 'level' => 'beginner',
                 'status' => 'published',
-                'rating_avg' => 4.8,
-                'rating_count' => 85,
                 'description' => 'Learn professional UI/UX design systems, component libraries, auto layout, and interactive prototyping in Figma.',
                 'modules' => [
                     [
@@ -237,8 +233,6 @@ class CourseSeeder extends Seeder
                 'price' => 450000,
                 'level' => 'intermediate',
                 'status' => 'published',
-                'rating_avg' => 4.7,
-                'rating_count' => 32,
                 'description' => 'Build high-performance native iOS and Android apps from a single codebase using Flutter 3 and Dart.',
                 'modules' => [
                     [
@@ -320,8 +314,6 @@ class CourseSeeder extends Seeder
                 'price' => 599000,
                 'level' => 'advanced',
                 'status' => 'published',
-                'rating_avg' => 5.0,
-                'rating_count' => 64,
                 'description' => 'Comprehensive data science bootcamp covering Pandas, NumPy, Scikit-Learn, TensorFlow, and predictive machine learning models.',
                 'modules' => [
                     [
@@ -403,8 +395,6 @@ class CourseSeeder extends Seeder
                 'price' => 299000,
                 'level' => 'advanced',
                 'status' => 'published',
-                'rating_avg' => 4.9,
-                'rating_count' => 110,
                 'description' => 'Build robust enterprise APIs in Laravel 11 using Sanctum, API Resources, Service Pattern, and Queue Workers.',
                 'modules' => [
                     [
@@ -486,8 +476,6 @@ class CourseSeeder extends Seeder
                 'price' => 399000,
                 'level' => 'intermediate',
                 'status' => 'published',
-                'rating_avg' => 4.8,
-                'rating_count' => 76,
                 'description' => 'Build high-speed web apps using React 19 Server Components, Next.js App Router, Tailwind CSS, and Server Actions.',
                 'modules' => [
                     [
@@ -569,8 +557,6 @@ class CourseSeeder extends Seeder
                 'price' => 0,
                 'level' => 'beginner',
                 'status' => 'published',
-                'rating_avg' => 4.6,
-                'rating_count' => 29,
                 'description' => 'Learn iOS app development from scratch with Swift 5 and SwiftUI. Build responsive Apple ecosystem applications.',
                 'modules' => [
                     [
@@ -639,8 +625,6 @@ class CourseSeeder extends Seeder
                 'price' => 0,
                 'level' => 'beginner',
                 'status' => 'published',
-                'rating_avg' => 4.9,
-                'rating_count' => 150,
                 'description' => 'Master AI prompt engineering techniques for ChatGPT, Claude, Midjourney, and LLM API integrations.',
                 'modules' => [
                     [
@@ -709,8 +693,6 @@ class CourseSeeder extends Seeder
                 'price' => 199000,
                 'level' => 'beginner',
                 'status' => 'published',
-                'rating_avg' => 4.7,
-                'rating_count' => 44,
                 'description' => 'Learn end-to-end design thinking methodologies: Empathize, Define, Ideate, Prototype, and Test.',
                 'modules' => [
                     [
@@ -779,8 +761,6 @@ class CourseSeeder extends Seeder
                 'price' => 650000,
                 'level' => 'advanced',
                 'status' => 'published',
-                'rating_avg' => 4.9,
-                'rating_count' => 92,
                 'description' => 'Containerize applications with Docker, orchestrate with Kubernetes, and build automated CI/CD deployment pipelines.',
                 'modules' => [
                     [
@@ -867,12 +847,12 @@ class CourseSeeder extends Seeder
                 'description' => $cData['description'],
                 'thumbnail' => null,
                 'type' => $cData['type'],
-                'price' => $cData['price'],
+                'price' => $cData['type'] === 'free' ? null : $cData['price'],
                 'level' => $cData['level'],
                 'status' => $cData['status'],
                 'published_at' => now(),
-                'rating_avg' => $cData['rating_avg'],
-                'rating_count' => $cData['rating_count'],
+                'rating_avg' => 0,
+                'rating_count' => 0,
             ]);
 
             // Sync category
