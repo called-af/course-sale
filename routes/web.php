@@ -334,6 +334,9 @@ Route::middleware(['auth', 'role'])->group(function () {
             Route::get('/settings/general', [GeneralSettingsController::class, 'edit'])
                 ->name('settings.general');
 
+            Route::put('/settings/appearance', [GeneralSettingsController::class, 'updateAppearance'])
+                ->name('settings.appearance.update');
+
             Route::post('/settings/ai/verify-password', [GeneralSettingsController::class, 'verifyPassword'])
                 ->name('settings.ai.verify-password');
 

@@ -1,4 +1,4 @@
-import { Head, router, usePage } from "@inertiajs/react"
+import { Head, router } from "@inertiajs/react"
 import { Bot, Sparkles } from "lucide-react"
 import { route } from "ziggy-js"
 
@@ -17,10 +17,6 @@ interface RecommendationSettingsPanelProps {
 export default function RecommendationSettingsPanel({
     initialRecommendation,
 }: RecommendationSettingsPanelProps) {
-    const { props } = usePage<{
-        flash?: { success?: string; error?: string }
-    }>()
-
     const toggleRecommendation = (checked: boolean) => {
         router.patch(route("admin.settings.recommendation.toggle"), {
             enabled: checked,
@@ -67,11 +63,6 @@ export default function RecommendationSettingsPanel({
                                     ? "Kayanan aktif. Sistem akan mengambil rekomendasi dari Python microservice."
                                     : "Layanan sedang dimatikan. Rekomendasi tidak akan ditampilkan."}
                             </p>
-                            {props.flash?.success && (
-                                <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                                    {props.flash.success}
-                                </p>
-                            )}
                         </div>
                     </div>
                 </div>

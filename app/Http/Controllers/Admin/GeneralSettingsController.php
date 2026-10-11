@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\UpdateAiCredentialsRequest;
+use App\Models\AppearanceSetting;
 use App\Models\AiSetting;
 use App\Models\AiSettingAudit;
 use App\Models\RecommendationSetting;
@@ -11,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class GeneralSettingsController extends \App\Http\Controllers\Controller
@@ -25,6 +27,19 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
                 'enabled' => RecommendationSetting::isEnabled(),
             ],
         ]);
+    }
+
+    public function updateAppearance(Request $request): RedirectResponse
+    {
+        $this->authorize('manage-settings');
+
+        $validated = $request->validate([
+            'palette' => ['required', 'string', Rule::in(AppearanceSetting::PALETTES)],
+        ]);
+
+        AppearanceSetting::current()->forceFill($validated)->save();
+
+        return back()->with('success', 'Palet tampilan berhasil disimpan.');
     }
 
     public function verifyPassword(Request $request): JsonResponse

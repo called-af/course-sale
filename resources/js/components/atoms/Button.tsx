@@ -57,7 +57,7 @@ export default function Button({
             variant === "secondary",
 
           // Outline — glass-like border
-          "border border-neutral-200/80 bg-white/80 text-neutral-700 shadow-sm backdrop-blur-sm hover:border-neutral-300 hover:bg-neutral-50 hover:text-neutral-900 hover:shadow focus-visible:ring-neutral-400 dark:border-slate-700/80 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-800 dark:hover:text-white":
+          "border border-neutral-200/80 bg-white/80 text-neutral-700 shadow-sm backdrop-blur-sm hover:border-neutral-300 hover:bg-neutral-50 hover:text-neutral-900 hover:shadow focus-visible:ring-neutral-400 dark:border-slate-700/80 dark:bg-slate-900/80 dark:text-slate-700 dark:hover:border-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-500":
             variant === "outline",
 
           // Danger — bold red

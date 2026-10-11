@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\AppearanceSetting;
 use App\Services\AdminReviewNotificationService;
 use App\Services\InstructorApprovalNotificationService;
 use Illuminate\Http\Request;
@@ -40,6 +41,9 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'appearance' => fn () => [
+                'palette' => AppearanceSetting::current()->palette,
+            ],
             'auth' => [
                 'user' => $request->user(),
             ],
