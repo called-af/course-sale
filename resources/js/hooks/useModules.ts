@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { router } from '@inertiajs/react';
 import { Module } from '@/types/modules';
 
-export function useModules(courseSlug: string, modules: Module[]) {
+export function useModules(courseSlug: string, modules: Module[], routePrefix: 'admin' | 'instructor') {
     const [open, setOpen] = useState(false);
     const [editingModule, setEditingModule] = useState<Module | null>(null);
     const [title, setTitle] = useState('');
@@ -39,9 +39,9 @@ export function useModules(courseSlug: string, modules: Module[]) {
         };
 
         if (editingModule) {
-            router.put(`/admin/courses/${courseSlug}/modules/${editingModule.id}`, payload, { preserveScroll: true });
+            router.put(`/${routePrefix}/courses/${courseSlug}/modules/${editingModule.id}`, payload, { preserveScroll: true });
         } else {
-            router.post(`/admin/courses/${courseSlug}/modules`, payload, { preserveScroll: true });
+            router.post(`/${routePrefix}/courses/${courseSlug}/modules`, payload, { preserveScroll: true });
         }
 
         setOpen(false);
@@ -57,7 +57,7 @@ export function useModules(courseSlug: string, modules: Module[]) {
 
         setIsDeleting(true);
 
-        router.delete(`/admin/courses/${courseSlug}/modules/${selectedModule.id}`, {
+        router.delete(`/${routePrefix}/courses/${courseSlug}/modules/${selectedModule.id}`, {
             preserveScroll: true,
             onFinish: () => {
                 setIsDeleting(false);
@@ -68,7 +68,7 @@ export function useModules(courseSlug: string, modules: Module[]) {
     }
 
     function moveModule(module: Module, direction: 'up' | 'down') {
-        router.put(`/admin/courses/${courseSlug}/modules/${module.id}/move`, { direction }, { preserveScroll: true });
+        router.put(`/${routePrefix}/courses/${courseSlug}/modules/${module.id}/move`, { direction }, { preserveScroll: true });
     }
 
     function toggleExpand(moduleId: number | string) {

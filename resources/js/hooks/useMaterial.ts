@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { router } from '@inertiajs/react';
 import { Material } from '@/types';
 
-export function useMaterials(courseSlug: string, moduleId: number, materials: Material[]) {
+export function useMaterials(courseSlug: string, moduleId: number, materials: Material[], routePrefix: 'admin' | 'instructor') {
     const [open, setOpen] = useState(false);
     const [editing, setEditing] = useState<Material | null>(null);
 
@@ -15,7 +15,7 @@ export function useMaterials(courseSlug: string, moduleId: number, materials: Ma
     const [selected, setSelected] = useState<Material | null>(null);
     const [loadingDelete, setLoadingDelete] = useState(false);
 
-    const baseUrl = `/admin/courses/${courseSlug}/modules/${moduleId}/materials`;
+    const baseUrl = `/${routePrefix}/courses/${courseSlug}/modules/${moduleId}/materials`;
 
     const sortedMaterials = [...materials].sort((a, b) => a.sort_order - b.sort_order);
 

@@ -54,10 +54,11 @@ function TreeNode({ isLast, children }: { isLast: boolean; children: React.React
 interface ContentsSectionProps {
   courseSlug: string; moduleId: number; materialId: number
   contents: MaterialContent[]; editId?: number | null
+  routePrefix: "admin" | "instructor"
 }
 
-function ContentsSection({ courseSlug, moduleId, materialId, contents, editId }: ContentsSectionProps) {
-  const crud = useMaterialContents(courseSlug, moduleId, materialId, contents, editId)
+function ContentsSection({ courseSlug, moduleId, materialId, contents, editId, routePrefix }: ContentsSectionProps) {
+  const crud = useMaterialContents(courseSlug, moduleId, materialId, contents, routePrefix, editId)
   const [deleteId, setDeleteId] = useState<number | null>(null)
   const [openDelete, setOpenDelete] = useState(false)
 
@@ -175,10 +176,11 @@ function ContentsSection({ courseSlug, moduleId, materialId, contents, editId }:
    LEVEL 2 — MATERIALS */
 interface MaterialsSectionProps {
   courseSlug: string; moduleId: number; materials: Material[]
+  routePrefix: "admin" | "instructor"
 }
 
-function MaterialsSection({ courseSlug, moduleId, materials }: MaterialsSectionProps) {
-  const crud = useMaterials(courseSlug, moduleId, materials)
+function MaterialsSection({ courseSlug, moduleId, materials, routePrefix }: MaterialsSectionProps) {
+  const crud = useMaterials(courseSlug, moduleId, materials, routePrefix)
   const [expanded, setExpanded] = useState<number | null>(null)
 
   function toggle(id: number) {
@@ -239,7 +241,7 @@ function MaterialsSection({ courseSlug, moduleId, materials }: MaterialsSectionP
               {isOpen && (
                 <div className="pb-1">
                   <ContentsSection courseSlug={courseSlug} moduleId={moduleId}
-                    materialId={material.id} contents={material.contents ?? []} />
+                    materialId={material.id} contents={material.contents ?? []} routePrefix={routePrefix} />
                 </div>
               )}
             </TreeNode>
@@ -275,10 +277,11 @@ function MaterialsSection({ courseSlug, moduleId, materials }: MaterialsSectionP
 interface CourseStructureProps {
   course: { slug: string }
   modules: Module[]
+  routePrefix: "admin" | "instructor"
 }
 
-export default function CourseStructure({ course, modules }: CourseStructureProps) {
-  const crud = useModules(course.slug, modules)
+export default function CourseStructure({ course, modules, routePrefix }: CourseStructureProps) {
+  const crud = useModules(course.slug, modules, routePrefix)
 
   return (
     <>
@@ -348,7 +351,7 @@ export default function CourseStructure({ course, modules }: CourseStructureProp
                   {isOpen && (
                     <div className="pb-1">
                       <MaterialsSection courseSlug={course.slug} moduleId={module.id}
-                        materials={module.materials ?? []} />
+                        materials={module.materials ?? []} routePrefix={routePrefix} />
                     </div>
                   )}
                 </TreeNode>

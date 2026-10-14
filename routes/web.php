@@ -165,47 +165,10 @@ Route::middleware(['auth', 'role'])->group(function () {
             ->name('show');
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | ADMIN
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware('role:admin')
-        ->prefix('admin')
-        ->name('admin.')
-        ->group(function () {
-
-            Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
-
-            Route::get('/courses', [CourseController::class, 'index'])
-                ->name('courses.index');
-
-            Route::get('/courses/{course:slug}', [CourseController::class, 'show'])
-                ->name('courses.show');
-
-            Route::get('/courses/{course:slug}/preview', [CourseController::class, 'preview'])
-                ->name('courses.preview');
-
-            Route::post('/courses', [CourseController::class, 'store'])
-                ->name('courses.store');
-
-            Route::put('/courses/{course:slug}', [CourseController::class, 'update'])
-                ->name('courses.update');
-
-            Route::put('/courses/{course:slug}/approve', [CourseApprovalController::class, 'approve'])
-                ->name('courses.approve');
-
-            Route::delete('/courses/{course:slug}', [CourseController::class, 'destroy'])
-                ->name('courses.destroy');
-
-            Route::get('/courses/{course:slug}/certificate-template', [CertificateTemplateController::class, 'show'])
-                ->name('courses.certificate-template.show');
-
-            Route::put('/courses/{course:slug}/certificate-template', [CertificateTemplateController::class, 'update'])
-                ->name('courses.certificate-template.update');
-
-            Route::prefix('courses/{course:slug}')->group(function () {
-
+    $registerCourseStructureRoutes = static function (): void {
+        Route::prefix('courses/{course:slug}')
+            ->middleware('can:update,course')
+            ->group(function () {
                 /*
                 |--------------------------------------------------------------------------
                 | MODULES
@@ -299,6 +262,48 @@ Route::middleware(['auth', 'role'])->group(function () {
                     [QuizController::class, 'destroy']
                 )->name('contents.quiz.destroy');
             });
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware('role:admin')
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () use ($registerCourseStructureRoutes) {
+
+            Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
+
+            Route::get('/courses', [CourseController::class, 'index'])
+                ->name('courses.index');
+
+            Route::get('/courses/{course:slug}', [CourseController::class, 'show'])
+                ->name('courses.show');
+
+            Route::get('/courses/{course:slug}/preview', [CourseController::class, 'preview'])
+                ->name('courses.preview');
+
+            Route::post('/courses', [CourseController::class, 'store'])
+                ->name('courses.store');
+
+            Route::put('/courses/{course:slug}', [CourseController::class, 'update'])
+                ->name('courses.update');
+
+            Route::put('/courses/{course:slug}/approve', [CourseApprovalController::class, 'approve'])
+                ->name('courses.approve');
+
+            Route::delete('/courses/{course:slug}', [CourseController::class, 'destroy'])
+                ->name('courses.destroy');
+
+            Route::get('/courses/{course:slug}/certificate-template', [CertificateTemplateController::class, 'show'])
+                ->name('courses.certificate-template.show');
+
+            Route::put('/courses/{course:slug}/certificate-template', [CertificateTemplateController::class, 'update'])
+                ->name('courses.certificate-template.update');
+
+            $registerCourseStructureRoutes();
 
             Route::get('/categories', fn () => Inertia::render('admin/category/page', [
                 'categories' => \App\Models\Category::latest()->get(),
@@ -359,7 +364,7 @@ Route::middleware(['auth', 'role'])->group(function () {
     Route::middleware('role:instructor')
         ->prefix('instructor')
         ->name('instructor.')
-        ->group(function () {
+        ->group(function () use ($registerCourseStructureRoutes) {
 
             Route::get('/dashboard', [DashboardController::class, 'instructor'])->name('dashboard');
 
@@ -389,6 +394,8 @@ Route::middleware(['auth', 'role'])->group(function () {
 
             Route::put('/courses/{course:slug}/certificate-template', [CertificateTemplateController::class, 'update'])
                 ->name('courses.certificate-template.update');
+
+            $registerCourseStructureRoutes();
         });
 
     /*

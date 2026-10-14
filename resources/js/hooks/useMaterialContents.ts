@@ -2,8 +2,15 @@ import { useState, useMemo, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 import { MaterialContent } from '@/types';
 
-export function useMaterialContents(courseSlug: string, moduleId: number, materialId: number, contents: MaterialContent[], editId?: number | null) {
-    const baseUrl = `/admin/courses/${courseSlug}/modules/${moduleId}/materials/${materialId}/contents`;
+export function useMaterialContents(
+    courseSlug: string,
+    moduleId: number,
+    materialId: number,
+    contents: MaterialContent[],
+    routePrefix: 'admin' | 'instructor',
+    editId?: number | null,
+) {
+    const baseUrl = `/${routePrefix}/courses/${courseSlug}/modules/${moduleId}/materials/${materialId}/contents`;
 
     const [open, setOpen] = useState(false);
 

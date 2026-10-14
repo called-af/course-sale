@@ -24,7 +24,7 @@ export default function TextAreaField({
       />
 
       {error && (
-        <p className="text-xs text-red-500">{error}</p>
+        <p className="text-xs text-red-500 dark:text-red-400">{error}</p>
       )}
     </div>
   )

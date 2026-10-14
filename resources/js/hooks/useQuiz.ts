@@ -56,7 +56,14 @@ function normalizeFromServer(q: any): QuizQuestion {
     };
 }
 
-export function useQuiz(courseSlug: string, moduleId: number, materialId: number, contentId: number, initialQuestions: any[] = []) {
+export function useQuiz(
+    courseSlug: string,
+    moduleId: number,
+    materialId: number,
+    contentId: number,
+    routePrefix: 'admin' | 'instructor',
+    initialQuestions: any[] = [],
+) {
     const [questions, setQuestions] = useState<QuizQuestion[]>(() =>
         initialQuestions.length > 0 ? initialQuestions.map(normalizeFromServer) : [makeEmptyQuestion(0)],
     );
@@ -71,7 +78,7 @@ export function useQuiz(courseSlug: string, moduleId: number, materialId: number
     const [errors, setErrors] = useState<string | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<QuizQuestion | null>(null);
 
-    const baseUrl = `/admin/courses/${courseSlug}/modules/${moduleId}/materials/${materialId}/contents/${contentId}/quiz-questions`;
+    const baseUrl = `/${routePrefix}/courses/${courseSlug}/modules/${moduleId}/materials/${materialId}/contents/${contentId}/quiz-questions`;
 
     const addQuestion = () => setQuestions((prev) => [...prev, makeEmptyQuestion(prev.length)]);
 

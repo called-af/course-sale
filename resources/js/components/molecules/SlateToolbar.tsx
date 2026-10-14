@@ -44,7 +44,7 @@ const toggleBlock = (editor: Editor, format: string) => {
   }
 }
 
-const Divider = () => <div className="w-px h-5 bg-gray-200 self-center mx-0.5" />
+const Divider = () => <div className="w-px h-5 bg-gray-200 dark:bg-slate-700 self-center mx-0.5" />
 
 interface Props {
   editor: Editor
@@ -52,7 +52,7 @@ interface Props {
 
 export default function SlateToolbar({ editor }: Props) {
   return (
-    <div className="flex flex-wrap items-center gap-0.5 mb-3 pb-3 border-b border-gray-100">
+    <div className="flex flex-wrap items-center gap-0.5 mb-3 pb-3 border-b border-gray-100 dark:border-slate-700">
 
       <EditorToolbarButton
         active={isMarkActive(editor, "bold")}

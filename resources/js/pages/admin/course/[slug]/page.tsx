@@ -138,6 +138,7 @@ export default function CourseSlug({ course, categories, tags }: CourseSlugProps
               </div>
               <MultiSelectField
                 label=""
+                color="purple"
                 value={data.tag_ids ?? []}
                 onChange={(values) => setData("tag_ids", values)}
                 options={(tags ?? []).map((t) => ({ label: t.name, value: t.id }))}
@@ -229,6 +230,7 @@ export default function CourseSlug({ course, categories, tags }: CourseSlugProps
               </div>
               <MultiSelectField
                 label=""
+                color="indigo"
                 value={data.category_ids ?? []}
                 onChange={(values) => setData("category_ids", values)}
                 options={(categories ?? []).map((c) => ({ label: c.name, value: c.id }))}
@@ -252,7 +254,7 @@ export default function CourseSlug({ course, categories, tags }: CourseSlugProps
           
         </div>
 
-        <CourseStructure course={course} modules={course.modules ?? []} />
+        <CourseStructure course={course} modules={course.modules ?? []} routePrefix="admin" />
 
         {/* Certificate Template Editor */}
         <div className="bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-sm p-6 sm:p-8 space-y-6">
