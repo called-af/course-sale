@@ -34,8 +34,9 @@ class EnrollmentService
             return 'payment_required';
         }
 
-        DB::transaction(function () use ($user, $course) {
-            Enrollment::create(['user_id' => $user->id, 'course_id' => $course->id, 'status' => 'active', 'enrolled_at' => now()]);
+        $enrollment = null;
+        DB::transaction(function () use ($user, $course, &$enrollment) {
+            $enrollment = Enrollment::create(['user_id' => $user->id, 'course_id' => $course->id, 'status' => 'active', 'enrolled_at' => now()]);
             if (is_null($user->role)) {
                 $user->update(['role' => 'student']);
             }
@@ -43,7 +44,33 @@ class EnrollmentService
 
         app(EventTrackingService::class)->trackCourseEnroll($user, $course);
 
+        if ($enrollment) {
+            $this->dispatchWhatsAppNotification($enrollment, $course, $user);
+        }
+
         return 'enrolled';
+    }
+
+    protected function dispatchWhatsAppNotification(Enrollment $enrollment, Course $course, User $student): void
+    {
+        try {
+            $course->loadMissing('creator');
+            $instructor = $course->creator;
+
+            if ($instructor && $instructor->whatsapp_notification_enabled && ! empty($instructor->whatsapp_number)) {
+                \App\Jobs\SendWhatsAppEnrollmentNotificationJob::dispatch(
+                    $enrollment->id,
+                    $instructor->id,
+                    $student->id,
+                    $course->id
+                );
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to dispatch WhatsApp enrollment notification: ' . $e->getMessage(), [
+                'enrollment_id' => $enrollment->id,
+                'course_id' => $course->id,
+            ]);
+        }
     }
 
     public function learningData(User $user, Course $course, ?int $materialId = null, ?int $contentId = null): array

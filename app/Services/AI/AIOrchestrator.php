@@ -4,9 +4,11 @@ namespace App\Services\AI;
 
 use App\Models\ChatMessage;
 use App\Models\ChatSession;
+use App\Models\User;
 use App\Services\AI\Tool\CourseComparisonTool;
 use App\Services\AI\Tool\CourseDetailTool;
 use App\Services\AI\Tool\CourseSearchTool;
+use App\Services\AI\Tool\InstructorStudentTool;
 use App\Services\AI\Tool\RecommendationTool;
 use App\Services\AI\Tool\UserProgressTool;
 use Exception;
@@ -24,9 +26,11 @@ class AIOrchestrator
         CourseDetailTool $courseDetail,
         RecommendationTool $recommendationTool,
         UserProgressTool $userProgress,
-        CourseComparisonTool $courseComparison
+        CourseComparisonTool $courseComparison,
+        ?InstructorStudentTool $instructorStudents = null
     ) {
         $this->nvidiaService = $nvidiaService;
+        $instructorStudents ??= app(InstructorStudentTool::class);
 
         $this->tools = [
             'search_courses' => $courseSearch,
@@ -34,12 +38,13 @@ class AIOrchestrator
             'get_recommendations' => $recommendationTool,
             'get_user_progress' => $userProgress,
             'compare_courses' => $courseComparison,
+            'get_instructor_students' => $instructorStudents,
         ];
     }
 
     public function handleChat(array $messages, ChatSession $session)
     {
-        $toolDefinitions = $this->getToolDefinitions();
+        $toolDefinitions = $this->getToolDefinitions($session->user);
 
         // 1. Initial call to NVIDIA
         $response = $this->nvidiaService->chat($messages, $toolDefinitions);
@@ -108,10 +113,15 @@ class AIOrchestrator
         ];
     }
 
-    protected function getToolDefinitions(): array
+    protected function getToolDefinitions(?User $user = null): array
     {
         $definitions = [];
         foreach ($this->tools as $name => $tool) {
+            // Only expose instructor tool to instructors (and admins), or when no user context is provided (e.g. testing)
+            if ($name === 'get_instructor_students' && $user && ! $user->hasRole(['instructor', 'admin'])) {
+                continue;
+            }
+
             $definitions[] = [
                 'type' => 'function',
                 'function' => array_merge(['name' => $name], $tool->getDefinition()),

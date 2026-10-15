@@ -13,9 +13,11 @@ import type { User } from '@/types/user';
 
 interface Props {
     user: User;
+    submitUrl?: string;
+    canChangeRole?: boolean;
 }
 
-export default function UserProfile({ user }: Props) {
+export default function UserProfile({ user, submitUrl, canChangeRole = false }: Props) {
     const [preview, setPreview] = useState<string | null>(null);
     const [search, setSearch] = useState('');
 
@@ -29,7 +31,8 @@ export default function UserProfile({ user }: Props) {
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        put(route('admin.users.update', user.id), {
+        const targetUrl = submitUrl ?? route('admin.users.update', user.id);
+        put(targetUrl, {
             forceFormData: true,
         });
     }
@@ -63,19 +66,33 @@ export default function UserProfile({ user }: Props) {
                 <div className="space-y-6 md:col-span-2">
                     <div className="space-y-4 border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
                         <div className="text-sm font-medium text-neutral-600 dark:text-slate-300">Account Information</div>
-                        <InputField label="Name" value={data.name} onChange={(e) => setData('name', e.target.value)} />
-                        <InputField label="Email" value={data.email} onChange={(e) => setData('email', e.target.value)} />
-                        <SelectField
-                            label="Role"
-                            value={data.role}
-                            onChange={(e) => setData('role', e.target.value as User['role'])}
-                            options={[
-                                { label: 'Student', value: 'student' },
-                                { label: 'Instructor', value: 'instructor' },
-                                { label: 'Admin', value: 'admin' },
-                            ]}
-                        />
-                        {errors.role && <p className="text-sm text-red-500">{errors.role}</p>}
+                        <InputField label="Name" value={data.name} onChange={(e) => setData('name', e.target.value)} error={errors.name} />
+                        <InputField label="Email" value={data.email} onChange={(e) => setData('email', e.target.value)} error={errors.email} />
+                        {canChangeRole ? (
+                            <>
+                                <SelectField
+                                    label="Role"
+                                    value={data.role}
+                                    onChange={(e) => setData('role', e.target.value as User['role'])}
+                                    options={[
+                                        { label: 'Student', value: 'student' },
+                                        { label: 'Instructor', value: 'instructor' },
+                                        { label: 'Admin', value: 'admin' },
+                                    ]}
+                                />
+                                {errors.role && <p className="text-sm text-red-500">{errors.role}</p>}
+                            </>
+                        ) : (
+                            <div>
+                                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200">Role</label>
+                                <div className="flex items-center gap-2">
+                                    <Badge variant="purple" className="capitalize text-xs font-semibold px-2.5 py-1">
+                                        {data.role}
+                                    </Badge>
+                                    <span className="text-xs text-neutral-400 dark:text-slate-500">(Role akun ditetapkan sebagai {data.role})</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-4 border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Category;
 use App\Models\Course;
+use App\Models\MaterialProgress;
 use App\Models\Tag;
 use App\Models\User;
 use DomainException;
@@ -32,18 +33,69 @@ class CourseService
 
     public function detailData(Course $course): array
     {
-        return [
-            'course' => $course->load([
-                'creator:id,name', 'categories:id,name', 'tags:id,name,slug',
-                'modules' => fn ($modules) => $modules->select('id', 'course_id', 'title', 'sort_order', 'status')->orderBy('sort_order')->with([
-                    'materials' => fn ($materials) => $materials->orderBy('sort_order')->with([
-                        'contents' => fn ($contents) => $contents->orderBy('sort_order'),
-                    ]),
+        $course->load([
+            'creator:id,name', 'categories:id,name', 'tags:id,name,slug',
+            'modules' => fn ($modules) => $modules->select('id', 'course_id', 'title', 'sort_order', 'status')->orderBy('sort_order')->with([
+                'materials' => fn ($materials) => $materials->orderBy('sort_order')->with([
+                    'contents' => fn ($contents) => $contents->orderBy('sort_order'),
                 ]),
-            ])->append('thumbnail_url'),
+            ]),
+        ])->append('thumbnail_url');
+
+        $enrollments = $course->enrollments()
+            ->with('user:id,name,email,avatar')
+            ->latest('enrolled_at')
+            ->get();
+
+        $materialIds = $course->modules->flatMap(fn ($m) => $m->materials->pluck('id'));
+        $totalMaterials = $materialIds->count();
+
+        $completedCounts = $totalMaterials > 0 && $enrollments->isNotEmpty()
+            ? MaterialProgress::whereIn('user_id', $enrollments->pluck('user_id'))
+                ->whereIn('material_id', $materialIds)
+                ->where('is_completed', true)
+                ->selectRaw('user_id, count(*) as count')
+                ->groupBy('user_id')
+                ->pluck('count', 'user_id')
+            : collect();
+
+        $enrolledStudents = $enrollments->map(function ($enrollment) use ($completedCounts, $totalMaterials) {
+            $user = $enrollment->user;
+            $completed = $completedCounts[$enrollment->user_id] ?? 0;
+            $percent = $totalMaterials > 0 ? (int) round(($completed / $totalMaterials) * 100) : 0;
+
+            $enrolledAt = $enrollment->enrolled_at;
+            if ($enrolledAt) {
+                if (is_numeric($enrolledAt)) {
+                    $formattedDate = date('Y-m-d H:i:s', (int) $enrolledAt);
+                } elseif ($enrolledAt instanceof \DateTimeInterface) {
+                    $formattedDate = $enrolledAt->format('Y-m-d H:i:s');
+                } else {
+                    $formattedDate = (string) $enrolledAt;
+                }
+            } else {
+                $formattedDate = (string) $enrollment->created_at;
+            }
+
+            return [
+                'id' => $enrollment->id,
+                'user_id' => $user?->id,
+                'name' => $user?->name ?? 'Unknown Student',
+                'email' => $user?->email ?? '',
+                'avatar_url' => $user?->avatar_url,
+                'status' => $enrollment->status,
+                'enrolled_at' => $formattedDate,
+                'progress_percent' => $percent,
+                'completed_materials' => $completed,
+                'total_materials' => $totalMaterials,
+            ];
+        })->values()->all();
+
+        return [
+            'course' => $course,
             'categories' => Category::select('id', 'name', 'img', 'desc')->get(),
             'tags' => Tag::select('id', 'name')->get(),
-            'users' => User::select('avatar', 'name', 'email')->get(),
+            'enrolled_students' => $enrolledStudents,
         ];
     }
 

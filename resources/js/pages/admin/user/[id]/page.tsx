@@ -72,7 +72,7 @@ export default function UserDetailPage({ user }: { user: User }) {
           }
         />
 
-        <UserProfile user={user} />
+        <UserProfile user={user} canChangeRole={true} />
       </div>
     </>
   )

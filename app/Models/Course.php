@@ -121,15 +121,21 @@ class Course extends Model
     protected static function booted(): void
     {
         static::deleting(function (Course $course) {
-
             $course->categories()->detach();
             $course->tags()->detach();
+
+            foreach ($course->modules as $module) {
+                foreach ($module->materials as $material) {
+                    $material->materialContents()->delete();
+                    $material->delete();
+                }
+
+                $module->delete();
+            }
 
             if ($course->thumbnail) {
                 Storage::disk('public')->delete($course->thumbnail);
             }
-
-            $course->modules()->delete();
         });
     }
 
@@ -160,7 +166,7 @@ class Course extends Model
                 return asset($this->thumbnail);
             }
 
-            return asset('storage/'.$this->thumbnail);
+            return asset('storage/' . $this->thumbnail);
         }
 
         return asset('assets/landscape.jpeg');

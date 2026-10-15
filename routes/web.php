@@ -20,6 +20,8 @@ use App\Http\Controllers\TagController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\Admin\GeneralSettingsController;
+use App\Http\Controllers\Instructor\InstructorProfileController;
+use App\Http\Controllers\Instructor\InstructorSettingsController;
 use App\Services\EventTrackingService;
 use App\Models\Course;
 use Illuminate\Support\Facades\Auth;
@@ -394,6 +396,17 @@ Route::middleware(['auth', 'role'])->group(function () {
 
             Route::put('/courses/{course:slug}/certificate-template', [CertificateTemplateController::class, 'update'])
                 ->name('courses.certificate-template.update');
+
+            Route::get('/profile', [InstructorProfileController::class, 'edit'])->name('profile');
+            Route::put('/profile', [InstructorProfileController::class, 'update'])->name('profile.update');
+
+            Route::get('/settings', [InstructorSettingsController::class, 'edit'])->name('settings');
+            Route::get('/settings/general', [InstructorSettingsController::class, 'edit'])->name('settings.general');
+            Route::get('/settings/profile', fn () => redirect()->route('instructor.profile'))->name('settings.profile');
+            Route::put('/settings/whatsapp', [InstructorSettingsController::class, 'updateWhatsApp'])->name('settings.whatsapp.update');
+            Route::post('/settings/whatsapp/test', [InstructorSettingsController::class, 'testWhatsApp'])
+                ->middleware('throttle:5,1')
+                ->name('settings.whatsapp.test');
 
             $registerCourseStructureRoutes();
         });

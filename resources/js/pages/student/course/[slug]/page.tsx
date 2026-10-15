@@ -8,8 +8,9 @@ import ChooseFile from '@/components/molecules/ChooseFile';
 import PageHeader from '@/components/molecules/PageHeader';
 import CourseStructure from '@/components/organisms/Course/CourseStructure';
 import CertificateTemplateEditor from '@/components/organisms/Course/CertificateTemplateEditor';
+import EnrolledStudentsList from '@/components/organisms/Course/EnrolledStudentsList';
 
-import { Course } from '@/types';
+import { Course, EnrolledStudent } from '@/types';
 import { useCourse } from '@/hooks/useCourse';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Award, ClipboardCheck, Eye, Image, Save, Tag } from 'lucide-react';
@@ -19,9 +20,10 @@ interface CourseSlugProps {
     course: Course;
     categories: { id: number; name: string }[];
     tags?: { id: number; name: string }[];
+    enrolled_students?: EnrolledStudent[];
 }
 
-export default function CourseSlug({ course, categories, tags }: CourseSlugProps) {
+export default function CourseSlug({ course, categories, tags, enrolled_students }: CourseSlugProps) {
     const { auth } = usePage().props as any;
     const rolePrefix = auth?.user?.role ?? 'instructor';
     const [isSubmittingReview, setIsSubmittingReview] = useState(false);
@@ -246,6 +248,9 @@ export default function CourseSlug({ course, categories, tags }: CourseSlugProps
                 </div>
 
                 <CourseStructure course={course} modules={course.modules ?? []} routePrefix="instructor" />
+
+                {/* Enrolled Students List */}
+                <EnrolledStudentsList students={enrolled_students ?? []} />
 
                 {/* Certificate Template Editor */}
                 <div className="space-y-6 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-slate-800">

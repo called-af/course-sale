@@ -8,16 +8,28 @@ use Illuminate\Auth\Access\Response;
 class UserPolicy
 {
     /**
-     * Manage user from Admin.
+     * Manage user from Admin, or allow instructors to view enrolled student lists.
      */
     public function viewAny(User $authUser): bool
     {
-        return $authUser->role === 'admin';
+        return in_array($authUser->role, ['admin', 'instructor'], true);
     }
 
     public function view(User $authUser, User $user): bool
     {
-        return $authUser->role === 'admin';
+        if ($authUser->role === 'admin') {
+            return true;
+        }
+
+        if ($authUser->id === $user->id) {
+            return true;
+        }
+
+        if ($authUser->role === 'instructor') {
+            return $authUser->hasEnrolledStudent($user);
+        }
+
+        return false;
     }
 
     public function create(User $authUser): bool

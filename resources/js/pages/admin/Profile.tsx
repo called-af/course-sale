@@ -29,7 +29,7 @@ export default function Profile({ user }: { user: User }) {
           </p>
         </div>
 
-        <UserProfile user={user} />
+        <UserProfile user={user} canChangeRole={true} />
       </div>
     </>
   )

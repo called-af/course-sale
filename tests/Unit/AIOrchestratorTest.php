@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use App\Services\AI\AIOrchestrator;
 use App\Services\AI\NvidiaService;
 use App\Services\AI\Tool\CourseComparisonTool;
@@ -10,9 +11,9 @@ use App\Services\AI\Tool\UserProgressTool;
 
 class TestableAIOrchestrator extends AIOrchestrator
 {
-    public function exposeToolDefinitions(): array
+    public function exposeToolDefinitions(?User $user = null): array
     {
-        return $this->getToolDefinitions();
+        return $this->getToolDefinitions($user);
     }
 
     public function exposeExecuteTool(string $name, array $arguments, $userId): array
@@ -21,7 +22,7 @@ class TestableAIOrchestrator extends AIOrchestrator
     }
 }
 
-it('only exposes read-only course information tools', function () {
+it('only exposes read-only course information and instructor tools', function () {
     $orchestrator = new TestableAIOrchestrator(
         Mockery::mock(NvidiaService::class),
         new CourseSearchTool,
@@ -40,7 +41,51 @@ it('only exposes read-only course information tools', function () {
         'get_recommendations',
         'get_user_progress',
         'compare_courses',
+        'get_instructor_students',
     ]);
+});
+
+it('filters instructor tools for student users', function () {
+    $student = new User(['role' => 'student']);
+
+    $orchestrator = new TestableAIOrchestrator(
+        Mockery::mock(NvidiaService::class),
+        new CourseSearchTool,
+        new CourseDetailTool,
+        new RecommendationTool,
+        new UserProgressTool,
+        new CourseComparisonTool,
+    );
+
+    $definitions = $orchestrator->exposeToolDefinitions($student);
+    $toolNames = collect($definitions)->pluck('function.name')->all();
+
+    expect($toolNames)->not->toContain('get_instructor_students')
+        ->and($toolNames)->toBe([
+            'search_courses',
+            'get_course',
+            'get_recommendations',
+            'get_user_progress',
+            'compare_courses',
+        ]);
+});
+
+it('exposes instructor tools for instructor users', function () {
+    $instructor = new User(['role' => 'instructor']);
+
+    $orchestrator = new TestableAIOrchestrator(
+        Mockery::mock(NvidiaService::class),
+        new CourseSearchTool,
+        new CourseDetailTool,
+        new RecommendationTool,
+        new UserProgressTool,
+        new CourseComparisonTool,
+    );
+
+    $definitions = $orchestrator->exposeToolDefinitions($instructor);
+    $toolNames = collect($definitions)->pluck('function.name')->all();
+
+    expect($toolNames)->toContain('get_instructor_students');
 });
 
 it('rejects tools that can perform actions outside course information', function () {

@@ -21,6 +21,8 @@ class User extends Authenticatable
         'password',
         'role',
         'avatar',
+        'whatsapp_number',
+        'whatsapp_notification_enabled',
     ];
 
     protected $appends = ['avatar_url'];
@@ -50,6 +52,7 @@ class User extends Authenticatable
     {
         return [
             'id' => 'integer',
+            'whatsapp_notification_enabled' => 'boolean',
         ];
     }
 
@@ -71,5 +74,27 @@ class User extends Authenticatable
     public function userEvents(): HasMany
     {
         return $this->hasMany(UserEvent::class, 'user_id');
+    }
+
+    /**
+     * Determine if a given student/user is enrolled in any course created by this instructor.
+     */
+    public function hasEnrolledStudent(User|int $student): bool
+    {
+        $studentId = $student instanceof User ? $student->id : $student;
+
+        return Enrollment::where('user_id', $studentId)
+            ->whereHas('course', fn ($query) => $query->where('creator_id', $this->id))
+            ->exists();
+    }
+
+    /**
+     * Get a query builder for users/students enrolled in courses created by this instructor.
+     */
+    public function enrolledStudents()
+    {
+        return static::whereHas('enrollments.course', function ($query) {
+            $query->where('creator_id', $this->id);
+        });
     }
 }

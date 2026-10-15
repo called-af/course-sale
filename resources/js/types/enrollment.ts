@@ -1,6 +1,19 @@
 import { Course } from "./course"
 import { User } from "./user"
 
+export interface EnrolledStudent {
+  id: number
+  user_id: number
+  name: string
+  email: string
+  avatar_url?: string | null
+  status: "active" | "revoked" | "expired" | string
+  enrolled_at: string
+  progress_percent: number
+  completed_materials: number
+  total_materials: number
+}
+
 export interface Enrollment {
   id: number
   user_id: number

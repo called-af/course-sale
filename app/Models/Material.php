@@ -62,4 +62,9 @@ class Material extends Model
         return $this->hasMany(MaterialContent::class)
             ->orderBy('sort_order');
     }
+
+    public function materialContents(): HasMany
+    {
+        return $this->hasMany(MaterialContent::class, 'material_id');
+    }
 }

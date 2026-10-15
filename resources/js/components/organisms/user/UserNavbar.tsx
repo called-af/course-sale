@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { Award, Bell, BookOpen, CheckCircle, Compass, GraduationCap, LayoutDashboard, LogOut, Menu, Moon, Sun, X } from 'lucide-react';
+import { Award, Bell, BookOpen, CheckCircle, Compass, GraduationCap, LayoutDashboard, LogOut, Menu, Moon, Settings, Sun, User, X } from 'lucide-react';
 import clsx from 'clsx';
 import { useEffect, useRef, useState } from 'react';
 import { useTheme } from '@/hooks/useTheme';
@@ -19,6 +19,8 @@ function buildNavigation(role: string): NavigationItem[] {
         return [
             { label: 'Dashboard', href: '/instructor/dashboard', icon: LayoutDashboard },
             { label: 'My Courses', href: '/instructor/courses', icon: BookOpen },
+            { label: 'Settings', href: '/instructor/settings', icon: Settings },
+            { label: 'Profile', href: '/instructor/profile', icon: User },
         ];
     }
 
@@ -148,7 +150,11 @@ export default function UserNavbar({ title }: UserNavbarProps) {
                     )}
 
                     {/* User pill */}
-                    <div className="flex items-center gap-2.5">
+                    <Link
+                        href={auth?.user?.role === 'instructor' ? '/instructor/profile' : auth?.user?.role === 'admin' ? '/admin/profile' : '#'}
+                        className="flex items-center gap-2.5 rounded-sm p-1 transition-colors hover:bg-neutral-100 dark:hover:bg-slate-800"
+                        title="Lihat Profil"
+                    >
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden bg-purple-100 dark:bg-purple-950/40 text-xs font-bold text-purple-600 dark:text-purple-400">
                             {auth?.user?.avatar_url ? (
                                 <img src={auth.user.avatar_url} alt={auth.user.name} className="h-full w-full object-cover" />
@@ -161,7 +167,7 @@ export default function UserNavbar({ title }: UserNavbarProps) {
                             <p className="text-xs font-medium text-neutral-700 dark:text-slate-200">{auth?.user?.name}</p>
                             <p className="text-[10px] text-neutral-400 dark:text-slate-500 capitalize">{auth?.user?.role}</p>
                         </div>
-                    </div>
+                    </Link>
 
                     <div className="h-5 w-px bg-neutral-200 dark:bg-slate-700" />
 
@@ -213,6 +219,7 @@ export default function UserNavbar({ title }: UserNavbarProps) {
 function deriveTitle(url: string): string {
     if (url.includes('/dashboard')) return 'Dashboard';
     if (url.includes('/courses')) return 'Courses';
+    if (url.includes('/settings')) return 'Settings';
     if (url.includes('/profile')) return 'Profile';
     if (url.includes('/explore') || url === '/course') return 'Explore';
     return 'Dashboard';

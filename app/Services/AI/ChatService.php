@@ -72,7 +72,7 @@ class ChatService
         $messages = [];
         
         // 1. System Prompt
-        $messages[] = $this->promptService->getSystemPrompt();
+        $messages[] = $this->promptService->getSystemPrompt($session->user);
 
         // 2. Chat History (last 10 messages to save context)
         $history = $session->messages()

@@ -5,6 +5,8 @@ import {
   GraduationCap,
   LogOut,
   ExternalLink,
+  Settings,
+  User,
 } from "lucide-react"
 import clsx from "clsx"
 
@@ -18,7 +20,9 @@ function buildMenus(role: string) {
   if (role === "instructor") {
     return [
       { label: "Dashboard", href: `${prefix}/dashboard`, icon: LayoutDashboard },
-      { label: "My Courses",  href: `${prefix}/courses`,   icon: BookOpen },
+      { label: "My Courses", href: `${prefix}/courses`, icon: BookOpen },
+      { label: "Settings", href: `${prefix}/settings`, icon: Settings },
+      { label: "Profile", href: `${prefix}/profile`, icon: User },
     ]
   }
 
