@@ -1,6 +1,6 @@
 import Badge from "@/components/atoms/Badge"
 import Button from "@/components/atoms/Button"
-import { router } from "@inertiajs/react"
+import { router, usePage } from "@inertiajs/react"
 import { route } from "ziggy-js"
 
 function roleVariant(role: string) {
@@ -19,6 +19,8 @@ export default function UserTable({
   onEdit,
   onDelete,
 }: any) {
+  const { auth } = usePage().props as any
+
   return (
     <div className="border border-zinc-400 dark:border-slate-700 overflow-hidden">
       <table className="w-full text-sm">
@@ -78,6 +80,8 @@ export default function UserTable({
 
                   <Button
                     variant="danger"
+                    disabled={user.id === auth?.user?.id}
+                    title={user.id === auth?.user?.id ? "You cannot delete your own account" : undefined}
                     onClick={() => onDelete(user)}
                   >
                     Delete

@@ -175,7 +175,11 @@ export default function UserPage({ users, filters }: { users: any; filters?: { s
           onConfirm={confirmDelete}
           isLoading={processing}
           title="Delete User"
-          message="User will be permanently deleted."
+          message={
+            deleteTarget
+              ? `Are you sure you want to delete user "${deleteTarget.name}" (${deleteTarget.email})?`
+              : "Are you sure you want to delete this user?"
+          }
         />
       </div>
     </>

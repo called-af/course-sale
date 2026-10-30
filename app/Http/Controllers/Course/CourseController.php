@@ -154,21 +154,26 @@ class CourseController extends Controller
     {
         $this->authorize('delete', $course);
 
-        $this->courseService->delete($course);
+        try {
+            $this->courseService->delete($course);
 
-        return match (Auth::user()->role) {
-
+            return match (Auth::user()->role) {
                 'admin' => redirect()
-                ->route('admin.courses.index')
-                ->with('success', 'Course deleted successfully.'),
+                    ->route('admin.courses.index')
+                    ->with('success', 'Course deleted successfully.'),
 
                 'instructor' => redirect()
-                ->route('instructor.courses.index')
-                ->with('success', 'Course deleted successfully.'),
+                    ->route('instructor.courses.index')
+                    ->with('success', 'Course deleted successfully.'),
 
                 default => redirect()
-                ->route('home')
-                ->with('success', 'Course deleted successfully.'),
-        };
+                    ->route('home')
+                    ->with('success', 'Course deleted successfully.'),
+            };
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->with('error', 'Failed to delete course: '.$e->getMessage());
+        }
     }
 }

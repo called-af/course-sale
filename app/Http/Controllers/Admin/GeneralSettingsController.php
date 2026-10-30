@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\UpdateAiCredentialsRequest;
-use App\Models\AppearanceSetting;
+use App\Http\Requests\UpdateWhatsAppCredentialsRequest;
 use App\Models\AiSetting;
 use App\Models\AiSettingAudit;
+use App\Models\AppearanceSetting;
 use App\Models\RecommendationSetting;
+use App\Models\WhatsAppSetting;
 use App\Services\AiSettings;
+use App\Services\WhatsApp\WhatsAppService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,6 +29,7 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
             'recommendation' => [
                 'enabled' => RecommendationSetting::isEnabled(),
             ],
+            'whatsapp' => WhatsAppSetting::current()->forDisplay(),
         ]);
     }
 
@@ -110,6 +114,68 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
         $this->recordAudit($request, $changedFields);
 
         return back()->with('success', 'Konfigurasi AI disimpan.');
+    }
+
+    public function toggleWhatsapp(Request $request): RedirectResponse
+    {
+        $this->authorize('manage-settings');
+
+        $enabled = (bool) $request->input('enabled', false);
+        $setting = WhatsAppSetting::current();
+        $setting->forceFill(['enabled' => $enabled])->save();
+
+        app(WhatsAppService::class)->loadConfiguration();
+
+        return back()->with('success', $enabled
+            ? 'Notifikasi WhatsApp diaktifkan.'
+            : 'Notifikasi WhatsApp dimatikan.');
+    }
+
+    public function updateWhatsapp(UpdateWhatsAppCredentialsRequest $request): RedirectResponse
+    {
+        $this->authorize('manage-settings');
+
+        $validated = $request->validated();
+        $setting = WhatsAppSetting::current();
+
+        $setting->base_url = $validated['base_url'];
+        $setting->from_number = $validated['from_number'];
+        $setting->sandbox_keyword = $validated['sandbox_keyword'] ?? null;
+
+        if (! empty($validated['api_key'])) {
+            $setting->api_key = $validated['api_key'];
+        }
+
+        $setting->save();
+
+        app(WhatsAppService::class)->loadConfiguration();
+
+        return back()->with('success', 'Konfigurasi WhatsApp Infobip berhasil disimpan.');
+    }
+
+    public function testWhatsapp(Request $request, WhatsAppService $whatsAppService): JsonResponse
+    {
+        $this->authorize('manage-settings');
+
+        $request->validate([
+            'phone_number' => ['required', 'string'],
+        ]);
+
+        $recipient = $whatsAppService->formatPhoneNumber($request->input('phone_number'));
+        if (empty($recipient)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Format nomor WhatsApp tidak valid.',
+            ], 422);
+        }
+
+        $appName = config('app.name', 'Course Sale');
+        $time = now()->translatedFormat('d M Y, H:i');
+        $message = "Halo! Ini adalah pesan uji coba (Test WhatsApp) dari Admin Panel {$appName} via Infobip Gateway.\n\nWaktu: {$time}\nStatus: Konfigurasi DB Aktif & Terhubung.";
+
+        $result = $whatsAppService->sendInfobipTextMessage($recipient, $message);
+
+        return response()->json($result, $result['success'] ? 200 : 422);
     }
 
     private function recordAudit(Request $request, array $fields): void

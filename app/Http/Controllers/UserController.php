@@ -50,8 +50,14 @@ class UserController extends Controller
 
     public function destroy(User $user): RedirectResponse
     {
-        $this->userService->delete($user);
+        try {
+            $this->userService->delete($user);
 
-        return back()->with('success', 'User deleted');
+            return back()->with('success', 'User deleted');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->with('error', 'Gagal menghapus user: '.$e->getMessage());
+        }
     }
 }

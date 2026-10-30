@@ -98,7 +98,7 @@ export default function PreviewQuizQuestion({
         <div className="pt-1">
           <textarea
             rows={3}
-            className="w-full rounded-none border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900 p-3 text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-purple-200 dark:focus:ring-purple-900/50 transition-colors"
+            className="w-full select-text rounded-none border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900 p-3 text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-purple-200 dark:focus:ring-purple-900/50 transition-colors"
             placeholder="Write your essay answer here for testing..."
             value={(userAnswer as string) ?? ""}
             onChange={(e) => onChangeEssay(e.target.value)}

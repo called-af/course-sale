@@ -6,6 +6,8 @@ use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Material;
+use App\Models\MaterialContent;
+use App\Models\MaterialContentProgress;
 use App\Models\MaterialProgress;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -66,7 +68,7 @@ class EnrollmentService
                 );
             }
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to dispatch WhatsApp enrollment notification: ' . $e->getMessage(), [
+            \Illuminate\Support\Facades\Log::error('Failed to dispatch WhatsApp enrollment notification: '.$e->getMessage(), [
                 'enrollment_id' => $enrollment->id,
                 'course_id' => $course->id,
             ]);
@@ -100,6 +102,9 @@ class EnrollmentService
         $currentMaterial ??= $course->modules->first()?->materials->first();
         $currentContent ??= $currentMaterial?->contents->first();
         $materialIds = $course->modules->flatMap(fn ($module) => $module->materials->pluck('id'));
+        $contentIds = $course->modules->flatMap(
+            fn ($module) => $module->materials->flatMap(fn ($material) => $material->contents->pluck('id'))
+        );
 
         if ($currentMaterial) {
             app(EventTrackingService::class)->trackMaterialView($user, $course, $currentMaterial, [
@@ -111,11 +116,25 @@ class EnrollmentService
 
         $progress = MaterialProgress::where('user_id', $user->id)->whereIn('material_id', $materialIds)->pluck('is_completed', 'material_id')->toArray();
 
+        $contentProgress = MaterialContentProgress::where('user_id', $user->id)
+            ->whereIn('material_content_id', $contentIds)
+            ->where('is_completed', true)
+            ->pluck('is_completed', 'material_content_id')
+            ->toArray();
+
+        $quizContents = $course->modules
+            ->flatMap(fn ($module) => $module->materials)
+            ->flatMap(fn ($material) => $material->contents)
+            ->where('type', 'quiz')
+            ->values();
+
         return [
             'course' => $course,
             'currentMaterial' => $currentMaterial,
             'currentContent' => $currentContent,
             'progress' => $progress,
+            'contentProgress' => $contentProgress,
+            'quizStates' => app(QuizService::class)->statesFor($user, $quizContents),
             'certificate' => Certificate::where('user_id', $user->id)->where('course_id', $course->id)->select('id', 'certificate_number')->first(),
             ...$this->progressMeta($course, $progress),
         ];
@@ -162,9 +181,63 @@ class EnrollmentService
         return $completed >= $materialIds->count();
     }
 
-    public function markProgress(User $user, Course $course, int $materialId): void
+    public function markContentProgress(User $user, Course $course, MaterialContent $content): bool
     {
-        $material = Material::whereKey($materialId)->whereHas('module', fn ($query) => $query->where('course_id', $course->id))->firstOrFail();
+        $content->loadMissing('material.module');
+
+        if ($content->material?->module?->course_id !== $course->id) {
+            abort(404);
+        }
+
+        // Quiz content is only completed through a full quiz submission.
+        if ($content->type === 'quiz') {
+            return false;
+        }
+
+        MaterialContentProgress::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'material_content_id' => $content->id,
+            ],
+            [
+                'is_completed' => true,
+                'completed_at' => now(),
+            ]
+        );
+
+        return true;
+    }
+
+    public function canCompleteMaterial(User $user, Material $material): bool
+    {
+        $material->loadMissing('contents');
+
+        if ($material->contents->isEmpty()) {
+            return false;
+        }
+
+        $completedContentIds = MaterialContentProgress::where('user_id', $user->id)
+            ->whereIn('material_content_id', $material->contents->pluck('id'))
+            ->where('is_completed', true)
+            ->pluck('material_content_id')
+            ->all();
+
+        return $material->contents->every(
+            fn (MaterialContent $content) => in_array($content->id, $completedContentIds, true)
+        );
+    }
+
+    public function markProgress(User $user, Course $course, int $materialId): bool
+    {
+        $material = Material::whereKey($materialId)
+            ->whereHas('module', fn ($query) => $query->where('course_id', $course->id))
+            ->with('contents')
+            ->firstOrFail();
+
+        if (! $this->canCompleteMaterial($user, $material)) {
+            return false;
+        }
+
         MaterialProgress::updateOrCreate(
             ['user_id' => $user->id, 'material_id' => $material->id],
             ['is_completed' => true, 'completed_at' => now()],
@@ -174,5 +247,7 @@ class EnrollmentService
 
         // Auto-generate certificate when course is 100% complete
         app(CertificateService::class)->generateIfCompleted($user, $course);
+
+        return true;
     }
 }

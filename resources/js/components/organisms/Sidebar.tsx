@@ -49,7 +49,7 @@ export default function Sidebar({ role }: SidebarProps) {
         style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
       >
         <Link href="/" className="flex items-center">
-          <img src="/images/logo.png" alt="Logo" className="h-7 w-auto" />
+          <img src="/images/logo.svg" alt="Logo" className="h-7 w-auto" />
         </Link>
         <Link href="/" target="_blank" className="p-1.5 text-white/20 hover:text-white/60 transition-colors" title="View site">
           <ExternalLink size={14} />

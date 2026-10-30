@@ -91,6 +91,8 @@ class UserService
     public function delete(User $user): void
     {
         DB::transaction(function () use ($user) {
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+            \App\Models\Enrollment::where('user_id', $user->id)->update(['status' => 'revoked']);
             $user->delete();
         });
     }

@@ -210,7 +210,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       >
         <div className="h-16 flex items-center justify-between px-5 shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <Link href="/" className="flex items-center">
-            <img src="/images/logo.png" alt="Logo" className="h-7 w-auto" />
+            <img src="/images/logo.svg" alt="Logo" className="h-7 w-auto" />
           </Link>
           <div className="flex items-center gap-1">
             <Link href="/" target="_blank" className="p-1.5 text-white/20 hover:text-white/60 transition-colors" title="View site">

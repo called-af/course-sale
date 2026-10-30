@@ -29,8 +29,8 @@ const DEFAULTS: CertificateTemplate = {
 };
 
 const BG_OPTIONS: { value: CertificateTemplate['bg_style']; label: string; desc: string }[] = [
-    { value: 'dark',     label: 'Dark',     desc: 'Dark navy background — premium look' },
-    { value: 'light',    label: 'Light',    desc: 'Clean white background — minimal & professional' },
+    { value: 'dark', label: 'Dark', desc: 'Dark navy background — premium look' },
+    { value: 'light', label: 'Light', desc: 'Clean white background — minimal & professional' },
     { value: 'gradient', label: 'Gradient', desc: 'Gradient with primary color accent' },
 ];
 
@@ -38,15 +38,14 @@ export default function CertificateTemplateEditor({ courseSlug, rolePrefix, init
     const [template, setTemplate] = useState<CertificateTemplate>({ ...DEFAULTS, ...initialTemplate });
     const [saving, setSaving] = useState(false);
 
-    const set = <K extends keyof CertificateTemplate>(key: K, value: CertificateTemplate[K]) =>
-        setTemplate((prev) => ({ ...prev, [key]: value }));
+    const set = <K extends keyof CertificateTemplate>(key: K, value: CertificateTemplate[K]) => setTemplate((prev) => ({ ...prev, [key]: value }));
 
     const reset = () => setTemplate({ ...DEFAULTS });
 
     const save = () => {
         const url = `/${rolePrefix}/courses/${courseSlug}/certificate-template`;
         router.put(url, template as any, {
-            onStart:  () => setSaving(true),
+            onStart: () => setSaving(true),
             onFinish: () => setSaving(false),
             preserveScroll: true,
         });
@@ -55,15 +54,14 @@ export default function CertificateTemplateEditor({ courseSlug, rolePrefix, init
     return (
         <div className="grid gap-8 lg:grid-cols-12">
             {/* ── FORM COLUMN ─────────────────────────────────── */}
-            <div className="lg:col-span-5 space-y-5">
-
+            <div className="space-y-5 lg:col-span-5">
                 {/* Colors */}
-                <div className="border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+                <div className="space-y-4 border border-slate-200 bg-white p-5 shadow-xs">
                     <SectionTitle icon={<Palette size={15} />} title="Colors" />
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-medium text-slate-600 mb-1.5">Primary Color</label>
+                            <label className="mb-1.5 block text-xs font-medium text-slate-600">Primary Color</label>
                             <div className="flex items-center gap-2 border border-slate-200 p-1.5">
                                 <input
                                     type="color"
@@ -76,7 +74,7 @@ export default function CertificateTemplateEditor({ courseSlug, rolePrefix, init
                             <p className="mt-1 text-[10px] text-slate-400">Border, seal, cert number</p>
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-600 mb-1.5">Accent Color</label>
+                            <label className="mb-1.5 block text-xs font-medium text-slate-600">Accent Color</label>
                             <div className="flex items-center gap-2 border border-slate-200 p-1.5">
                                 <input
                                     type="color"
@@ -92,16 +90,14 @@ export default function CertificateTemplateEditor({ courseSlug, rolePrefix, init
                 </div>
 
                 {/* Background Style */}
-                <div className="border border-slate-200 bg-white p-5 shadow-xs space-y-3">
+                <div className="space-y-3 border border-slate-200 bg-white p-5 shadow-xs">
                     <SectionTitle icon={<Info size={15} />} title="Background Style" />
                     <div className="space-y-2">
                         {BG_OPTIONS.map((opt) => (
                             <label
                                 key={opt.value}
                                 className={`flex cursor-pointer items-start gap-3 border p-3 transition-colors ${
-                                    template.bg_style === opt.value
-                                        ? 'border-purple-300 bg-purple-50'
-                                        : 'border-slate-200 hover:border-slate-300'
+                                    template.bg_style === opt.value ? 'border-purple-300 bg-purple-50' : 'border-slate-200 hover:border-slate-300'
                                 }`}
                             >
                                 <input
@@ -122,11 +118,11 @@ export default function CertificateTemplateEditor({ courseSlug, rolePrefix, init
                 </div>
 
                 {/* Text */}
-                <div className="border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+                <div className="space-y-4 border border-slate-200 bg-white p-5 shadow-xs">
                     <SectionTitle icon={<Award size={15} />} title="Certificate Text" />
 
                     <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1.5">
+                        <label className="mb-1.5 block text-xs font-medium text-slate-600">
                             Certificate Title
                             <span className="ml-1 font-normal text-slate-400">(leave blank for default)</span>
                         </label>
@@ -141,7 +137,7 @@ export default function CertificateTemplateEditor({ courseSlug, rolePrefix, init
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1.5">
+                        <label className="mb-1.5 block text-xs font-medium text-slate-600">
                             Footer Note
                             <span className="ml-1 font-normal text-slate-400">(optional quote or message)</span>
                         </label>
@@ -153,12 +149,12 @@ export default function CertificateTemplateEditor({ courseSlug, rolePrefix, init
                             rows={2}
                             className="w-full resize-none border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder-slate-300 focus:border-purple-400 focus:outline-none"
                         />
-                        <p className="mt-0.5 text-[10px] text-slate-400 text-right">{template.footer_note.length}/200</p>
+                        <p className="mt-0.5 text-right text-[10px] text-slate-400">{template.footer_note.length}/200</p>
                     </div>
                 </div>
 
                 {/* Signature */}
-                <div className="border border-slate-200 bg-white p-5 shadow-xs space-y-3">
+                <div className="space-y-3 border border-slate-200 bg-white p-5 shadow-xs">
                     <SectionTitle icon={<Shield size={15} />} title="Signature" />
 
                     <label className="flex cursor-pointer items-center gap-3">
@@ -179,7 +175,7 @@ export default function CertificateTemplateEditor({ courseSlug, rolePrefix, init
 
                     {template.show_signature && (
                         <div>
-                            <label className="block text-xs font-medium text-slate-600 mb-1.5">Instructor Signature Name</label>
+                            <label className="mb-1.5 block text-xs font-medium text-slate-600">Instructor Signature Name</label>
                             <input
                                 type="text"
                                 value={template.signature_name}
@@ -197,7 +193,7 @@ export default function CertificateTemplateEditor({ courseSlug, rolePrefix, init
                     <button
                         onClick={save}
                         disabled={saving}
-                        className="flex flex-1 items-center justify-center gap-2 bg-purple-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-purple-800 disabled:opacity-60 transition-colors"
+                        className="flex flex-1 items-center justify-center gap-2 bg-purple-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-purple-800 disabled:opacity-60"
                     >
                         {saving ? (
                             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -209,7 +205,7 @@ export default function CertificateTemplateEditor({ courseSlug, rolePrefix, init
                     <button
                         onClick={reset}
                         title="Reset to defaults"
-                        className="flex items-center gap-2 border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 hover:border-slate-300 hover:text-slate-800 transition-colors"
+                        className="flex items-center gap-2 border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-800"
                     >
                         <RotateCcw size={14} />
                         Reset
@@ -221,11 +217,11 @@ export default function CertificateTemplateEditor({ courseSlug, rolePrefix, init
             <div className="lg:col-span-7">
                 <div className="sticky top-20 space-y-3">
                     <div className="flex items-center gap-2">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Live Preview</p>
+                        <p className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Live Preview</p>
                         <span className="text-[10px] text-slate-400">— how the certificate will look</span>
                     </div>
                     <CertificatePreviewCard template={template} />
-                    <p className="text-[10px] text-slate-400 text-center">
+                    <p className="text-center text-[10px] text-slate-400">
                         This is an approximate preview. The actual PDF may differ slightly in font rendering.
                     </p>
                 </div>
@@ -236,27 +232,24 @@ export default function CertificateTemplateEditor({ courseSlug, rolePrefix, init
 
 /* ── LIVE PREVIEW CARD ──────────────────────────────────────────────────── */
 function CertificatePreviewCard({ template }: { template: CertificateTemplate }) {
-    const {
-        primary_color, accent_color, bg_style,
-        show_signature, signature_name, custom_title, footer_note,
-    } = template;
+    const { primary_color, accent_color, bg_style, show_signature, signature_name, custom_title, footer_note } = template;
 
-    const title  = custom_title || 'Certificate of Completion';
+    const title = custom_title || 'Certificate of Completion';
     const sigName = signature_name || 'Instructor';
 
-    const bgClass =
-        bg_style === 'light'    ? 'bg-[#f8f7ff]' :
-        bg_style === 'gradient' ? ''              : '';
+    const bgClass = bg_style === 'light' ? 'bg-[#f8f7ff]' : bg_style === 'gradient' ? '' : '';
 
     const bgInlineStyle =
-        bg_style === 'dark'     ? { background: 'linear-gradient(135deg, #0f0f18 0%, #1a0a2e 50%, #0f0f18 100%)' } :
-        bg_style === 'gradient' ? { background: `linear-gradient(135deg, #0f0f18 0%, ${primary_color}55 50%, #0f0f18 100%)` } :
-        {};
+        bg_style === 'dark'
+            ? { background: 'linear-gradient(135deg, #0f0f18 0%, #1a0a2e 50%, #0f0f18 100%)' }
+            : bg_style === 'gradient'
+              ? { background: `linear-gradient(135deg, #0f0f18 0%, ${primary_color}55 50%, #0f0f18 100%)` }
+              : {};
 
     const isDark = bg_style !== 'light';
-    const textPrimary   = isDark ? '#f1f5f9' : '#1e1b4b';
+    const textPrimary = isDark ? '#f1f5f9' : '#1e1b4b';
     const textSecondary = isDark ? '#94a3b8' : '#64748b';
-    const textMuted     = isDark ? '#475569' : '#94a3b8';
+    const textMuted = isDark ? '#475569' : '#94a3b8';
 
     return (
         <div
@@ -264,10 +257,8 @@ function CertificatePreviewCard({ template }: { template: CertificateTemplate })
             style={{ ...bgInlineStyle, aspectRatio: '842/595', borderColor: `${primary_color}33` }}
         >
             {/* Blobs */}
-            <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full opacity-20"
-                style={{ background: primary_color }} />
-            <div className="absolute -left-8 -bottom-8 h-32 w-32 rounded-full opacity-10"
-                style={{ background: primary_color }} />
+            <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full opacity-20" style={{ background: primary_color }} />
+            <div className="absolute -bottom-8 -left-8 h-32 w-32 rounded-full opacity-10" style={{ background: primary_color }} />
 
             {/* Outer border */}
             <div className="absolute inset-3 border opacity-40" style={{ borderColor: accent_color }} />
@@ -297,40 +288,51 @@ function CertificatePreviewCard({ template }: { template: CertificateTemplate })
                 </p>
 
                 {/* Recipient */}
-                <p className="mb-1 text-[6px] tracking-[2px] uppercase" style={{ color: textMuted }}>This certifies that</p>
-                <p className="text-xl font-bold leading-tight" style={{ color: textPrimary }}>
+                <p className="mb-1 text-[6px] tracking-[2px] uppercase" style={{ color: textMuted }}>
+                    This certifies that
+                </p>
+                <p className="text-xl leading-tight font-bold" style={{ color: textPrimary }}>
                     Student Name
                 </p>
                 <div className="my-2 h-px w-28" style={{ background: `linear-gradient(90deg, transparent, ${accent_color}80, transparent)` }} />
-                <p className="mb-1.5 text-[6px] tracking-[1.5px] uppercase" style={{ color: textMuted }}>has successfully completed</p>
-                <p className="text-[11px] font-bold leading-snug max-w-[55%]" style={{ color: accent_color }}>
+                <p className="mb-1.5 text-[6px] tracking-[1.5px] uppercase" style={{ color: textMuted }}>
+                    has successfully completed
+                </p>
+                <p className="max-w-[55%] text-[11px] leading-snug font-bold" style={{ color: accent_color }}>
                     Your Course Title
                 </p>
 
                 {/* Footer row */}
-                <div className="mt-3 flex w-full max-w-xs justify-center divide-x text-center"
-                    style={{ divideColor: `${accent_color}20` }}>
+                <div className="mt-3 flex w-full max-w-xs justify-center divide-x text-center">
                     {[
-                        ['Issued On',       '01 Jan 2026'],
+                        ['Issued On', '01 Jan 2026'],
                         ['Certificate No.', 'KRSIO-XXXXXX'],
-                        ['Instructor',      'Your Name'],
+                        ['Instructor', 'Your Name'],
                     ].map(([label, value], i) => (
                         <div key={i} className="flex-1 px-3">
-                            <p className="text-[5px] uppercase tracking-widest mb-0.5" style={{ color: textMuted }}>{label}</p>
-                            <p className={`text-[6px] font-bold ${i === 1 ? 'font-mono' : ''}`}
-                               style={{ color: i === 1 ? primary_color : textSecondary }}>{value}</p>
+                            <p className="mb-0.5 text-[5px] tracking-widest uppercase" style={{ color: textMuted }}>
+                                {label}
+                            </p>
+                            <p
+                                className={`text-[6px] font-bold ${i === 1 ? 'font-mono' : ''}`}
+                                style={{ color: i === 1 ? primary_color : textSecondary }}
+                            >
+                                {value}
+                            </p>
                         </div>
                     ))}
                 </div>
 
                 {/* Signature */}
                 {show_signature && (
-                    <div className="mt-3 flex gap-10 justify-center">
+                    <div className="mt-3 flex justify-center gap-10">
                         {[sigName, 'KursusIO'].map((name, i) => (
                             <div key={i} className="text-center">
                                 <div className="mb-1 h-px w-20" style={{ borderTop: `1px solid ${accent_color}40` }} />
-                                <p className="text-[6px]" style={{ color: textSecondary }}>{name}</p>
-                                <p className="text-[5px] uppercase tracking-widest opacity-50" style={{ color: textMuted }}>
+                                <p className="text-[6px]" style={{ color: textSecondary }}>
+                                    {name}
+                                </p>
+                                <p className="text-[5px] tracking-widest uppercase opacity-50" style={{ color: textMuted }}>
                                     {i === 0 ? 'Instructor' : 'Platform'}
                                 </p>
                             </div>
@@ -340,20 +342,24 @@ function CertificatePreviewCard({ template }: { template: CertificateTemplate })
 
                 {/* Footer note */}
                 {footer_note && (
-                    <p className="mt-2 text-[6px] italic max-w-xs" style={{ color: textMuted }}>
+                    <p className="mt-2 max-w-xs text-[6px] italic" style={{ color: textMuted }}>
                         "{footer_note}"
                     </p>
                 )}
             </div>
 
             {/* Seal */}
-            <div className="absolute bottom-4 right-4 h-12 w-12 rounded-full border-2 flex items-center justify-center"
-                style={{ borderColor: `${primary_color}80` }}>
-                <div className="h-9 w-9 rounded-full border flex items-center justify-center"
-                    style={{ borderColor: `${primary_color}40` }}>
-                    <p className="text-[4.5px] font-bold leading-tight text-center uppercase tracking-wide"
-                        style={{ color: primary_color }}>
-                        KURSUS<br />IO<br />VERIFIED
+            <div
+                className="absolute right-4 bottom-4 flex h-12 w-12 items-center justify-center rounded-full border-2"
+                style={{ borderColor: `${primary_color}80` }}
+            >
+                <div className="flex h-9 w-9 items-center justify-center rounded-full border" style={{ borderColor: `${primary_color}40` }}>
+                    <p className="text-center text-[4.5px] leading-tight font-bold tracking-wide uppercase" style={{ color: primary_color }}>
+                        KURSUS
+                        <br />
+                        IO
+                        <br />
+                        VERIFIED
                     </p>
                 </div>
             </div>
@@ -368,9 +374,9 @@ function CertificatePreviewCard({ template }: { template: CertificateTemplate })
 
 function SectionTitle({ icon, title }: { icon: React.ReactNode; title: string }) {
     return (
-        <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+        <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
             <span className="text-purple-500">{icon}</span>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">{title}</h4>
+            <h4 className="text-xs font-bold tracking-wider text-slate-700 uppercase">{title}</h4>
         </div>
     );
 }

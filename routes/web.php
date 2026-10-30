@@ -1,29 +1,29 @@
 <?php
 
+use App\Http\Controllers\Admin\CourseApprovalController;
+use App\Http\Controllers\Admin\GeneralSettingsController;
 use App\Http\Controllers\AuthControllers;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\CertificateTemplateController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\Course\CourseController;
 use App\Http\Controllers\Course\MaterialContentController;
 use App\Http\Controllers\Course\MaterialController;
 use App\Http\Controllers\Course\ModuleController;
-use App\Http\Controllers\EnrollmentController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\LandingController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\Course\QuizController;
-use App\Http\Controllers\Admin\CourseApprovalController;
-use App\Http\Controllers\RecommendationController;
-use App\Http\Controllers\TagController;
-use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\CommentController;
-use App\Http\Controllers\Admin\GeneralSettingsController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\Instructor\InstructorProfileController;
 use App\Http\Controllers\Instructor\InstructorSettingsController;
-use App\Services\EventTrackingService;
+use App\Http\Controllers\LandingController;
+use App\Http\Controllers\RecommendationController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\TagController;
+use App\Http\Controllers\UserController;
 use App\Models\Course;
+use App\Services\EventTrackingService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -76,14 +76,42 @@ Route::get('/course/{course:slug}', function (Course $course) {
         /** @var \App\Services\EnrollmentService $enrollmentService */
         $enrollmentService = app(\App\Services\EnrollmentService::class);
         $canReview = $enrollmentService->isCompleted($user, $course);
-        $course->load(['modules.materials:id,module_id']);
+
+        // Follow lesson/content level completion so a watched video, opened file,
+        // read text or submitted quiz immediately reflects on the progress.
+        $course->load([
+            'modules' => fn ($modules) => $modules->orderBy('sort_order')->with([
+                'materials' => fn ($materials) => $materials->orderBy('sort_order')->with([
+                    'contents' => fn ($contents) => $contents->orderBy('sort_order'),
+                ]),
+            ]),
+        ]);
+
         $allMaterialIds = $course->modules->flatMap(fn ($m) => $m->materials->pluck('id'));
         $totalMaterials = $allMaterialIds->count();
-        $completedCount = \App\Models\MaterialProgress::where('user_id', $user->id)
-            ->whereIn('material_id', $allMaterialIds)
+
+        $allContentIds = $course->modules
+            ->flatMap(fn ($m) => $m->materials->flatMap(fn ($material) => $material->contents->pluck('id')));
+        $contentProgress = \App\Models\MaterialContentProgress::where('user_id', $user->id)
+            ->whereIn('material_content_id', $allContentIds)
             ->where('is_completed', true)
-            ->count();
-        $progressPercent = $totalMaterials > 0 ? (int) round(($completedCount / $totalMaterials) * 100) : 0;
+            ->pluck('is_completed', 'material_content_id');
+
+        $completedMaterials = 0;
+        foreach ($course->modules as $module) {
+            foreach ($module->materials as $material) {
+                $materialContentIds = $material->contents->pluck('id');
+                $allContentsDone = $materialContentIds->isNotEmpty()
+                    && $materialContentIds->every(fn ($contentId) => (bool) ($contentProgress[$contentId] ?? false));
+
+                if ($allContentsDone) {
+                    $completedMaterials++;
+                }
+            }
+        }
+
+        $progressPercent = $totalMaterials > 0 ? (int) round(($completedMaterials / $totalMaterials) * 100) : 0;
+        $completedCount = $completedMaterials;
     }
 
     /** @var \App\Services\CommentService $commentService */
@@ -94,15 +122,15 @@ Route::get('/course/{course:slug}', function (Course $course) {
         'course' => $course
             ->load(['creator:id,name', 'categories:id,name', 'tags:id,name,slug'])
             ->append('thumbnail_url'),
-        'isEnrolled'      => $isEnrolled,
-        'canReview'       => $canReview,
+        'isEnrolled' => $isEnrolled,
+        'canReview' => $canReview,
         'progressPercent' => $progressPercent,
-        'completedCount'  => $completedCount,
-        'totalMaterials'  => $totalMaterials,
-        'reviews'      => $reviewData['reviews'],
-        'ratingStats'  => $reviewData['rating_stats'],
-        'userReview'   => $userReview,
-        'comments'     => $comments,
+        'completedCount' => $completedCount,
+        'totalMaterials' => $totalMaterials,
+        'reviews' => $reviewData['reviews'],
+        'ratingStats' => $reviewData['rating_stats'],
+        'userReview' => $userReview,
+        'comments' => $comments,
     ]);
 })->name('course.show');
 
@@ -353,6 +381,15 @@ Route::middleware(['auth', 'role'])->group(function () {
             Route::patch('/settings/recommendation/toggle', [GeneralSettingsController::class, 'toggleRecommendation'])
                 ->name('settings.recommendation.toggle');
 
+            Route::patch('/settings/whatsapp/toggle', [GeneralSettingsController::class, 'toggleWhatsapp'])
+                ->name('settings.whatsapp.toggle');
+
+            Route::put('/settings/whatsapp', [GeneralSettingsController::class, 'updateWhatsapp'])
+                ->name('settings.whatsapp.update');
+
+            Route::post('/settings/whatsapp/test', [GeneralSettingsController::class, 'testWhatsapp'])
+                ->name('settings.whatsapp.test');
+
             Route::put('/settings/ai', [GeneralSettingsController::class, 'updateAi'])
                 ->middleware('throttle:ai-settings-update')
                 ->name('settings.ai.update');
@@ -442,6 +479,18 @@ Route::middleware(['auth', 'role'])->group(function () {
             Route::post('/courses/{course:slug}/progress', [EnrollmentController::class, 'markProgress'])
                 ->name('courses.progress.store');
 
+            Route::post('/courses/{course:slug}/contents/{content}/complete', [EnrollmentController::class, 'markContentProgress'])
+                ->name('courses.contents.complete');
+
+            Route::post('/courses/{course:slug}/quiz/{content}/start', [EnrollmentController::class, 'startQuiz'])
+                ->name('courses.quiz.start');
+
+            Route::post('/courses/{course:slug}/quiz/{content}/draft', [EnrollmentController::class, 'saveQuizDraft'])
+                ->name('courses.quiz.draft');
+
+            Route::post('/courses/{course:slug}/quiz/{content}/reset', [EnrollmentController::class, 'resetQuiz'])
+                ->name('courses.quiz.reset');
+
             Route::post('/courses/{course:slug}/quiz/{content}/submit', [EnrollmentController::class, 'submitQuiz'])
                 ->name('courses.quiz.submit');
 
@@ -493,13 +542,13 @@ Route::middleware(['auth', 'role:admin'])
 
             return \Inertia\Inertia::render('admin/reviews/page', [
                 'reviews' => $reviews->map(fn ($r) => [
-                    'id'          => $r->id,
-                    'rating'      => $r->rating,
-                    'comment'     => $r->comment,
+                    'id' => $r->id,
+                    'rating' => $r->rating,
+                    'comment' => $r->comment,
                     'is_approved' => $r->is_approved,
-                    'created_at'  => $r->created_at,
-                    'user'        => ['id' => $r->user->id, 'name' => $r->user->name],
-                    'course'      => ['id' => $r->course->id, 'title' => $r->course->title, 'slug' => $r->course->slug],
+                    'created_at' => $r->created_at,
+                    'user' => ['id' => $r->user->id, 'name' => $r->user->name],
+                    'course' => ['id' => $r->course->id, 'title' => $r->course->title, 'slug' => $r->course->slug],
                 ]),
             ]);
         })->name('reviews.index');
@@ -518,13 +567,13 @@ Route::middleware(['auth', 'role:admin'])
 
             return \Inertia\Inertia::render('admin/comments/page', [
                 'comments' => $comments->map(fn ($c) => [
-                    'id'          => $c->id,
-                    'body'        => $c->body,
-                    'parent_id'   => $c->parent_id,
+                    'id' => $c->id,
+                    'body' => $c->body,
+                    'parent_id' => $c->parent_id,
                     'is_approved' => $c->is_approved,
-                    'created_at'  => $c->created_at,
-                    'user'        => ['id' => $c->user->id, 'name' => $c->user->name],
-                    'course'      => ['id' => $c->course->id, 'title' => $c->course->title, 'slug' => $c->course->slug],
+                    'created_at' => $c->created_at,
+                    'user' => ['id' => $c->user->id, 'name' => $c->user->name],
+                    'course' => ['id' => $c->course->id, 'title' => $c->course->title, 'slug' => $c->course->slug],
                 ]),
             ]);
         })->name('comments.index');

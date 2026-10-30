@@ -5,6 +5,9 @@ import AiSettingsPanel, {
 } from "@/components/organisms/admin/AiSettingsPanel"
 import AppearanceSettingsPanel from "@/components/organisms/admin/AppearanceSettingsPanel"
 import RecommendationSettingsPanel from "@/components/organisms/admin/RecommendationSettingsPanel"
+import WhatsAppSettingsPanel, {
+    type WhatsAppSettingsData,
+} from "@/components/organisms/admin/WhatsAppSettingsPanel"
 import Title from "@/components/atoms/Title"
 import AdminLayout from "@/components/templates/AdminLayout"
 
@@ -12,6 +15,7 @@ export default function General() {
     const { props } = usePage<{
         ai: AiSettingsData
         recommendation: { enabled: boolean }
+        whatsapp: WhatsAppSettingsData
         appearance: {
             palette:
                 | "purple"
@@ -35,9 +39,14 @@ export default function General() {
                 <div>
                     <Title as="h3">Pengaturan Umum</Title>
                     <p className="mt-1 text-sm text-neutral-500">
-                        Kelola konfigurasi sistem dan layanan AI.
+                        Kelola konfigurasi sistem, AI, dan gateway WhatsApp Infobip.
                     </p>
                 </div>
+
+                <WhatsAppSettingsPanel
+                    initialWhatsApp={props.whatsapp}
+                    flash={props.flash}
+                />
 
                 <AiSettingsPanel
                     initialAi={props.ai}

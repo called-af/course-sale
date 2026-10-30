@@ -12,29 +12,54 @@ class WhatsAppService
 {
     protected string $provider;
 
+    protected bool $enabled = true;
+
     // Infobip configuration
     protected ?string $infobipBaseUrl;
+
     protected ?string $infobipApiKey;
+
     protected string $infobipFrom;
+
     protected string $infobipSandboxKeyword;
 
     // Meta Cloud API configuration
     protected ?string $accessToken;
+
     protected ?string $phoneNumberId;
+
     protected string $apiVersion;
+
     protected ?string $templateName;
+
     protected string $templateLang;
+
     protected int $timeout;
 
     public function __construct()
     {
-        $this->provider = config('services.whatsapp.provider', 'infobip');
+        $this->loadConfiguration();
+    }
 
-        // Infobip settings
-        $this->infobipBaseUrl = config('services.whatsapp.infobip.base_url');
-        $this->infobipApiKey = config('services.whatsapp.infobip.api_key');
-        $this->infobipFrom = (string) config('services.whatsapp.infobip.from', '447860088970');
-        $this->infobipSandboxKeyword = (string) config('services.whatsapp.infobip.sandbox_keyword', 'ARKADANISAYSSTUFF');
+    public function loadConfiguration(): void
+    {
+        $setting = null;
+        try {
+            if (class_exists(\App\Models\WhatsAppSetting::class) && \Illuminate\Support\Facades\Schema::hasTable('whatsapp_settings')) {
+                $setting = \App\Models\WhatsAppSetting::current();
+            }
+        } catch (\Throwable $e) {
+            // Graceful fallback if database/table is unavailable
+        }
+
+        $this->enabled = $setting ? (bool) $setting->enabled : true;
+        $this->provider = $setting?->provider ?: config('services.whatsapp.provider', 'infobip');
+
+        // Infobip settings: prioritize DB admin configuration, fallback to config/env
+        $this->infobipBaseUrl = $setting?->base_url ?: config('services.whatsapp.infobip.base_url');
+        $this->infobipApiKey = $setting?->api_key ?: config('services.whatsapp.infobip.api_key');
+        $this->infobipFrom = (string) ($setting?->from_number ?: config('services.whatsapp.infobip.from', '447860088970'));
+        $this->infobipSandboxKeyword = (string) ($setting?->sandbox_keyword ?: config('services.whatsapp.infobip.sandbox_keyword', 'ARKADANISAYSSTUFF'));
 
         // Meta Cloud API settings
         $this->accessToken = config('services.whatsapp.access_token');
@@ -43,6 +68,14 @@ class WhatsAppService
         $this->templateName = config('services.whatsapp.template_name');
         $this->templateLang = config('services.whatsapp.template_lang', 'id');
         $this->timeout = (int) config('services.whatsapp.timeout', 15);
+    }
+
+    /**
+     * Check if WhatsApp notifications are globally enabled.
+     */
+    public function isEnabled(): bool
+    {
+        return $this->enabled;
     }
 
     /**
@@ -65,6 +98,21 @@ class WhatsAppService
         return $this->provider;
     }
 
+    public function getBaseUrl(): ?string
+    {
+        return $this->infobipBaseUrl;
+    }
+
+    public function getSender(): string
+    {
+        return $this->infobipFrom;
+    }
+
+    public function getSandboxKeyword(): string
+    {
+        return $this->infobipSandboxKeyword;
+    }
+
     /**
      * Normalize phone number to international format (digits only, e.g. 6281234567890).
      */
@@ -79,7 +127,7 @@ class WhatsAppService
 
         // Convert domestic Indonesian format (08xxx) to international (628xxx)
         if (str_starts_with($digits, '08')) {
-            $digits = '62' . substr($digits, 1);
+            $digits = '62'.substr($digits, 1);
         }
 
         return $digits;
@@ -90,6 +138,13 @@ class WhatsAppService
      */
     public function sendEnrollmentNotification(User $instructor, User $student, Course $course, $enrolledAt = null): array
     {
+        if (! $this->isEnabled()) {
+            return [
+                'success' => false,
+                'error' => 'Notifikasi WhatsApp dinonaktifkan oleh administrator.',
+            ];
+        }
+
         $recipient = $this->formatPhoneNumber($instructor->whatsapp_number);
 
         if (empty($recipient)) {
@@ -106,13 +161,13 @@ class WhatsAppService
 
         // Standard text message
         $body = "Halo, *{$instructor->name}*! 🎓\n\n"
-            . "Ada student baru yang baru saja enroll di course Anda:\n\n"
-            . "👤 *Student:* {$student->name}\n"
-            . "📚 *Course:* {$course->title}\n"
-            . "🗓️ *Tanggal Enrollment:* {$dateFormatted}\n\n"
-            . "Buka dashboard instructor Anda untuk memantau progress siswa:\n"
-            . "🔗 {$dashboardUrl}\n\n"
-            . "Salam,\n*{$appName}*";
+            ."Ada student baru yang baru saja enroll di course Anda:\n\n"
+            ."👤 *Student:* {$student->name}\n"
+            ."📚 *Course:* {$course->title}\n"
+            ."🗓️ *Tanggal Enrollment:* {$dateFormatted}\n\n"
+            ."Buka dashboard instructor Anda untuk memantau progress siswa:\n"
+            ."🔗 {$dashboardUrl}\n\n"
+            ."Salam,\n*{$appName}*";
 
         // If provider is Meta and template is configured, try template first
         if ($this->provider === 'meta' && ! empty($this->templateName)) {
@@ -161,10 +216,10 @@ class WhatsAppService
         $timestamp = now()->translatedFormat('d M Y, H:i');
 
         $body = "Halo, *{$instructor->name}*! 🎓\n\n"
-            . "Ini adalah pesan uji coba (*Test WhatsApp Notification*) dari platform *{$appName}*.\n\n"
-            . "Pengaturan notifikasi WhatsApp Anda telah berhasil terhubung dan aktif.\n"
-            . "Waktu Pengujian: {$timestamp}\n\n"
-            . "Setiap kali ada student baru yang mendaftar pada course Anda, sistem akan otomatis mengirim notifikasi ke nomor ini.";
+            ."Ini adalah pesan uji coba (*Test WhatsApp Notification*) dari platform *{$appName}*.\n\n"
+            ."Pengaturan notifikasi WhatsApp Anda telah berhasil terhubung dan aktif.\n"
+            ."Waktu Pengujian: {$timestamp}\n\n"
+            .'Setiap kali ada student baru yang mendaftar pada course Anda, sistem akan otomatis mengirim notifikasi ke nomor ini.';
 
         // Support local simulation mode if WhatsApp API credentials are not set in .env
         if (! $this->isConfigured()) {
@@ -232,11 +287,11 @@ class WhatsAppService
         if (! $this->isConfigured()) {
             return [
                 'success' => false,
-                'error' => 'Infobip WhatsApp API belum dikonfigurasi (INFOBIP_API_KEY atau INFOBIP_BASE_URL kosong di .env).',
+                'error' => 'Infobip WhatsApp API belum dikonfigurasi (API key atau Base URL belum diatur di Admin Panel atau .env).',
             ];
         }
 
-        $url = rtrim($this->infobipBaseUrl, '/') . '/whatsapp/1/message/text';
+        $url = rtrim($this->infobipBaseUrl, '/').'/whatsapp/1/message/text';
 
         $payload = [
             'from' => $this->infobipFrom,
@@ -248,7 +303,7 @@ class WhatsAppService
 
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'App ' . $this->infobipApiKey,
+                'Authorization' => 'App '.$this->infobipApiKey,
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
             ])->timeout($this->timeout)->post($url, $payload);
@@ -293,7 +348,7 @@ class WhatsAppService
                 'error' => "Gagal kirim via Infobip: {$errorMsg}",
             ];
         } catch (\Throwable $e) {
-            Log::error('Exception while calling Infobip API: ' . $e->getMessage(), [
+            Log::error('Exception while calling Infobip API: '.$e->getMessage(), [
                 'recipient' => $this->maskPhoneNumber($recipient),
             ]);
 
@@ -402,7 +457,7 @@ class WhatsAppService
             }
 
             $errorData = $response->json('error', []);
-            $errorMessage = $errorData['message'] ?? 'HTTP ' . $response->status() . ': ' . $response->body();
+            $errorMessage = $errorData['message'] ?? 'HTTP '.$response->status().': '.$response->body();
 
             Log::error('WhatsApp Cloud API returned error', [
                 'recipient' => $this->maskPhoneNumber($recipient),
@@ -418,7 +473,7 @@ class WhatsAppService
                 'code' => $errorData['code'] ?? $response->status(),
             ];
         } catch (\Throwable $e) {
-            Log::error('Exception while calling WhatsApp Cloud API: ' . $e->getMessage(), [
+            Log::error('Exception while calling WhatsApp Cloud API: '.$e->getMessage(), [
                 'recipient' => $this->maskPhoneNumber($recipient),
             ]);
 
@@ -439,7 +494,7 @@ class WhatsAppService
             return '****';
         }
 
-        return substr($number, 0, 3) . str_repeat('*', max(0, $len - 6)) . substr($number, -3);
+        return substr($number, 0, 3).str_repeat('*', max(0, $len - 6)).substr($number, -3);
     }
 
     /**

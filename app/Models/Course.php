@@ -55,7 +55,7 @@ class Course extends Model
 
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'creator_id');
+        return $this->belongsTo(User::class, 'creator_id')->withTrashed();
     }
 
     public function modules(): HasMany
@@ -121,20 +121,18 @@ class Course extends Model
     protected static function booted(): void
     {
         static::deleting(function (Course $course) {
-            $course->categories()->detach();
-            $course->tags()->detach();
-
-            foreach ($course->modules as $module) {
-                foreach ($module->materials as $material) {
-                    $material->materialContents()->delete();
-                    $material->delete();
+            // Only perform permanent purge actions if the course is being force-deleted
+            if ($course->isForceDeleting()) {
+                if ($course->enrollments()->exists() || \App\Models\OrderItem::where('course_id', $course->id)->exists()) {
+                    throw new \DomainException('Course cannot be permanently deleted because it has enrolled students or purchase history.');
                 }
 
-                $module->delete();
-            }
+                $course->categories()->detach();
+                $course->tags()->detach();
 
-            if ($course->thumbnail) {
-                Storage::disk('public')->delete($course->thumbnail);
+                if ($course->thumbnail) {
+                    Storage::disk('public')->delete($course->thumbnail);
+                }
             }
         });
     }

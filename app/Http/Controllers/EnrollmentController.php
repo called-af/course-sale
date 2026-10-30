@@ -5,14 +5,21 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Enrollment\MarkProgressRequest;
 use App\Http\Requests\Enrollment\StoreEnrollmentRequest;
 use App\Models\Course;
+use App\Models\MaterialContent;
 use App\Services\EnrollmentService;
+use App\Services\QuizService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class EnrollmentController extends Controller
 {
-    public function __construct(protected EnrollmentService $enrollmentService) {}
+    public function __construct(
+        protected EnrollmentService $enrollmentService,
+        protected QuizService $quizService,
+    ) {}
 
     /**
      * Enroll the authenticated user into a course.
@@ -32,7 +39,7 @@ class EnrollmentController extends Controller
      * Show the student's learning player for an enrolled course.
      * My Learning routes here directly. Discussion & ratings live on the course detail page.
      */
-    public function show(\Illuminate\Http\Request $request, Course $course): Response|RedirectResponse
+    public function show(Request $request, Course $course): Response|RedirectResponse
     {
         if (! $this->enrollmentService->isEnrolled($request->user(), $course)) {
             return redirect()
@@ -52,25 +59,93 @@ class EnrollmentController extends Controller
      */
     public function markProgress(MarkProgressRequest $request, Course $course): RedirectResponse
     {
-        $this->enrollmentService->markProgress($request->user(), $course, $request->integer('material_id'));
+        $completed = $this->enrollmentService->markProgress(
+            $request->user(),
+            $course,
+            $request->integer('material_id')
+        );
+
+        if (! $completed) {
+            return back()->with(
+                'error',
+                'Finish every lesson inside this material first. Read text to the bottom, watch videos to the end, and answer all quiz questions.'
+            );
+        }
+
+        return back()->with('success', 'Material marked as complete.');
+    }
+
+    /**
+     * Mark a single lesson content as viewed (text/file/ppt).
+     */
+    public function markContentProgress(Request $request, Course $course, MaterialContent $content): JsonResponse|RedirectResponse
+    {
+        $this->ensureEnrolled($request, $course, $content);
+
+        $completed = $this->enrollmentService->markContentProgress($request->user(), $course, $content);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => $completed,
+                'message' => $completed ? 'Lesson completed.' : 'Quiz lessons are completed by submitting the quiz.',
+            ]);
+        }
 
         return back();
     }
 
     /**
+     * Start or resume a quiz attempt.
+     */
+    public function startQuiz(Request $request, Course $course, MaterialContent $content): JsonResponse
+    {
+        $this->ensureEnrolled($request, $course, $content);
+
+        return response()->json([
+            'state' => $this->quizService->start($request->user(), $content),
+        ]);
+    }
+
+    /**
+     * Autosave the student's quiz draft answers.
+     */
+    public function saveQuizDraft(Request $request, Course $course, MaterialContent $content): JsonResponse
+    {
+        $this->ensureEnrolled($request, $course, $content);
+
+        $validated = $request->validate([
+            'answers' => ['present', 'array'],
+        ]);
+
+        return response()->json([
+            'state' => $this->quizService->saveDraft($request->user(), $content, $validated['answers']),
+        ]);
+    }
+
+    /**
+     * Reset the current quiz attempt and start over.
+     */
+    public function resetQuiz(Request $request, Course $course, MaterialContent $content): JsonResponse
+    {
+        $this->ensureEnrolled($request, $course, $content);
+
+        return response()->json([
+            'state' => $this->quizService->reset($request->user(), $content),
+        ]);
+    }
+
+    /**
      * Submit a quiz attempt.
      */
-    public function submitQuiz(
-        \Illuminate\Http\Request $request,
-        Course $course,
-        \App\Models\MaterialContent $content,
-        \App\Services\QuizService $quizService
-    ): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse {
+    public function submitQuiz(Request $request, Course $course, MaterialContent $content): JsonResponse|RedirectResponse
+    {
+        $this->ensureEnrolled($request, $course, $content);
+
         $validated = $request->validate([
             'answers' => ['required', 'array'],
         ]);
 
-        $result = $quizService->submitQuiz(
+        $result = $this->quizService->submitQuiz(
             $request->user(),
             $content,
             $validated['answers'],
@@ -86,5 +161,16 @@ class EnrollmentController extends Controller
         }
 
         return back()->with('success', 'Quiz submitted successfully. Score: '.$result['score'].'%');
+    }
+
+    /**
+     * Ensure the content belongs to the course and the user is enrolled.
+     */
+    protected function ensureEnrolled(Request $request, Course $course, MaterialContent $content): void
+    {
+        $content->loadMissing('material.module');
+
+        abort_unless($content->material?->module?->course_id === $course->id, 404);
+        abort_unless($this->enrollmentService->isEnrolled($request->user(), $course), 403);
     }
 }

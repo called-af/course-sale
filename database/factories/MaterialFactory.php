@@ -17,7 +17,7 @@ class MaterialFactory extends Factory
             'title' => fake()->sentence(4),
             'description' => fake()->text(),
             'sort_order' => fake()->numberBetween(-10000, 10000),
-            'is_preview' => fake()->boolean(),
+            'status' => 'published',
         ];
     }
 }

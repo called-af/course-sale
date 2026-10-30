@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Bot, X, MessageSquare, Plus, Trash2 } from 'lucide-react';
+import { Bot, X, Plus, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import ChatWindow from './ChatWindow';
-import ChatInput from './ChatInput';
-import ChatAssistantHeader from './ChatAssistantHeader';
 import ConfirmationDelete from '@/components/molecules/ConfirmationDelete';
+import ChatAssistantHeader from './ChatAssistantHeader';
+import ChatInput from './ChatInput';
+import ChatWindow from './ChatWindow';
 
 export default function FloatingAIChat() {
     const [isOpen, setIsOpen] = useState(false);
@@ -15,7 +15,7 @@ export default function FloatingAIChat() {
     const [activeTab, setActiveTab] = useState<'history' | 'room'>('room');
     const [chatSessions, setChatSessions] = useState<any[]>([]);
     const [hasLoaded, setHasLoaded] = useState(false);
-    
+
     // For delete confirmation
     const [sessionToDelete, setSessionToDelete] = useState<any>(null);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -58,7 +58,7 @@ export default function FloatingAIChat() {
             toast.warning('You have reached the maximum of 5 chat sessions. Delete an older chat to create a new one.');
             return;
         }
-        
+
         try {
             const response = await axios.post('/ai/chat', { title: 'Chat Baru' });
             setChatSessions([response.data, ...chatSessions]);
@@ -82,13 +82,13 @@ export default function FloatingAIChat() {
 
     const handleDelete = async () => {
         if (!sessionToDelete) return;
-        
+
         setIsDeleting(true);
         try {
             await axios.delete(`/ai/chat/${sessionToDelete.id}`);
-            const updatedSessions = chatSessions.filter(s => s.id !== sessionToDelete.id);
+            const updatedSessions = chatSessions.filter((s) => s.id !== sessionToDelete.id);
             setChatSessions(updatedSessions);
-            
+
             if (activeSession && activeSession.id === sessionToDelete.id) {
                 setActiveSession(updatedSessions.length > 0 ? updatedSessions[0] : null);
                 if (updatedSessions.length > 0) {
@@ -109,7 +109,7 @@ export default function FloatingAIChat() {
 
     const sendMessage = async (content: string) => {
         if (!content.trim()) return;
-        
+
         let currentSession = activeSession;
         if (!currentSession) {
             if (chatSessions.length >= 5) {
@@ -137,13 +137,11 @@ export default function FloatingAIChat() {
 
         try {
             const response = await axios.post(`/ai/chat/${currentSession.id}/messages`, { message: content });
-            
+
             // Check if title updated
             if (response.data.session_title && response.data.session_title !== currentSession.title) {
-                setChatSessions(prevSessions => 
-                    prevSessions.map(s => 
-                        s.id === currentSession.id ? { ...s, title: response.data.session_title } : s
-                    )
+                setChatSessions((prevSessions) =>
+                    prevSessions.map((s) => (s.id === currentSession.id ? { ...s, title: response.data.session_title } : s)),
                 );
                 currentSession.title = response.data.session_title;
                 setActiveSession({ ...currentSession });
@@ -152,7 +150,10 @@ export default function FloatingAIChat() {
             setMessages((prev) => [...prev, response.data.assistant_message]);
         } catch (error) {
             console.error('Error sending message', error);
-            setMessages((prev) => [...prev, { role: 'assistant', content: 'Maaf, AI Assistant sedang mengalami gangguan. Silakan coba lagi beberapa saat.' }]);
+            setMessages((prev) => [
+                ...prev,
+                { role: 'assistant', content: 'Maaf, AI Assistant sedang mengalami gangguan. Silakan coba lagi beberapa saat.' },
+            ]);
         } finally {
             setIsLoading(false);
         }
@@ -161,22 +162,22 @@ export default function FloatingAIChat() {
     return (
         <div className={isOpen ? 'fixed inset-0 z-50' : 'fixed z-50'}>
             {isOpen ? (
-                <div className="absolute inset-y-0 right-0 bg-white dark:bg-slate-900 shadow-2xl border border-gray-200 dark:border-slate-700 w-full h-full max-w-none flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 md:w-1/3">
+                <div className="animate-in slide-in-from-bottom-5 absolute inset-y-0 right-0 flex h-full w-full max-w-none flex-col overflow-hidden border border-gray-200 bg-white shadow-2xl md:w-1/3 dark:border-slate-700 dark:bg-slate-900">
                     {/* Header */}
-                    <div className="bg-purple-600 px-4 py-3 flex justify-between items-center gap-3 text-white shrink-0">
+                    <div className="flex shrink-0 items-center justify-between gap-3 bg-purple-600 px-4 py-3 text-white">
                         <ChatAssistantHeader title={activeSession?.title || 'Chat Baru'} />
-                        <div className="flex items-center gap-1 rounded-lg bg-white/10 p-1">
+                        <div className="flex items-center gap-1 bg-white/10 p-1">
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('history')}
-                                className={`rounded-md px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${activeTab === 'history' ? 'bg-white text-purple-700' : 'text-white/70 hover:text-white'}`}
+                                className={`px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${activeTab === 'history' ? 'bg-white text-purple-700' : 'text-white/70 hover:text-white'}`}
                             >
                                 History
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('room')}
-                                className={`rounded-md px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${activeTab === 'room' ? 'bg-white text-purple-700' : 'text-white/70 hover:text-white'}`}
+                                className={`px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${activeTab === 'room' ? 'bg-white text-purple-700' : 'text-white/70 hover:text-white'}`}
                             >
                                 Room Chat
                             </button>
@@ -184,33 +185,31 @@ export default function FloatingAIChat() {
                         <button
                             type="button"
                             onClick={() => setIsOpen(false)}
-                            className="p-1.5 hover:bg-white/20 rounded-md transition-colors"
+                            className="p-1.5 transition-colors hover:bg-white/20"
                             aria-label="Close AI Assistant"
                         >
-                            <X className="w-5 h-5" />
+                            <X className="h-5 w-5" />
                         </button>
                     </div>
 
-                    <div className="flex-1 relative overflow-hidden flex flex-col">
+                    <div className="relative flex flex-1 flex-col overflow-hidden">
                         {activeTab === 'history' ? (
                             <div className="flex h-full flex-col bg-white dark:bg-slate-900">
-                                <div className="p-3 border-b dark:border-slate-700 shrink-0">
+                                <div className="shrink-0 border-b p-3 dark:border-slate-700">
                                     <button
                                         type="button"
                                         onClick={createSession}
                                         disabled={chatSessions.length >= 5}
-                                        className="flex w-full items-center justify-center gap-2 rounded-lg bg-purple-50 py-2 text-sm font-medium text-purple-600 transition-colors hover:bg-purple-100 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50"
+                                        className="flex w-full items-center justify-center gap-2 bg-purple-50 py-2 text-sm font-medium text-purple-600 transition-colors hover:bg-purple-100 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50"
                                     >
-                                        <Plus className="w-4 h-4" /> New Chat {chatSessions.length >= 5 && '(Max 5)'}
+                                        <Plus className="h-4 w-4" /> New Chat {chatSessions.length >= 5 && '(Max 5)'}
                                     </button>
                                 </div>
                                 <div className="flex-1 overflow-y-auto">
                                     {chatSessions.length === 0 ? (
-                                        <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                                            No chat history yet.
-                                        </div>
+                                        <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">No chat history yet.</div>
                                     ) : (
-                                        chatSessions.map(session => (
+                                        chatSessions.map((session) => (
                                             <div
                                                 key={session.id}
                                                 className={`group flex items-center justify-between border-b p-3 transition-colors hover:bg-gray-50 dark:border-slate-800 dark:hover:bg-slate-800 ${activeSession?.id === session.id ? 'bg-purple-50/50 dark:bg-purple-900/20' : ''}`}
@@ -225,10 +224,10 @@ export default function FloatingAIChat() {
                                                 <button
                                                     type="button"
                                                     onClick={() => confirmDeleteSession(session)}
-                                                    className="p-1.5 text-gray-400 transition-opacity hover:text-red-500 focus:opacity-100 group-hover:opacity-100"
+                                                    className="p-1.5 text-gray-400 transition-opacity group-hover:opacity-100 hover:text-red-500 focus:opacity-100"
                                                     title="Delete Chat"
                                                 >
-                                                    <Trash2 className="w-4 h-4" />
+                                                    <Trash2 className="h-4 w-4" />
                                                 </button>
                                             </div>
                                         ))
@@ -251,10 +250,10 @@ export default function FloatingAIChat() {
                 <button
                     type="button"
                     onClick={() => setIsOpen(true)}
-                    className="fixed bottom-6 right-6 bg-purple-600 hover:bg-purple-700 text-white rounded-full p-4 shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 flex items-center justify-center gap-2 group"
+                    className="group fixed right-6 bottom-6 flex transform items-center justify-center gap-2 bg-purple-600 p-4 text-white shadow-xl transition-all hover:scale-105 hover:bg-purple-700 hover:shadow-2xl"
                     aria-label="Open AI Assistant"
                 >
-                    <Bot className="w-6 h-6 group-hover:animate-pulse" />
+                    <Bot className="h-6 w-6 group-hover:animate-pulse" />
                 </button>
             )}
 

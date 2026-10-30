@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\AI\Tool\CourseComparisonTool;
 use App\Services\AI\Tool\CourseDetailTool;
 use App\Services\AI\Tool\CourseSearchTool;
+use App\Services\AI\Tool\InstructorAnalyticsTool;
 use App\Services\AI\Tool\InstructorStudentTool;
 use App\Services\AI\Tool\RecommendationTool;
 use App\Services\AI\Tool\UserProgressTool;
@@ -27,10 +28,12 @@ class AIOrchestrator
         RecommendationTool $recommendationTool,
         UserProgressTool $userProgress,
         CourseComparisonTool $courseComparison,
-        ?InstructorStudentTool $instructorStudents = null
+        ?InstructorStudentTool $instructorStudents = null,
+        ?InstructorAnalyticsTool $instructorAnalytics = null
     ) {
         $this->nvidiaService = $nvidiaService;
         $instructorStudents ??= app(InstructorStudentTool::class);
+        $instructorAnalytics ??= app(InstructorAnalyticsTool::class);
 
         $this->tools = [
             'search_courses' => $courseSearch,
@@ -39,6 +42,7 @@ class AIOrchestrator
             'get_user_progress' => $userProgress,
             'compare_courses' => $courseComparison,
             'get_instructor_students' => $instructorStudents,
+            'get_instructor_analytics' => $instructorAnalytics,
         ];
     }
 
@@ -116,9 +120,11 @@ class AIOrchestrator
     protected function getToolDefinitions(?User $user = null): array
     {
         $definitions = [];
+        $instructorTools = ['get_instructor_students', 'get_instructor_analytics'];
+
         foreach ($this->tools as $name => $tool) {
-            // Only expose instructor tool to instructors (and admins), or when no user context is provided (e.g. testing)
-            if ($name === 'get_instructor_students' && $user && ! $user->hasRole(['instructor', 'admin'])) {
+            // Only expose instructor tools to instructors (and admins), or when no user context is provided (e.g. testing)
+            if (in_array($name, $instructorTools, true) && $user && ! $user->hasRole(['instructor', 'admin'])) {
                 continue;
             }
 

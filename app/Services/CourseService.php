@@ -43,7 +43,8 @@ class CourseService
         ])->append('thumbnail_url');
 
         $enrollments = $course->enrollments()
-            ->with('user:id,name,email,avatar')
+            ->whereHas('user', fn ($query) => $query->withoutTrashed())
+            ->with(['user' => fn ($query) => $query->withoutTrashed()->select('id', 'name', 'email', 'avatar')])
             ->latest('enrolled_at')
             ->get();
 
@@ -59,7 +60,9 @@ class CourseService
                 ->pluck('count', 'user_id')
             : collect();
 
-        $enrolledStudents = $enrollments->map(function ($enrollment) use ($completedCounts, $totalMaterials) {
+        $enrolledStudents = $enrollments
+            ->filter(fn ($enrollment) => $enrollment->user !== null)
+            ->map(function ($enrollment) use ($completedCounts, $totalMaterials) {
             $user = $enrollment->user;
             $completed = $completedCounts[$enrollment->user_id] ?? 0;
             $percent = $totalMaterials > 0 ? (int) round(($completed / $totalMaterials) * 100) : 0;

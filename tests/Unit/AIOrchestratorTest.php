@@ -42,6 +42,7 @@ it('only exposes read-only course information and instructor tools', function ()
         'get_user_progress',
         'compare_courses',
         'get_instructor_students',
+        'get_instructor_analytics',
     ]);
 });
 
@@ -61,6 +62,7 @@ it('filters instructor tools for student users', function () {
     $toolNames = collect($definitions)->pluck('function.name')->all();
 
     expect($toolNames)->not->toContain('get_instructor_students')
+        ->and($toolNames)->not->toContain('get_instructor_analytics')
         ->and($toolNames)->toBe([
             'search_courses',
             'get_course',
@@ -85,7 +87,8 @@ it('exposes instructor tools for instructor users', function () {
     $definitions = $orchestrator->exposeToolDefinitions($instructor);
     $toolNames = collect($definitions)->pluck('function.name')->all();
 
-    expect($toolNames)->toContain('get_instructor_students');
+    expect($toolNames)->toContain('get_instructor_students')
+        ->and($toolNames)->toContain('get_instructor_analytics');
 });
 
 it('rejects tools that can perform actions outside course information', function () {

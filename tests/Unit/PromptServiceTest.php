@@ -26,6 +26,12 @@ it('generates system prompt for instructor with access rules for own enrolled st
 
     // Strictly forbids accessing users who did not enroll in their courses
     expect($content)->toContain('Instructors are STRICTLY FORBIDDEN from accessing any users or students who did NOT enroll in their courses');
+
+    // Allows instructor to access full data of own courses including earnings and ratings
+    expect($content)->toContain('get_instructor_analytics')
+        ->and($content)->toContain('Pendapatan (Earnings / Revenue)')
+        ->and($content)->toContain('Rating & Ulasan (Ratings & Reviews)')
+        ->and($content)->toContain('Akses Pendapatan & Rating: Instruktur HANYA BISA mengakses data pendapatan, earnings, analitik finansial, dan rating untuk course miliknya sendiri. DILARANG KERAS / FORBIDDEN mengakses data pendapatan, rating, atau analitik milik instruktur lain.');
 });
 
 it('generates system prompt for student preventing access to other users and instructor lists', function () {

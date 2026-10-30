@@ -1,15 +1,17 @@
-import React from "react"
 import { ExternalLink, Presentation } from "lucide-react"
+import React from "react"
 import Button from "@/components/atoms/Button"
 
 interface PreviewPptViewerProps {
   title: string
   contentUrl?: string | null
+  onOpen?: () => void
 }
 
 export default function PreviewPptViewer({
   title,
   contentUrl,
+  onOpen,
 }: PreviewPptViewerProps) {
   return (
     <div className="py-8 text-center space-y-4">
@@ -23,7 +25,7 @@ export default function PreviewPptViewer({
         </p>
       </div>
       {contentUrl ? (
-        <a href={contentUrl} target="_blank" rel="noreferrer">
+        <a href={contentUrl} target="_blank" rel="noreferrer" onClick={onOpen}>
           <Button
             variant="primary"
             size="md"

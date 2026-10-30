@@ -28,7 +28,7 @@ export default function Footer() {
         {/* Brand */}
         <div className="flex flex-col gap-4">
           <Link href="/" className="flex items-center gap-2">
-            <img src="/images/logo.png" alt="Logo" className="h-8 w-auto" />
+            <img src="/images/logo.svg" alt="Logo" className="h-8 w-auto" />
           </Link>
           <p className="text-gray-500 text-sm leading-relaxed">
             The best digital learning platform to develop your skills and advance your career.

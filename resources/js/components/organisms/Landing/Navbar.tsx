@@ -24,7 +24,7 @@ export default function Navbar() {
         <nav className="absolute z-50 w-full">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
                 <Link href="/" className="flex items-center">
-                    <img src="/images/logo.png" alt="Logo" className="h-10 w-auto" />
+                    <img src="/images/logo.svg" alt="Logo" className="h-10 w-auto" />
                 </Link>
 
                 <div className="hidden items-center gap-8 lg:flex">
