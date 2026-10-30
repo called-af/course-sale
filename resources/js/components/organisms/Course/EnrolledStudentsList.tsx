@@ -54,7 +54,7 @@ export default function EnrolledStudentsList({ students = [] }: EnrolledStudents
     };
 
     return (
-        <div className="space-y-6 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-slate-800">
+        <div className="space-y-6 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
             {/* Header */}
             <div className="flex flex-col justify-between gap-4 border-b border-slate-100 pb-5 sm:flex-row sm:items-center dark:border-slate-700">
                 <div className="flex items-center gap-3">
@@ -83,7 +83,7 @@ export default function EnrolledStudentsList({ students = [] }: EnrolledStudents
                             className={`px-3 py-1.5 font-medium transition-colors ${
                                 statusFilter === 'all'
                                     ? 'bg-purple-600 text-white'
-                                    : 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-300'
+                                    : 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-300'
                             }`}
                         >
                             Semua ({metrics.total})
@@ -94,7 +94,7 @@ export default function EnrolledStudentsList({ students = [] }: EnrolledStudents
                             className={`px-3 py-1.5 font-medium transition-colors ${
                                 statusFilter === 'in_progress'
                                     ? 'bg-purple-600 text-white'
-                                    : 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-300'
+                                    : 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-300'
                             }`}
                         >
                             Sedang Belajar ({metrics.inProgress})
@@ -105,7 +105,7 @@ export default function EnrolledStudentsList({ students = [] }: EnrolledStudents
                             className={`px-3 py-1.5 font-medium transition-colors ${
                                 statusFilter === 'completed'
                                     ? 'bg-purple-600 text-white'
-                                    : 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-300'
+                                    : 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-300'
                             }`}
                         >
                             Selesai ({metrics.completed})
@@ -117,7 +117,7 @@ export default function EnrolledStudentsList({ students = [] }: EnrolledStudents
             {/* Metrics Quick Overview */}
             {metrics.total > 0 && (
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                    <div className="border border-slate-100 bg-slate-50/60 p-4 dark:border-slate-700/60 dark:bg-slate-900/30">
+                    <div className="border border-slate-100 bg-slate-50/60 p-4 dark:border-slate-700/60 dark:bg-[#1e1f24]">
                         <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Total Pendaftar</span>
                         <div className="mt-1 flex items-baseline gap-2">
                             <span className="text-2xl font-bold text-slate-900 dark:text-white">{metrics.total}</span>
@@ -138,7 +138,7 @@ export default function EnrolledStudentsList({ students = [] }: EnrolledStudents
                             <span className="text-xs text-emerald-500/70">Lulus</span>
                         </div>
                     </div>
-                    <div className="border border-slate-100 bg-slate-50/60 p-4 dark:border-slate-700/60 dark:bg-slate-900/30">
+                    <div className="border border-slate-100 bg-slate-50/60 p-4 dark:border-slate-700/60 dark:bg-[#1e1f24]">
                         <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Belum Mulai</span>
                         <div className="mt-1 flex items-baseline gap-2">
                             <span className="text-2xl font-bold text-slate-900 dark:text-white">{metrics.notStarted}</span>
@@ -157,7 +157,7 @@ export default function EnrolledStudentsList({ students = [] }: EnrolledStudents
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Cari nama atau email siswa..."
-                        className="w-full border border-slate-200 bg-white py-2.5 pr-10 pl-10 text-sm text-slate-900 placeholder-slate-400 transition-colors focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder-slate-500"
+                        className="w-full border border-slate-200 bg-white py-2.5 pr-10 pl-10 text-sm text-slate-900 placeholder-slate-400 transition-colors focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-[#1e1f24] dark:text-white dark:placeholder-slate-500"
                     />
                     {searchQuery && (
                         <button
@@ -174,7 +174,7 @@ export default function EnrolledStudentsList({ students = [] }: EnrolledStudents
             {/* Table or Empty State */}
             {metrics.total === 0 ? (
                 <div className="flex flex-col items-center justify-center border border-dashed border-slate-200 py-12 text-center dark:border-slate-700">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400 dark:bg-[#1e1f24] dark:text-slate-500">
                         <Users className="h-7 w-7" />
                     </div>
                     <h3 className="mt-4 text-sm font-bold text-slate-800 dark:text-slate-200">Belum Ada Siswa yang Terdaftar</h3>
@@ -202,7 +202,7 @@ export default function EnrolledStudentsList({ students = [] }: EnrolledStudents
             ) : (
                 <div className="overflow-x-auto border border-slate-200 dark:border-slate-700">
                     <table className="w-full text-left text-sm">
-                        <thead className="border-b border-slate-200 bg-slate-50 text-xs font-bold tracking-wider text-slate-600 uppercase dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400">
+                        <thead className="border-b border-slate-200 bg-slate-50 text-xs font-bold tracking-wider text-slate-600 uppercase dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400">
                             <tr>
                                 <th scope="col" className="px-5 py-3.5">
                                     Siswa
@@ -306,7 +306,7 @@ export default function EnrolledStudentsList({ students = [] }: EnrolledStudents
                                                     Aktif
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1 border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                                                <span className="inline-flex items-center gap-1 border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400">
                                                     Belum Mulai
                                                 </span>
                                             )}

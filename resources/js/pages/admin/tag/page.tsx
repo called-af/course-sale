@@ -59,7 +59,7 @@ export default function TagPage({ tags }: { tags: Tag[] }) {
         />
 
         {/* Content Card */}
-        <div className="bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-sm p-6 sm:p-8 space-y-6">
+        <div className="bg-white dark:bg-[#1e1f24] border border-slate-200/80 dark:border-slate-700 shadow-sm p-6 sm:p-8 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-700">
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -79,7 +79,7 @@ export default function TagPage({ tags }: { tags: Tag[] }) {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search tags..."
-                className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-none focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 dark:focus:border-purple-500 transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-[#1e1f24] border border-slate-200 dark:border-slate-700 rounded-none focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 dark:focus:border-purple-500 transition-all text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500"
               />
             </div>
           </div>
@@ -105,7 +105,7 @@ export default function TagPage({ tags }: { tags: Tag[] }) {
             {filteredTags.map((tag) => (
               <div
                 key={tag.id}
-                className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 hover:bg-neutral-50 dark:hover:bg-slate-700 transition-colors"
+                className="flex items-center justify-between p-4 bg-white dark:bg-[#1e1f24] hover:bg-neutral-50 dark:hover:bg-slate-700 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-purple-50 dark:bg-purple-950/40 border border-purple-100/80 dark:border-purple-900/50 flex items-center justify-center text-purple-600 dark:text-purple-400">

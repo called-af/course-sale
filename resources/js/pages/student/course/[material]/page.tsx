@@ -26,7 +26,7 @@ export default function MaterialPage({
 
   if (!content) {
     return (
-      <div className="min-h-[400px] flex flex-col items-center justify-center p-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xs text-center space-y-3 rounded-none">
+      <div className="min-h-[400px] flex flex-col items-center justify-center p-8 bg-white dark:bg-[#1e1f24] border border-slate-200 dark:border-slate-700 shadow-xs text-center space-y-3 rounded-none">
         <div className="w-12 h-12 bg-amber-50 dark:bg-amber-950/40 text-amber-500 flex items-center justify-center">
           <FileText className="w-6 h-6" />
         </div>

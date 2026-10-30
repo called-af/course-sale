@@ -1,14 +1,14 @@
-import Title from "@/components/atoms/Title"
-import Badge from "@/components/atoms/Badge"
-import Button from "@/components/atoms/Button"
 import { Link } from "@inertiajs/react"
 import { ArrowRight } from "lucide-react"
+import Badge from "@/components/atoms/Badge"
+import Button from "@/components/atoms/Button"
+import Title from "@/components/atoms/Title"
 
-import { CategorySectionProps } from "@/types/category"
+import type { CategorySectionProps } from "@/types/category"
 
 export default function CategorySection({ categories }: CategorySectionProps) {
   return (
-    <section className="bg-[#FAFAF8] dark:bg-[#0f0f0f] py-24">
+    <section className="bg-[#FAFAF8] dark:bg-[#141416] py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
 
         {/* Header */}
@@ -39,7 +39,7 @@ export default function CategorySection({ categories }: CategorySectionProps) {
           {categories.map((c) => (
             <div
               key={c.id}
-              className="bg-[#FAFAF8] dark:bg-[#0f0f0f] p-8 flex flex-col gap-4 group hover:bg-white dark:hover:bg-slate-800 transition-colors"
+              className="bg-[#FAFAF8] dark:bg-[#141416] p-8 flex flex-col gap-4 group hover:bg-white dark:hover:bg-slate-800 transition-colors"
             >
               {c.img_url ? (
                 <img src={c.img_url} className="w-10 h-10 object-cover" />

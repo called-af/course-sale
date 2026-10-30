@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { Sparkles, Star } from 'lucide-react';
+import { useBranding } from '@/hooks/useBranding';
 import { formatRupiah } from '@/lib/dashboard';
 import type { RecommendedCourse } from '@/types/dashboard';
 
@@ -8,13 +9,15 @@ interface RecommendedCourseCardProps {
 }
 
 export default function RecommendedCourseCard({ course }: RecommendedCourseCardProps) {
+    const { name: appName } = useBranding();
+
     return (
         <Link
             href={`/course/${course.slug}`}
-            className="group flex flex-col justify-between overflow-hidden border border-slate-200 bg-white transition hover:border-purple-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:hover:border-purple-700"
+            className="group flex flex-col justify-between overflow-hidden border border-slate-200 bg-white transition hover:border-purple-300 hover:shadow-md dark:border-slate-700 dark:bg-[#1e1f24] dark:hover:border-purple-700"
         >
             <div>
-                <div className="relative aspect-video w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+                <div className="relative aspect-video w-full overflow-hidden bg-slate-100 dark:bg-[#141416]">
                     <img
                         src={course.thumbnail_url ?? '/assets/landscape.jpeg'}
                         alt={course.title}
@@ -32,13 +35,13 @@ export default function RecommendedCourseCard({ course }: RecommendedCourseCardP
                     <h3 className="line-clamp-2 text-xs font-bold text-slate-800 group-hover:text-purple-700 dark:text-slate-100 dark:group-hover:text-purple-400">
                         {course.title}
                     </h3>
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500">By {course.creator?.name ?? 'KursusIO'}</p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500">By {course.creator?.name ?? appName}</p>
 
                     <div className="flex flex-wrap gap-1">
                         {course.tags?.slice(0, 2).map((tag) => (
                             <span
                                 key={tag.id || tag.name}
-                                className="bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                                className="bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600 dark:bg-[#1e1f24] dark:text-slate-400"
                             >
                                 {tag.name}
                             </span>

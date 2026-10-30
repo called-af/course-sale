@@ -28,7 +28,7 @@ export default function CoursePerformanceTable({ courses }: CoursePerformanceTab
             {courses.length > 0 ? (
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[640px] text-left text-xs">
-                        <thead className="bg-slate-50 text-[10px] font-bold tracking-wider text-slate-400 uppercase dark:bg-slate-900/60 dark:text-slate-500">
+                        <thead className="bg-slate-50 text-[10px] font-bold tracking-wider text-slate-400 uppercase dark:bg-[#1e1f24] dark:text-slate-500">
                             <tr>
                                 <th className="px-5 py-3 font-bold sm:px-6">Course</th>
                                 <th className="px-3 py-3 font-bold">Status</th>

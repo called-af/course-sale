@@ -37,10 +37,10 @@ export default function CourseCard({ course }: CourseCardProps) {
         <>
             <div
                 onClick={() => router.visit(courseHref)}
-                className="group cursor-pointer border border-neutral-100 bg-white transition-shadow duration-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:shadow-slate-900/50"
+                className="group cursor-pointer border border-neutral-100 bg-white transition-shadow duration-200 hover:shadow-md dark:border-slate-800 dark:bg-[#1e1f24] dark:hover:shadow-slate-900/50"
             >
                 {/* Thumbnail — clean, no overlay */}
-                <div className="aspect-video w-full overflow-hidden bg-neutral-100 dark:bg-slate-800">
+                <div className="aspect-video w-full overflow-hidden bg-neutral-100 dark:bg-[#141416]">
                     <img
                         src={course.thumbnail_url}
                         alt={course.title}

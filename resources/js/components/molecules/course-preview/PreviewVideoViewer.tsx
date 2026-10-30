@@ -107,7 +107,7 @@ export default function PreviewVideoViewer({ title, contentUrl, onCompleted }: P
     };
 
     return (
-        <div className="overflow-hidden rounded-none bg-[#0a0a0f]">
+        <div className="overflow-hidden rounded-none bg-[#141416]">
             {/* Video area */}
             <div className="aspect-video w-full bg-black">
                 {contentUrl ? (

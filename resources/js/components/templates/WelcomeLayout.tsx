@@ -1,18 +1,19 @@
-import Navbar from "../organisms/Landing/Navbar"
-import Footer from "../organisms/Landing/Footer"
+import Navbar from '../organisms/Landing/Navbar';
+import Footer from '../organisms/Landing/Footer';
 
 export default function WelcomeLayout({
-  children,
+    children,
+    withCta = false,
 }: {
-  children: React.ReactNode
+    children: React.ReactNode;
+    /** Show the call to action merged into the footer (landing page only). */
+    withCta?: boolean;
 }) {
-  return (
-    <div className="h-screen w-full flex flex-col bg-white dark:bg-[#0f0f0f]">
-      <Navbar/>
-      <main className="">
-        {children}
-      </main>
-      <Footer/>
-    </div>
-  )
+    return (
+        <div className="flex h-screen w-full flex-col bg-white dark:bg-[#141416]">
+            <Navbar />
+            <main className="">{children}</main>
+            <Footer withCta={withCta} />
+        </div>
+    );
 }

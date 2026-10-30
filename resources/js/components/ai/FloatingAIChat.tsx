@@ -162,7 +162,7 @@ export default function FloatingAIChat() {
     return (
         <div className={isOpen ? 'fixed inset-0 z-50' : 'fixed z-50'}>
             {isOpen ? (
-                <div className="animate-in slide-in-from-bottom-5 absolute inset-y-0 right-0 flex h-full w-full max-w-none flex-col overflow-hidden border border-gray-200 bg-white shadow-2xl md:w-1/3 dark:border-slate-700 dark:bg-slate-900">
+                <div className="animate-in slide-in-from-bottom-5 absolute inset-y-0 right-0 flex h-full w-full max-w-none flex-col overflow-hidden border border-gray-200 bg-white shadow-2xl md:w-1/3 dark:border-slate-700 dark:bg-[#1e1f24]">
                     {/* Header */}
                     <div className="flex shrink-0 items-center justify-between gap-3 bg-purple-600 px-4 py-3 text-white">
                         <ChatAssistantHeader title={activeSession?.title || 'Chat Baru'} />
@@ -194,7 +194,7 @@ export default function FloatingAIChat() {
 
                     <div className="relative flex flex-1 flex-col overflow-hidden">
                         {activeTab === 'history' ? (
-                            <div className="flex h-full flex-col bg-white dark:bg-slate-900">
+                            <div className="flex h-full flex-col bg-white dark:bg-[#1e1f24]">
                                 <div className="shrink-0 border-b p-3 dark:border-slate-700">
                                     <button
                                         type="button"
@@ -235,11 +235,11 @@ export default function FloatingAIChat() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex min-h-0 flex-1 flex-col bg-slate-50 dark:bg-slate-950">
+                            <div className="flex min-h-0 flex-1 flex-col bg-slate-50 dark:bg-[#1e1f24]">
                                 <div className="min-h-0 flex-1 overflow-hidden">
                                     <ChatWindow messages={messages} isLoading={isLoading} />
                                 </div>
-                                <div className="shrink-0 border-t border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
+                                <div className="shrink-0 border-t border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-[#1e1f24]">
                                     <ChatInput onSend={sendMessage} disabled={isLoading} />
                                 </div>
                             </div>

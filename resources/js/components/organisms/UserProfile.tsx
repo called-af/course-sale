@@ -54,7 +54,7 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
             {/* ===== Account Edit Form ===== */}
             <form onSubmit={handleSubmit} className="grid gap-8 md:grid-cols-3">
                 {/* Avatar */}
-                <div className="flex flex-col gap-4 border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
+                <div className="flex flex-col gap-4 border border-gray-300 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-6">
                     <div className="text-sm font-medium text-neutral-600 dark:text-slate-300">Avatar</div>
                     <div className="flex flex-1 flex-col gap-3">
                         <ChooseFile aspect="square" value={preview ?? user.avatar_url ?? null} onChange={(file) => handleAvatarChange(file)} />
@@ -64,7 +64,7 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
 
                 {/* Info & Security */}
                 <div className="space-y-6 md:col-span-2">
-                    <div className="space-y-4 border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
+                    <div className="space-y-4 border border-gray-300 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-6">
                         <div className="text-sm font-medium text-neutral-600 dark:text-slate-300">Account Information</div>
                         <InputField label="Name" value={data.name} onChange={(e) => setData('name', e.target.value)} error={errors.name} />
                         <InputField label="Email" value={data.email} onChange={(e) => setData('email', e.target.value)} error={errors.email} />
@@ -95,7 +95,7 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
                         )}
                     </div>
 
-                    <div className="space-y-4 border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
+                    <div className="space-y-4 border border-gray-300 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-6">
                         <div className="text-sm font-medium text-neutral-600 dark:text-slate-300">Security</div>
                         <InputField
                             label="New Password"
@@ -116,7 +116,7 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
 
             {/* ===== Course List — instructor / admin only ===== */}
             {isInstructorOrAdmin && (
-                <div className="space-y-6 border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm sm:p-8">
+                <div className="space-y-6 border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-6 shadow-sm sm:p-8">
                     <div className="flex flex-col justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4 sm:flex-row sm:items-center">
                         <div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">All Courses ({filteredCourses.length})</h3>
@@ -133,7 +133,7 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
 
             {/* ===== Enrolled Courses — student only ===== */}
             {isStudent && (
-                <div className="space-y-6 border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm sm:p-8">
+                <div className="space-y-6 border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-6 shadow-sm sm:p-8">
                     <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Enrolled Courses ({enrolledCourses.length})</h3>
                         <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Courses this student has enrolled in.</p>
@@ -142,7 +142,7 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
                     {enrolledCourses.length ? (
                         <div className="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200 dark:border-slate-700">
                             {enrolledCourses.map((enrollment) => (
-                                <div key={enrollment.id} className="flex items-center gap-4 bg-white dark:bg-slate-900 p-4">
+                                <div key={enrollment.id} className="flex items-center gap-4 bg-white dark:bg-[#1e1f24] p-4">
                                     <div className="aspect-video w-16 shrink-0 overflow-hidden bg-slate-100 dark:bg-slate-700">
                                         {enrollment.course?.thumbnail_url ? (
                                             <img

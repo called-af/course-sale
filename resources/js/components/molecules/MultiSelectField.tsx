@@ -133,7 +133,7 @@ export default function MultiSelectField({
               onClick={() => toggleValue(option.value)}
               className={`border px-3 py-1 text-sm transition-colors ${selected
                 ? styles.selected
-                : `border-neutral-300 bg-white text-neutral-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 ${styles.hover}`
+                : `border-neutral-300 bg-white text-neutral-700 dark:border-slate-600 dark:bg-[#1e1f24] dark:text-slate-200 ${styles.hover}`
                 }`}
             >
               {option.label}

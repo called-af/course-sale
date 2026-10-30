@@ -22,7 +22,7 @@ export default function InstructorSpotlight({
     return (
         <div className="grid gap-6 lg:grid-cols-3">
             {topCourse ? (
-                <div className="relative overflow-hidden bg-slate-900 p-5 text-white shadow-lg lg:col-span-2">
+                <div className="relative overflow-hidden bg-[#141416] p-5 text-white shadow-lg lg:col-span-2">
                     <div className="pointer-events-none absolute -right-10 -bottom-10 h-48 w-48 bg-purple-500/20 blur-3xl" />
                     <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center">
                         <div className="aspect-video w-full shrink-0 overflow-hidden bg-slate-800 sm:w-40">
@@ -73,7 +73,7 @@ export default function InstructorSpotlight({
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center border border-dashed border-slate-200 bg-white p-8 text-center lg:col-span-2 dark:border-slate-700 dark:bg-slate-800">
+                <div className="flex flex-col items-center justify-center border border-dashed border-slate-200 bg-white p-8 text-center lg:col-span-2 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <BookOpen size={22} className="text-slate-300 dark:text-slate-600" />
                     <p className="mt-2 text-sm font-semibold text-slate-700 dark:text-slate-200">No course to spotlight yet</p>
                     <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Create a course to see its performance here.</p>

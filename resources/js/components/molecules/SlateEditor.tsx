@@ -38,7 +38,7 @@ const renderElement = ({ attributes, children, element }: RenderElementProps) =>
       return (
         <pre
           {...attributes}
-          className="bg-gray-900 text-green-400 p-4 rounded-lg my-3 text-sm font-mono overflow-x-auto leading-relaxed"
+          className="bg-[#141416] text-green-400 p-4 rounded-lg my-3 text-sm font-mono overflow-x-auto leading-relaxed"
         >
           <code>{children}</code>
         </pre>
@@ -162,7 +162,7 @@ export default function SlateEditor({ value, onChange, initialValue: initialValu
       focus-within:border-purple-700
       focus-within:ring-1 focus-within:ring-purple-700
       transition-all
-      dark:bg-slate-900 dark:border-slate-600
+      dark:bg-[#1e1f24] dark:border-slate-600
       dark:focus-within:border-purple-500 dark:focus-within:ring-purple-500
     ">
 
@@ -182,7 +182,7 @@ export default function SlateEditor({ value, onChange, initialValue: initialValu
         </Slate>
       </div>
 
-      <div className="px-4 py-2 border-t border-gray-100 bg-gray-50/60 flex items-center justify-between dark:border-slate-700 dark:bg-slate-800/60">
+      <div className="px-4 py-2 border-t border-gray-100 bg-gray-50/60 flex items-center justify-between dark:border-slate-700 dark:bg-[#1e1f24]">
         <span className="text-xs text-gray-400 dark:text-slate-500">
           {wordCount} {wordCount === 1 ? "kata" : "kata"}
         </span>

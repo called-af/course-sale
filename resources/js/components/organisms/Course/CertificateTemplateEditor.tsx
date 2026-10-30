@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react';
 import { Award, CheckCircle, Info, Palette, RotateCcw, Save, Shield } from 'lucide-react';
 import { useState } from 'react';
+import { useBranding } from '@/hooks/useBranding';
 
 export interface CertificateTemplate {
     primary_color: string;
@@ -232,6 +233,11 @@ export default function CertificateTemplateEditor({ courseSlug, rolePrefix, init
 
 /* ── LIVE PREVIEW CARD ──────────────────────────────────────────────────── */
 function CertificatePreviewCard({ template }: { template: CertificateTemplate }) {
+    const { name: brandName, domain } = useBranding();
+    const sealName = brandName.toUpperCase();
+    const sealHalf = Math.ceil(sealName.length / 2);
+    const sealTop = sealName.slice(0, sealHalf);
+    const sealBottom = sealName.slice(sealHalf);
     const { primary_color, accent_color, bg_style, show_signature, signature_name, custom_title, footer_note } = template;
 
     const title = custom_title || 'Certificate of Completion';
@@ -279,7 +285,7 @@ function CertificatePreviewCard({ template }: { template: CertificateTemplate })
             <div className={`absolute inset-0 flex flex-col items-center justify-center px-12 text-center ${show_signature ? 'pb-8' : ''}`}>
                 {/* Brand */}
                 <p className="mb-1.5 text-[8px] font-bold tracking-[4px] uppercase" style={{ color: accent_color }}>
-                    KursusIO
+                    {brandName}
                 </p>
                 <div className="mb-2 h-px w-8" style={{ background: `${accent_color}80` }} />
                 {/* Title */}
@@ -326,7 +332,7 @@ function CertificatePreviewCard({ template }: { template: CertificateTemplate })
                 {/* Signature */}
                 {show_signature && (
                     <div className="mt-3 flex justify-center gap-10">
-                        {[sigName, 'KursusIO'].map((name, i) => (
+                        {[sigName, brandName].map((name, i) => (
                             <div key={i} className="text-center">
                                 <div className="mb-1 h-px w-20" style={{ borderTop: `1px solid ${accent_color}40` }} />
                                 <p className="text-[6px]" style={{ color: textSecondary }}>
@@ -355,9 +361,9 @@ function CertificatePreviewCard({ template }: { template: CertificateTemplate })
             >
                 <div className="flex h-9 w-9 items-center justify-center rounded-full border" style={{ borderColor: `${primary_color}40` }}>
                     <p className="text-center text-[4.5px] leading-tight font-bold tracking-wide uppercase" style={{ color: primary_color }}>
-                        KURSUS
+                        {sealTop}
                         <br />
-                        IO
+                        {sealBottom}
                         <br />
                         VERIFIED
                     </p>
@@ -366,7 +372,7 @@ function CertificatePreviewCard({ template }: { template: CertificateTemplate })
 
             {/* Verify URL */}
             <p className="absolute bottom-[18px] left-4 text-[5px]" style={{ color: textMuted }}>
-                Verify at: kursusio.com/certificate/KRSIO-XXXXXX
+                Verify at: {domain}/certificate/KRSIO-XXXXXX
             </p>
         </div>
     );

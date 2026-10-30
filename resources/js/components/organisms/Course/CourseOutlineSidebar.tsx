@@ -46,7 +46,7 @@ export default function CourseOutlineSidebar({
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xs p-4 rounded-none space-y-4">
+    <div className="bg-white dark:bg-[#1e1f24] border border-slate-200 dark:border-slate-700 shadow-xs p-4 rounded-none space-y-4">
       {/* Sidebar Header */}
       <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700">
         <div className="flex items-center gap-2">

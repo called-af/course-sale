@@ -20,7 +20,7 @@ export default function ProgressBar({ value, tone = 'purple', className, barClas
     const safeValue = Math.min(100, Math.max(0, value ?? 0));
 
     return (
-        <div className={clsx('h-1.5 w-full overflow-hidden bg-slate-100 dark:bg-slate-800', className)}>
+        <div className={clsx('h-1.5 w-full overflow-hidden bg-slate-100 dark:bg-[#1e1f24]', className)}>
             <div
                 className={clsx('h-full transition-all duration-300', TONE_STYLES[tone], barClassName)}
                 style={{ width: `${safeValue}%` }}

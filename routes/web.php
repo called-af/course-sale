@@ -306,6 +306,8 @@ Route::middleware(['auth', 'role'])->group(function () {
 
             Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
 
+            Route::get('/landing', [LandingController::class, 'show'])->name('landing');
+
             Route::get('/courses', [CourseController::class, 'index'])
                 ->name('courses.index');
 
@@ -371,6 +373,15 @@ Route::middleware(['auth', 'role'])->group(function () {
 
             Route::put('/settings/appearance', [GeneralSettingsController::class, 'updateAppearance'])
                 ->name('settings.appearance.update');
+
+            Route::put('/settings/identity', [GeneralSettingsController::class, 'updateIdentity'])
+                ->name('settings.identity.update');
+
+            Route::post('/settings/logo', [GeneralSettingsController::class, 'updateLogo'])
+                ->name('settings.logo.update');
+
+            Route::delete('/settings/logo', [GeneralSettingsController::class, 'destroyLogo'])
+                ->name('settings.logo.destroy');
 
             Route::post('/settings/ai/verify-password', [GeneralSettingsController::class, 'verifyPassword'])
                 ->name('settings.ai.verify-password');

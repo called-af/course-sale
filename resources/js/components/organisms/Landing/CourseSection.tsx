@@ -16,7 +16,7 @@ export default function CourseSection({ courses }: CourseSectionProps) {
   const { search, setSearch, filteredCourses } = useCourse(undefined, courses)
 
   return (
-    <section className="bg-[#FAFAF8] dark:bg-[#0f0f0f] py-24" id="courses">
+    <section className="bg-[#FAFAF8] dark:bg-[#141416] py-24" id="courses">
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
 
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">

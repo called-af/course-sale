@@ -9,7 +9,7 @@ export default function RatingSummary({ stats }: RatingSummaryProps) {
     return (
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
             {/* Average Score */}
-            <div className="flex shrink-0 flex-col items-center justify-center border border-slate-200 bg-white px-8 py-6 dark:border-slate-700 dark:bg-slate-900">
+            <div className="flex shrink-0 flex-col items-center justify-center border border-slate-200 bg-white px-8 py-6 dark:border-slate-700 dark:bg-[#1e1f24]">
                 <span className="text-5xl font-extrabold text-slate-900 tabular-nums dark:text-white">
                     {stats.average.toFixed(1)}
                 </span>

@@ -9,6 +9,7 @@ import {
   User,
 } from "lucide-react"
 import clsx from "clsx"
+import AppLogo from "@/components/atoms/AppLogo"
 
 interface SidebarProps {
   role: "instructor" | "student"
@@ -41,7 +42,7 @@ export default function Sidebar({ role }: SidebarProps) {
   const logout = () => router.post("/logout")
 
   return (
-    <aside className="hidden md:flex w-64 min-h-screen flex-col shrink-0" style={{ background: "#0f0f0f" }}>
+    <aside className="hidden md:flex w-64 min-h-screen flex-col shrink-0" style={{ background: "#141416" }}>
 
       {/* Logo */}
       <div
@@ -49,7 +50,7 @@ export default function Sidebar({ role }: SidebarProps) {
         style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
       >
         <Link href="/" className="flex items-center">
-          <img src="/images/logo.svg" alt="Logo" className="h-7 w-auto" />
+          <AppLogo className="h-7 w-auto" />
         </Link>
         <Link href="/" target="_blank" className="p-1.5 text-white/20 hover:text-white/60 transition-colors" title="View site">
           <ExternalLink size={14} />

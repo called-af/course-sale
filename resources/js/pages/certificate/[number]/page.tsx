@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { Award, Calendar, CheckCircle2, Shield, XCircle } from 'lucide-react';
+import { useBranding } from '@/hooks/useBranding';
 
 interface CertificateData {
     id: number;
@@ -20,6 +21,8 @@ interface Props {
 }
 
 export default function CertificateVerifyPage({ certificate, valid }: Props) {
+    const { name } = useBranding();
+
     return (
         <>
             <Head title={valid ? `Certificate — ${certificate?.student_name}` : 'Certificate Not Found'} />
@@ -31,7 +34,7 @@ export default function CertificateVerifyPage({ certificate, valid }: Props) {
                         href="/"
                         className="text-sm font-bold tracking-widest uppercase text-purple-400 hover:text-purple-300 transition-colors"
                     >
-                        KursusIO
+                        {name}
                     </Link>
                     <span className="text-xs text-slate-500 uppercase tracking-widest">Certificate Verification</span>
                 </header>
@@ -48,7 +51,7 @@ export default function CertificateVerifyPage({ certificate, valid }: Props) {
                 {/* Footer */}
                 <footer className="px-6 py-4 text-center border-t border-white/5">
                     <p className="text-xs text-slate-600">
-                        © {new Date().getFullYear()} KursusIO · All Rights Reserved
+                        © {new Date().getFullYear()} {name} · All Rights Reserved
                     </p>
                 </footer>
             </div>
@@ -57,6 +60,8 @@ export default function CertificateVerifyPage({ certificate, valid }: Props) {
 }
 
 function ValidCertificate({ certificate }: { certificate: CertificateData }) {
+    const { name } = useBranding();
+
     return (
         <div className="w-full max-w-xl space-y-6">
             {/* Status banner */}
@@ -64,7 +69,7 @@ function ValidCertificate({ certificate }: { certificate: CertificateData }) {
                 <CheckCircle2 size={20} className="text-emerald-400 shrink-0" />
                 <div>
                     <p className="text-sm font-semibold text-emerald-300">Certificate Verified</p>
-                    <p className="text-xs text-emerald-600">This certificate is authentic and issued by KursusIO.</p>
+                    <p className="text-xs text-emerald-600">This certificate is authentic and issued by {name}.</p>
                 </div>
             </div>
 
@@ -74,8 +79,8 @@ function ValidCertificate({ certificate }: { certificate: CertificateData }) {
                 <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 px-8 py-10 text-center border-b border-white/10">
                     <div className="absolute -right-10 -bottom-10 h-40 w-40 rounded-full bg-purple-500/10 blur-2xl" />
                     <div className="relative z-10">
-                        {/* KursusIO brand */}
-                        <p className="text-[10px] font-bold tracking-[4px] uppercase text-purple-400 mb-3">KursusIO</p>
+                        {/* Brand */}
+                        <p className="text-[10px] font-bold tracking-[4px] uppercase text-purple-400 mb-3">{name}</p>
                         <div className="w-10 h-px bg-purple-400/40 mx-auto mb-4" />
                         <p className="text-[10px] font-medium tracking-[2px] uppercase text-slate-500 mb-5">
                             Certificate of Completion
@@ -133,6 +138,8 @@ function ValidCertificate({ certificate }: { certificate: CertificateData }) {
 }
 
 function InvalidCertificate() {
+    const { name } = useBranding();
+
     return (
         <div className="w-full max-w-md text-center space-y-5">
             <div className="flex items-center justify-center gap-3 border border-red-500/30 bg-red-900/20 px-5 py-3.5">
@@ -155,7 +162,7 @@ function InvalidCertificate() {
                 href="/"
                 className="inline-block text-xs text-purple-400 hover:text-purple-300 transition-colors"
             >
-                ← Back to KursusIO
+                ← Back to {name}
             </Link>
         </div>
     );

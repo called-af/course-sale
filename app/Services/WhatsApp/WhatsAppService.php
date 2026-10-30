@@ -2,6 +2,7 @@
 
 namespace App\Services\WhatsApp;
 
+use App\Models\AppearanceSetting;
 use App\Models\Course;
 use App\Models\User;
 use Carbon\Carbon;
@@ -157,7 +158,7 @@ class WhatsAppService
         // Format date
         $dateFormatted = $this->formatDate($enrolledAt);
         $dashboardUrl = url('/instructor/dashboard');
-        $appName = config('app.name', 'Course Sale');
+        $appName = AppearanceSetting::current()->displayName();
 
         // Standard text message
         $body = "Halo, *{$instructor->name}*! 🎓\n\n"
@@ -212,7 +213,7 @@ class WhatsAppService
             ];
         }
 
-        $appName = config('app.name', 'Course Sale');
+        $appName = AppearanceSetting::current()->displayName();
         $timestamp = now()->translatedFormat('d M Y, H:i');
 
         $body = "Halo, *{$instructor->name}*! 🎓\n\n"

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Certificate;
+use App\Models\AppearanceSetting;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\MaterialContent;
@@ -134,7 +135,7 @@ class DashboardService
                     'title' => $cert->course->title,
                     'slug' => $cert->course->slug,
                     'thumbnail_url' => $cert->course->thumbnail_url,
-                    'instructor' => $cert->course->creator?->name ?? 'KursusIO Instructor',
+                    'instructor' => $cert->course->creator?->name ?? AppearanceSetting::current()->displayName(),
                 ],
             ]);
 

@@ -9,7 +9,7 @@ export default function CourseComparison({ comparisonData }: CourseComparisonPro
     if (comparisonData.length === 0) return null;
 
     return (
-        <section className="mt-5 overflow-hidden border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <section className="mt-5 overflow-hidden border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
             <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white">Perbandingan course</h3>
                 <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">Dibandingkan berdasarkan level, harga, rating, dan modul.</p>
@@ -17,7 +17,7 @@ export default function CourseComparison({ comparisonData }: CourseComparisonPro
             <div className="overflow-x-auto">
                 <table className="w-full min-w-[520px] border-collapse text-left text-xs">
                     <thead>
-                        <tr className="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/60">
+                        <tr className="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-[#1e1f24]">
                             <th className="px-4 py-3 font-semibold text-slate-500">Fitur</th>
                             {comparisonData.map((course) => (
                                 <th key={course.id} className="px-3 py-3 font-bold text-slate-800 dark:text-slate-100">

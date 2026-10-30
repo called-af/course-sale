@@ -26,7 +26,7 @@ export default function Title({
 
   return (
     <Component
-      className={clsx(styles[as], "text-gray-900 dark:text-white", className)}
+      className={clsx(styles[as], className)}
       {...props}
     >
       {children}

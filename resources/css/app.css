@@ -13,13 +13,15 @@
 /* Dark mode base */
 html.dark {
     color-scheme: dark;
+    --app-surface: #141416;
+    --app-surface-raised: #1e1f24;
 }
 
 :root {
     --app-surface: #f3f1f6;
     --app-surface-raised: #f8f7fa;
-    --app-surface-dark: #17181c;
-    --app-surface-dark-raised: #202127;
+    --app-surface-dark: #141416;
+    --app-surface-dark-raised: #1e1f24;
 }
 
 html[data-palette="purple"] {
@@ -242,16 +244,24 @@ html.dark[data-palette="amber"] {
     --color-purple-950: #451a03;
 }
 
-.bg-white {
+html:not(.dark) .bg-white {
     background-color: var(--app-surface-raised);
 }
 
-.bg-white\/80 {
+html:not(.dark) .bg-white\/80 {
     background-color: color-mix(in srgb, var(--app-surface-raised) 80%, transparent);
 }
 
-.bg-neutral-50 {
+html:not(.dark) .bg-neutral-50 {
     background-color: var(--app-surface);
+}
+
+html.dark .dark\:bg-\[\#141416\] {
+    background-color: var(--app-surface-dark);
+}
+
+html.dark .dark\:bg-\[\#1e1f24\] {
+    background-color: var(--app-surface-dark-raised);
 }
 
 html.dark .dark\:bg-slate-900 {

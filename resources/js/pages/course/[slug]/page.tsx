@@ -78,7 +78,7 @@ export default function CourseDetailPage({
         <>
             <Head title={course.title} />
 
-            <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#0f0f0f] pt-24 pb-20">
+            <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#1e1f24] pt-24 pb-20">
                 <div className="mx-auto max-w-7xl px-4 sm:px-8">
                     <Link
                         href="/course"
@@ -91,7 +91,7 @@ export default function CourseDetailPage({
                     <div className="grid gap-8 lg:grid-cols-3">
                         {/* Main content */}
                         <section className="space-y-7 lg:col-span-2">
-                            <div className="overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
+                            <div className="overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1f24] shadow-sm">
                                 <img src={course.thumbnail_url} alt={course.title} className="aspect-video w-full object-cover" />
                             </div>
 
@@ -132,7 +132,7 @@ export default function CourseDetailPage({
                         </section>
 
                         {/* Sidebar — becomes resume when already enrolled */}
-                        <aside className="h-fit border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm lg:sticky lg:top-24">
+                        <aside className="h-fit border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-6 shadow-sm lg:sticky lg:top-24">
                             {isEnrolled ? (
                                 <>
                                     <p className="inline-flex items-center gap-1.5 border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
@@ -200,7 +200,7 @@ export default function CourseDetailPage({
                     </div>
                     
                     {/* Discussion & Ratings — tabbed */}
-                    <section className="mt-8 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
+                    <section className="mt-8 border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1f24] shadow-sm">
                         {/* Tab bar */}
                         <div className="flex border-b border-slate-200 dark:border-slate-700">
                             <button
@@ -259,7 +259,7 @@ export default function CourseDetailPage({
                                 <div className="space-y-6">
                                     {ratingStats.total > 0 && <RatingSummary stats={ratingStats} />}
 
-                                    <div className="border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-5">
+                                    <div className="border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#1e1f24] p-5">
                                         <h3 className="mb-4 text-sm font-bold text-slate-800 dark:text-slate-100">
                                             {userReview ? 'Your Review' : 'Write a Review'}
                                         </h3>
@@ -287,11 +287,11 @@ export default function CourseDetailPage({
                                                 </div>
                                             </div>
                                         ) : !user ? (
-                                            <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 text-center text-sm text-slate-500 dark:text-slate-400">
+                                            <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-4 text-center text-sm text-slate-500 dark:text-slate-400">
                                                 <a href="/login" className="font-medium text-purple-600 dark:text-purple-400 hover:underline">Sign in</a> and enroll to leave a review after finishing 100% of the course.
                                             </div>
                                         ) : (
-                                            <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 text-center text-sm text-slate-500 dark:text-slate-400">
+                                            <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-4 text-center text-sm text-slate-500 dark:text-slate-400">
                                                 Enroll in this course to leave a review after finishing 100% of the course.
                                             </div>
                                         )}

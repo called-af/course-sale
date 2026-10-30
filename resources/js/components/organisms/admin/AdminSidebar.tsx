@@ -1,4 +1,5 @@
 import { Link, usePage, router } from "@inertiajs/react"
+import clsx from "clsx"
 import {
   LayoutDashboard,
   BookOpen,
@@ -10,11 +11,12 @@ import {
   ExternalLink,
   Globe,
   LayoutTemplate,
-  Star,
   MessageSquare,
+  type LucideIcon,
 } from "lucide-react"
-import clsx from "clsx"
 import { useState } from "react"
+
+import AppLogo from "@/components/atoms/AppLogo"
 
 interface SidebarProps {
   open: boolean
@@ -24,9 +26,19 @@ interface SidebarProps {
 interface MenuItem {
   label: string
   href?: string
-  icon: any
+  icon: LucideIcon
   badge?: string
-  children?: { label: string; href: string }[]
+  children?: { label: string; href: string; newTab?: boolean }[]
+}
+
+interface AdminSidebarPageProps {
+  [key: string]: unknown
+  auth?: {
+    user?: {
+      name?: string
+      email?: string
+    }
+  }
 }
 
 const mainMenus: MenuItem[] = [
@@ -60,6 +72,14 @@ const mainMenus: MenuItem[] = [
 ]
 
 const systemMenus: MenuItem[] = [
+  {
+    label: "Public Site",
+    icon: ExternalLink,
+    children: [
+      { label: "Landing Page",   href: "/admin/landing", newTab: true },
+      { label: "Course Catalog", href: "/course",        newTab: true },
+    ],
+  },
   {
     label: "Web Settings",
     icon: Globe,
@@ -103,9 +123,10 @@ function SideItem({
   toggle: (label: string) => void
 }) {
   const Icon = item.icon
+  const isUrlActive = (href: string) => (href === "/" ? url === "/" : url.startsWith(href))
 
   if (!item.children) {
-    const active = url.startsWith(item.href!)
+    const active = isUrlActive(item.href!)
     return (
       <Link
         href={item.href!}
@@ -133,7 +154,7 @@ function SideItem({
   }
 
   const isOpen = expanded === item.label
-  const groupActive = item.children.some((c) => url.startsWith(c.href))
+  const groupActive = item.children.some((c) => isUrlActive(c.href))
 
   return (
     <div>
@@ -155,18 +176,21 @@ function SideItem({
       <div className={clsx("overflow-hidden transition-all duration-200", isOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0")}>
         <div className="ml-6 pl-4 py-1 space-y-0.5" style={{ borderLeft: "1px solid rgba(255,255,255,0.06)" }}>
           {item.children.map((child) => {
-            const childActive = url.startsWith(child.href)
+            const childActive = isUrlActive(child.href)
             return (
               <Link
                 key={child.href}
                 href={child.href}
                 onClick={onClose}
+                target={child.newTab ? "_blank" : undefined}
+                rel={child.newTab ? "noopener noreferrer" : undefined}
                 className={clsx(
-                  "block px-2 py-1.5 text-xs transition-colors",
+                  "flex items-center gap-2 px-2 py-1.5 text-xs transition-colors",
                   childActive ? "text-purple-400 font-medium" : "text-white/35 hover:text-white/70"
                 )}
               >
                 {child.label}
+                {child.newTab && <ExternalLink size={11} className="ml-auto text-white/20" />}
               </Link>
             )
           })}
@@ -177,14 +201,17 @@ function SideItem({
 }
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
-  const { url, props } = usePage()
-  const auth = (props as any).auth
+  const { url, props } = usePage<AdminSidebarPageProps>()
+  const auth = props.auth
 
   const allMenus = [...mainMenus, ...systemMenus]
 
   const [expanded, setExpanded] = useState<string | null>(() => {
     const active = allMenus.find(
-      (m) => m.children?.some((c) => url.startsWith(c.href))
+      (m) =>
+        m.children?.some((c) =>
+          c.href === "/" ? url === "/" : url.startsWith(c.href),
+        ),
     )
     return active?.label ?? null
   })
@@ -206,11 +233,11 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           open ? "translate-x-0" : "-translate-x-full",
           "lg:translate-x-0"
         )}
-        style={{ background: "#0f0f0f" }}
+        style={{ background: "#0b0b0c" }}
       >
         <div className="h-16 flex items-center justify-between px-5 shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <Link href="/" className="flex items-center">
-            <img src="/images/logo.svg" alt="Logo" className="h-7 w-auto" />
+            <AppLogo className="h-7 w-auto" />
           </Link>
           <div className="flex items-center gap-1">
             <Link href="/" target="_blank" className="p-1.5 text-white/20 hover:text-white/60 transition-colors" title="View site">
@@ -240,7 +267,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           </div>
 
         </nav>
-        <div className="px-3 py-3 shrink-0 bg-zinc-900" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+        <div className="px-3 py-3 shrink-0 bg-[#0b0b0c]" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
           <div className="flex items-center gap-3 px-2 py-2.5">
             <div className="w-8 h-8 shrink-0 flex items-center justify-center text-xs font-bold text-purple-300" style={{ background: "rgba(139,92,246,0.15)" }}>
               {auth?.user?.name?.[0]?.toUpperCase() ?? "A"}

@@ -31,7 +31,7 @@ export default function StatCard({
     return (
         <div
             className={clsx(
-                'flex flex-col justify-between border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-700 dark:bg-slate-800',
+                'flex flex-col justify-between border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-700 dark:bg-[#1e1f24]',
                 className,
             )}
         >

@@ -85,7 +85,7 @@ export default function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
                     className={`overflow-hidden border px-4 py-3 shadow-sm transition-shadow group-hover:shadow-md ${
                         isUser
                             ? 'border-purple-200 bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-purple-500/10'
-                            : 'border-slate-200 bg-white text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100'
+                            : 'border-slate-200 bg-white text-slate-800 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-100'
                     }`}
                 >
                     {markdownContent ? (

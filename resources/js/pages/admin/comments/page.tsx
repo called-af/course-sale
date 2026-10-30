@@ -108,9 +108,9 @@ export default function AdminCommentsPage({ comments }: Props) {
                         <p className="text-sm">No comments found.</p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
+                    <div className="overflow-x-auto border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1f24] shadow-sm">
                         <table className="w-full text-sm">
-                            <thead className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                            <thead className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#1e1f24]">
                                 <tr>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">User</th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Course</th>
@@ -206,7 +206,7 @@ function StatCard({ label, value, color = 'slate' }: { label: string; value: num
         amber: 'text-amber-600 dark:text-amber-400',
     };
     return (
-        <div className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+        <div className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-5 shadow-sm">
             <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">{label}</p>
             <p className={`mt-2 text-3xl font-extrabold tabular-nums ${colorMap[color] ?? colorMap.slate}`}>{value}</p>
         </div>

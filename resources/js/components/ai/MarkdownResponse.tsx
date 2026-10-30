@@ -20,16 +20,16 @@ export default function MarkdownResponse({ content, className = '', variant = 'd
         : 'font-medium text-purple-600 underline decoration-purple-300 underline-offset-2 hover:text-purple-800 dark:text-purple-400 dark:decoration-purple-700';
     const code = inverted
         ? 'bg-white/15 px-1.5 py-0.5 font-mono text-xs text-white'
-        : 'bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-200';
+        : 'bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-700 dark:bg-[#1e1f24] dark:text-slate-200';
     const pre = inverted
         ? 'mb-3 overflow-x-auto border border-white/20 bg-black/30 p-4 text-xs leading-6 text-white'
-        : 'mb-3 overflow-x-auto border border-slate-200 bg-slate-950 p-4 text-xs leading-6 text-slate-100 dark:border-slate-700';
+        : 'mb-3 overflow-x-auto border border-slate-200 bg-[#141416] p-4 text-xs leading-6 text-slate-100 dark:border-slate-700';
     const tableWrapper = inverted
         ? 'mb-3 overflow-x-auto border border-white/20'
         : 'mb-3 overflow-x-auto border border-slate-200 dark:border-slate-700';
     const th = inverted
         ? 'border-b border-white/20 bg-white/10 px-3 py-2 font-semibold text-white'
-        : 'border-b border-slate-200 bg-slate-50 px-3 py-2 font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200';
+        : 'border-b border-slate-200 bg-slate-50 px-3 py-2 font-semibold text-slate-700 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-200';
     const td = inverted
         ? 'border-b border-white/10 px-3 py-2 text-white'
         : 'border-b border-slate-100 px-3 py-2 text-slate-600 dark:border-slate-800 dark:text-slate-300';

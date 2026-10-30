@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Certificate;
+use App\Models\AppearanceSetting;
 use App\Models\Course;
 use App\Models\Material;
 use App\Models\MaterialProgress;
@@ -93,21 +94,25 @@ class CertificateService
         $course    = $certificate->course;
         $template  = $course->certificate_template ?? [];
         $verifyUrl = url('/certificate/'.$certificate->certificate_number);
+        $appearance = AppearanceSetting::current();
+        $brandName = $appearance->displayName();
 
         $pdf = Pdf::loadView('pdf.certificate', [
             'studentName'       => $certificate->user->name,
             'courseTitle'       => $course->title,
-            'instructorName'    => $course->creator?->name ?? 'KursusIO',
+            'instructorName'    => $course->creator?->name ?? $brandName,
             'issuedAt'          => $certificate->issued_at->format('d F Y'),
             'certificateNumber' => $certificate->certificate_number,
             'verifyUrl'         => $verifyUrl,
+            'brandName'         => $brandName,
+            'brandDomain'       => $appearance->domain(),
 
             // Template customisations (dengan fallback ke default)
             'primaryColor'   => $template['primary_color']  ?? '#7c3aed',
             'accentColor'    => $template['accent_color']   ?? '#a78bfa',
             'bgStyle'        => $template['bg_style']       ?? 'dark',
             'showSignature'  => (bool) ($template['show_signature'] ?? false),
-            'signatureName'  => $template['signature_name'] ?? ($course->creator?->name ?? 'KursusIO'),
+            'signatureName'  => $template['signature_name'] ?? ($course->creator?->name ?? $brandName),
             'customTitle'    => filled($template['custom_title'] ?? '') ? $template['custom_title'] : 'Certificate of Completion',
             'footerNote'     => $template['footer_note']   ?? '',
         ]);

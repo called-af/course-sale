@@ -90,7 +90,7 @@ export default function CoursePreviewSection({ course }: { course: Course }) {
                 {/* Right Content Workspace */}
                 <main className="space-y-4 lg:col-span-8">
                     {!activeItem ? (
-                        <div className="space-y-3 rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-8 text-center text-slate-600 dark:text-slate-300 shadow-xs">
+                        <div className="space-y-3 rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-8 text-center text-slate-600 dark:text-slate-300 shadow-xs">
                             <BookOpen className="mx-auto h-10 w-10 text-slate-400 dark:text-slate-500" />
                             <h3 className="text-base font-bold text-slate-900 dark:text-white">No Material Content to Display</h3>
                             <p className="mx-auto max-w-sm text-xs text-slate-500 dark:text-slate-400">
@@ -103,7 +103,7 @@ export default function CoursePreviewSection({ course }: { course: Course }) {
                             </Link>
                         </div>
                     ) : (
-                        <div className="space-y-5 rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xs">
+                        <div className="space-y-5 rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-6 shadow-xs">
                             {/* Header Bar within Content Workspace */}
                             <div className="flex flex-col gap-3 border-b border-slate-100 dark:border-slate-700 pb-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="space-y-1">

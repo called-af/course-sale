@@ -257,7 +257,7 @@ export default function LearningPage({
             <Head title={`${course.title} — Learning`} />
 
             {/* Focused course bar: replaces the normal user navbar while learning. */}
-            <header className="flex h-14 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 dark:border-slate-700 dark:bg-slate-900">
+            <header className="flex h-14 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 dark:border-slate-700 dark:bg-[#1e1f24]">
                 <button
                     type="button"
                     onClick={() => router.visit('/student/courses')}
@@ -305,7 +305,7 @@ export default function LearningPage({
                 <div
                     ref={scrollRef}
                     onScroll={maybeCompleteText}
-                    className="flex min-w-0 flex-1 flex-col overflow-y-auto bg-slate-50 dark:bg-slate-900"
+                    className="flex min-w-0 flex-1 flex-col overflow-y-auto bg-slate-50 dark:bg-[#1e1f24]"
                 >
                     {/* Certificate banner */}
                     {progressPercent === 100 && (
@@ -335,7 +335,7 @@ export default function LearningPage({
                                 )}
                                 <Link
                                     href="/student/certificates"
-                                    className="flex items-center gap-1.5 border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-800 transition-colors hover:bg-amber-50 dark:border-amber-800 dark:bg-slate-800 dark:text-amber-300 dark:hover:bg-amber-950/30"
+                                    className="flex items-center gap-1.5 border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-800 transition-colors hover:bg-amber-50 dark:border-amber-800 dark:bg-[#1e1f24] dark:text-amber-300 dark:hover:bg-amber-950/30"
                                 >
                                     View All
                                 </Link>
@@ -382,7 +382,7 @@ export default function LearningPage({
                                         onClick={() =>
                                             activeIndex > 0 && setSelectedContentId(lessons[activeIndex - 1].content.id)
                                         }
-                                        className="flex items-center gap-1 border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-purple-600 dark:hover:bg-purple-950/40 dark:hover:text-purple-400"
+                                        className="flex items-center gap-1 border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-300 dark:hover:border-purple-600 dark:hover:bg-purple-950/40 dark:hover:text-purple-400"
                                     >
                                         <ChevronLeft size={14} /> Prev
                                     </button>
@@ -393,7 +393,7 @@ export default function LearningPage({
                                             activeIndex < lessons.length - 1 &&
                                             setSelectedContentId(lessons[activeIndex + 1].content.id)
                                         }
-                                        className="flex items-center gap-1 border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-purple-600 dark:hover:bg-purple-950/40 dark:hover:text-purple-400"
+                                        className="flex items-center gap-1 border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-300 dark:hover:border-purple-600 dark:hover:bg-purple-950/40 dark:hover:text-purple-400"
                                     >
                                         Next <ChevronRight size={14} />
                                     </button>
@@ -403,7 +403,7 @@ export default function LearningPage({
                             {/* Content viewer */}
                             <div
                                 className={`overflow-hidden border border-slate-200 shadow-xs dark:border-slate-700 ${
-                                    isVideo ? 'bg-slate-900' : 'bg-white dark:bg-slate-800'
+                                    isVideo ? 'bg-[#141416]' : 'bg-white dark:bg-[#1e1f24]'
                                 }`}
                             >
                                 <LessonViewer
@@ -423,7 +423,7 @@ export default function LearningPage({
                             </div>
 
                             {/* Mark complete bar */}
-                            <div className="space-y-3 border border-slate-200 bg-white px-5 py-4 shadow-xs dark:border-slate-700 dark:bg-slate-800">
+                            <div className="space-y-3 border border-slate-200 bg-white px-5 py-4 shadow-xs dark:border-slate-700 dark:bg-[#1e1f24]">
                                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                     <div>
                                         {isCompleted ? (
@@ -491,7 +491,7 @@ export default function LearningPage({
 
                 {/* Right: sidebar */}
                 {sidebarOpen ? (
-                    <aside className="hidden w-80 shrink-0 flex-col border-l border-slate-200 bg-white lg:flex xl:w-80 dark:border-slate-700 dark:bg-slate-900">
+                    <aside className="hidden w-80 shrink-0 flex-col border-l border-slate-200 bg-white lg:flex xl:w-80 dark:border-slate-700 dark:bg-[#1e1f24]">
                         {/* Sidebar header */}
                         <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-700">
                             <div className="flex items-center gap-2">
@@ -544,7 +544,7 @@ export default function LearningPage({
                                             onClick={() =>
                                                 setExpandedModules((v) => ({ ...v, [mod.id]: !expanded }))
                                             }
-                                            className="flex w-full items-center justify-between gap-2 bg-slate-50 px-4 py-3 text-left transition-colors hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700"
+                                            className="flex w-full items-center justify-between gap-2 bg-slate-50 px-4 py-3 text-left transition-colors hover:bg-slate-100 dark:bg-[#1e1f24] dark:hover:bg-slate-700"
                                         >
                                             <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
                                                 <span className="mr-1.5 text-[10px] font-semibold text-slate-400 dark:text-slate-500">
@@ -652,7 +652,7 @@ export default function LearningPage({
                             type="button"
                             onClick={() => setSidebarOpen(true)}
                             title="Show course content"
-                            className="group pointer-events-auto flex items-center gap-2 rounded-l-full border border-r-0 border-slate-200 bg-white py-3 pr-3 pl-4 text-slate-500 shadow-lg transition-all duration-200 hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-purple-600 dark:hover:bg-purple-950/40 dark:hover:text-purple-400"
+                            className="group pointer-events-auto flex items-center gap-2 rounded-l-full border border-r-0 border-slate-200 bg-white py-3 pr-3 pl-4 text-slate-500 shadow-lg transition-all duration-200 hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400 dark:hover:border-purple-600 dark:hover:bg-purple-950/40 dark:hover:text-purple-400"
                         >
                             <span className="max-w-0 overflow-hidden text-xs font-semibold whitespace-nowrap transition-all duration-200 group-hover:max-w-[5rem] group-hover:pr-1">
                                 Contents
@@ -748,7 +748,7 @@ function LessonViewer({
 }
 
 LearningPage.layout = (page: React.ReactNode) => (
-    <div className="flex h-screen flex-col overflow-hidden bg-slate-50 dark:bg-slate-900">
+    <div className="flex h-screen flex-col overflow-hidden bg-slate-50 dark:bg-[#1e1f24]">
         {page}
         <ToastContainer
             position="top-right"

@@ -132,7 +132,7 @@ export default function AiSettingsPanel({
                     />
                 </div>
 
-                <div className="border-t border-neutral-200 bg-neutral-50/70 p-6 dark:border-slate-700 dark:bg-slate-900/30">
+                <div className="border-t border-neutral-200 bg-neutral-50/70 p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h3 className="font-semibold text-slate-900 dark:text-white">
@@ -155,7 +155,7 @@ export default function AiSettingsPanel({
 
                     {!isEditing ? (
                         <div className="grid gap-4 md:grid-cols-3">
-                            <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
+                            <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1e1f24]">
                                 <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
                                     Base URL
                                 </p>
@@ -163,7 +163,7 @@ export default function AiSettingsPanel({
                                     {data.base_url || "Belum dikonfigurasi"}
                                 </p>
                             </div>
-                            <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
+                            <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1e1f24]">
                                 <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
                                     Model
                                 </p>
@@ -171,7 +171,7 @@ export default function AiSettingsPanel({
                                     {data.model || "Belum dikonfigurasi"}
                                 </p>
                             </div>
-                            <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
+                            <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1e1f24]">
                                 <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
                                     API Key
                                 </p>
@@ -185,7 +185,7 @@ export default function AiSettingsPanel({
                     ) : (
                         <form
                             onSubmit={submitCredentials}
-                            className="grid gap-5 border border-neutral-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800 md:grid-cols-2"
+                            className="grid gap-5 border border-neutral-200 bg-white p-5 dark:border-slate-700 dark:bg-[#1e1f24] md:grid-cols-2"
                         >
                             <InputField
                                 label="Base URL"
@@ -239,7 +239,7 @@ export default function AiSettingsPanel({
                                                 ? `••••${initialAi.api_key_hint?.slice(-4) ?? ""}`
                                                 : "Masukkan API key"
                                         }
-                                        className="w-full border border-gray-300 bg-white py-2 pl-9 pr-10 text-sm text-slate-900 outline-none focus:border-purple-700 focus:ring-1 focus:ring-purple-700 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                                        className="w-full border border-gray-300 bg-white py-2 pl-9 pr-10 text-sm text-slate-900 outline-none focus:border-purple-700 focus:ring-1 focus:ring-purple-700 dark:border-slate-600 dark:bg-[#1e1f24] dark:text-white"
                                         disabled={processing}
                                     />
                                     <button

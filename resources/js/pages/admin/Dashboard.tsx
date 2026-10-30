@@ -59,7 +59,7 @@ export default function Dashboard() {
                                 <Link
                                     key={course.id}
                                     href={`/admin/courses/${course.slug}`}
-                                    className="border border-slate-200 dark:border-slate-700 p-4 transition hover:border-purple-300 dark:hover:border-purple-600 bg-white dark:bg-slate-800"
+                                    className="border border-slate-200 dark:border-slate-700 p-4 transition hover:border-purple-300 dark:hover:border-purple-600 bg-white dark:bg-[#1e1f24]"
                                 >
                                     <p className="line-clamp-2 font-medium text-slate-700 dark:text-slate-200">{course.title}</p>
                                     <p className="mt-2 text-xs text-slate-400 dark:text-slate-500 capitalize">
@@ -79,7 +79,7 @@ export default function Dashboard() {
 
 function Kpi({ title, value, icon, compact = false }: any) {
     return (
-        <div className="border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+        <div className="border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-5 shadow-sm">
             <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
                 <span>{title}</span>
                 <span className="bg-purple-50 dark:bg-purple-950/40 p-2 text-purple-600 dark:text-purple-400">{icon}</span>
@@ -91,7 +91,7 @@ function Kpi({ title, value, icon, compact = false }: any) {
 
 function Panel({ title, children, className = '' }: any) {
     return (
-        <section className={`border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm ${className}`}>
+        <section className={`border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-6 shadow-sm ${className}`}>
             <div className="mb-4 border-b border-slate-100 dark:border-slate-700 pb-4">
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">{title}</h2>
             </div>

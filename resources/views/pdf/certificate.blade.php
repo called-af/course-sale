@@ -285,6 +285,10 @@
     </style>
 </head>
 <body>
+@php
+    $sealName = mb_strtoupper($brandName ?? 'KursusIO');
+    $sealHalf = (int) ceil(mb_strlen($sealName) / 2);
+@endphp
 <div class="page">
     <div class="bg-gradient"></div>
     <div class="circle-1"></div>
@@ -299,7 +303,7 @@
     <div class="corner corner-br"></div>
 
     <div class="content">
-        <div class="brand">KursusIO</div>
+        <div class="brand">{{ $brandName ?? 'KursusIO' }}</div>
         <div class="divider"></div>
         <div class="title">{{ $customTitle }}</div>
 
@@ -334,7 +338,7 @@
             </div>
             <div class="signature-item">
                 <div class="signature-line"></div>
-                <div class="signature-name">KursusIO</div>
+                <div class="signature-name">{{ $brandName ?? 'KursusIO' }}</div>
                 <div class="signature-role">Platform</div>
             </div>
         </div>
@@ -347,7 +351,7 @@
 
     <div class="seal">
         <div class="seal-inner">
-            <div class="seal-text">KURSUS<br>IO<br>VERIFIED</div>
+            <div class="seal-text">{{ mb_substr($sealName, 0, $sealHalf) }}<br>{{ mb_substr($sealName, $sealHalf) }}<br>VERIFIED</div>
         </div>
     </div>
 

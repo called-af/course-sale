@@ -1,5 +1,6 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import clsx from 'clsx';
+import AppLogo from '@/components/atoms/AppLogo';
 import {
     Award,
     Bell,
@@ -17,6 +18,7 @@ import {
     X,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useBranding } from '@/hooks/useBranding';
 import { useTheme } from '@/hooks/useTheme';
 
 interface UserNavbarProps {
@@ -48,6 +50,7 @@ function buildNavigation(role: string): NavigationItem[] {
 }
 
 export default function UserNavbar({ title }: UserNavbarProps) {
+    const { name: appName } = useBranding();
     const { props, url } = usePage();
     const auth = (props as any).auth;
     const instructorApprovalNotifications = (props as any).instructorApprovalNotifications;
@@ -76,11 +79,11 @@ export default function UserNavbar({ title }: UserNavbarProps) {
     }, []);
 
     return (
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-neutral-200 bg-white px-5 dark:border-slate-700 dark:bg-slate-900">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-neutral-200 bg-white px-5 dark:border-slate-700 dark:bg-[#1e1f24]">
             <div className="relative flex w-full items-center justify-between gap-4">
                 <div className="flex min-w-0 items-center gap-3">
-                    <Link href="/" className="flex shrink-0 items-center" title="KursusIO Home">
-                        <img src="/images/logo.svg" alt="Logo" className="h-7 w-auto" />
+                    <Link href="/" className="flex shrink-0 items-center" title={`${appName} Home`}>
+                        <AppLogo className="h-7 w-auto" />
                     </Link>
 
                     <button
@@ -137,7 +140,7 @@ export default function UserNavbar({ title }: UserNavbarProps) {
                             </button>
 
                             {notificationsOpen && (
-                                <div className="absolute top-11 right-0 z-50 w-80 overflow-hidden border border-neutral-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                                <div className="absolute top-11 right-0 z-50 w-80 overflow-hidden border border-neutral-200 bg-white shadow-xl dark:border-slate-700 dark:bg-[#1e1f24]">
                                     <div className="border-b border-neutral-100 px-4 py-3 dark:border-slate-800">
                                         <p className="text-sm font-semibold text-neutral-800 dark:text-slate-100">Approved courses</p>
                                         <p className="text-xs text-neutral-400 dark:text-slate-500">Courses approved by an administrator</p>
@@ -217,7 +220,7 @@ export default function UserNavbar({ title }: UserNavbarProps) {
 
                 {menuOpen && (
                     <nav
-                        className="absolute inset-x-0 top-full border-b border-neutral-100 bg-white p-3 shadow-lg md:hidden dark:border-slate-700 dark:bg-slate-900"
+                        className="absolute inset-x-0 top-full border-b border-neutral-100 bg-white p-3 shadow-lg md:hidden dark:border-slate-700 dark:bg-[#1e1f24]"
                         aria-label="Mobile navigation"
                     >
                         <div className="mx-auto max-w-screen-2xl space-y-1">

@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { FileText, Play, Video } from 'lucide-react';
 import ProgressBar from '@/components/atoms/ProgressBar';
+import { useBranding } from '@/hooks/useBranding';
 import type { ContinueLearningCourse } from '@/types/dashboard';
 
 interface ContinueLearningBannerProps {
@@ -8,6 +9,7 @@ interface ContinueLearningBannerProps {
 }
 
 export default function ContinueLearningBanner({ course }: ContinueLearningBannerProps) {
+    const { name: appName } = useBranding();
     const progress = course.progress_percent ?? 0;
     const resumeUrl = `/student/courses/${course.slug}${
         course.next_material
@@ -19,7 +21,7 @@ export default function ContinueLearningBanner({ course }: ContinueLearningBanne
         <div className="relative overflow-hidden border border-purple-200 bg-gradient-to-br from-purple-50 via-white to-indigo-50/40 p-5 shadow-sm dark:border-purple-900/50 dark:from-slate-900 dark:via-purple-950/30 dark:to-slate-900">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-4">
-                    <div className="relative aspect-video w-32 shrink-0 overflow-hidden bg-slate-200 shadow-xs sm:w-40 dark:bg-slate-800">
+                    <div className="relative aspect-video w-32 shrink-0 overflow-hidden bg-slate-200 shadow-xs sm:w-40 dark:bg-[#141416]">
                         <img
                             src={course.thumbnail_url ?? '/assets/landscape.jpeg'}
                             alt={course.title}
@@ -34,7 +36,7 @@ export default function ContinueLearningBanner({ course }: ContinueLearningBanne
                                 Continue Where You Left Off
                             </span>
                             {course.level && (
-                                <span className="bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 capitalize dark:bg-slate-800 dark:text-slate-400">
+                                <span className="bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 capitalize dark:bg-[#1e1f24] dark:text-slate-400">
                                     {course.level}
                                 </span>
                             )}
@@ -51,7 +53,7 @@ export default function ContinueLearningBanner({ course }: ContinueLearningBanne
                                 </span>
                             </p>
                         ) : (
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Instructor: {course.creator?.name ?? 'KursusIO'}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Instructor: {course.creator?.name ?? appName}</p>
                         )}
 
                         <div className="flex items-center gap-3 pt-1">

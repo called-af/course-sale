@@ -16,6 +16,7 @@ import Button from "@/components/atoms/Button"
 import Card from "@/components/atoms/Card"
 import InputField from "@/components/molecules/InputField"
 import Toggle from "@/components/atoms/Toggle"
+import { useBranding } from "@/hooks/useBranding"
 
 export interface WhatsAppSettingsData {
     whatsapp_number: string
@@ -31,6 +32,7 @@ interface Props {
 }
 
 export default function WhatsAppSettingsPanel({ settings, instructorName = "Instruktur" }: Props) {
+    const { name: appName, domain } = useBranding()
     const [isTesting, setIsTesting] = useState(false)
     const [localError, setLocalError] = useState<string | null>(null)
 
@@ -151,7 +153,7 @@ export default function WhatsAppSettingsPanel({ settings, instructorName = "Inst
             </div>
 
             {/* Main Form & Configuration */}
-            <div className="border-t border-neutral-200 bg-neutral-50/70 p-6 dark:border-slate-700 dark:bg-slate-900/30">
+            <div className="border-t border-neutral-200 bg-neutral-50/70 p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid gap-6 md:grid-cols-2">
                         {/* WhatsApp Number Input */}
@@ -175,7 +177,7 @@ export default function WhatsAppSettingsPanel({ settings, instructorName = "Inst
                         </div>
 
                         {/* Status Summary & Quick Actions */}
-                        <div className="flex flex-col justify-between border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
+                        <div className="flex flex-col justify-between border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1e1f24]">
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-slate-400">
                                     Status Pengiriman
@@ -243,7 +245,7 @@ export default function WhatsAppSettingsPanel({ settings, instructorName = "Inst
             </div>
 
             {/* Message Preview Section */}
-            <div className="p-6 bg-white dark:bg-slate-900 border border-neutral-200 dark:border-slate-800">
+            <div className="p-6 bg-white dark:bg-[#1e1f24] border border-neutral-200 dark:border-slate-800">
                 <div className="flex items-center gap-2 mb-3">
                     <Sparkles size={16} className="text-purple-600 dark:text-purple-400" />
                     <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
@@ -255,15 +257,15 @@ export default function WhatsAppSettingsPanel({ settings, instructorName = "Inst
                 </p>
 
                 {/* WhatsApp Chat Bubble Mockup */}
-                <div className="max-w-md bg-[#e5ddd5] dark:bg-slate-950 p-4 border border-neutral-200 dark:border-slate-800 shadow-inner">
-                    <div className="bg-white dark:bg-[#1f2c34] text-slate-900 dark:text-slate-100 p-3.5 shadow-sm text-xs space-y-2 rounded-tl-none rounded-2xl relative">
+                <div className="max-w-md bg-[#e5ddd5] dark:bg-[#1e1f24] p-4 border border-neutral-200 dark:border-slate-800 shadow-inner">
+                    <div className="bg-white dark:bg-[#1e1f24] text-slate-900 dark:text-slate-100 p-3.5 shadow-sm text-xs space-y-2 rounded-tl-none rounded-2xl relative">
                         <p className="font-semibold text-slate-900 dark:text-white">
                             Halo, <span className="text-purple-700 dark:text-purple-300">*{instructorName}*</span>! 🎓
                         </p>
                         <p className="text-slate-600 dark:text-slate-300">
                             Ada student baru yang baru saja enroll di course Anda:
                         </p>
-                        <div className="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-sm border-l-2 border-emerald-500 space-y-1 font-sans">
+                        <div className="bg-slate-50 dark:bg-[#1e1f24] p-2.5 rounded-sm border-l-2 border-emerald-500 space-y-1 font-sans">
                             <p>👤 <strong>Student:</strong> Ahmad Pratama</p>
                             <p>📚 <strong>Course:</strong> Master Fullstack Web Development Modern</p>
                             <p>🗓️ <strong>Tanggal Enrollment:</strong> {currentDate}</p>
@@ -272,10 +274,10 @@ export default function WhatsAppSettingsPanel({ settings, instructorName = "Inst
                             Buka dashboard instructor Anda untuk memantau progress siswa:
                         </p>
                         <p className="text-purple-600 dark:text-purple-400 font-mono text-[11px] underline">
-                            🔗 {typeof window !== "undefined" ? window.location.origin : "https://kursus.io"}/instructor/dashboard
+                            🔗 {typeof window !== "undefined" ? window.location.origin : `https://${domain}`}/instructor/dashboard
                         </p>
                         <div className="pt-2 text-[10px] text-slate-400 dark:text-slate-500 flex justify-between items-center border-t border-slate-100 dark:border-slate-800">
-                            <span>Salam hangat, Tim KursusIO</span>
+                            <span>Salam hangat, Tim {appName}</span>
                             <span className="flex items-center gap-1">
                                 <Clock size={10} /> Sekarang
                             </span>

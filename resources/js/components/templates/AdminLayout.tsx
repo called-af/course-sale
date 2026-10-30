@@ -16,7 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [sidebarOpen])
 
   return (
-    <div className="h-screen flex overflow-hidden bg-neutral-50 dark:bg-slate-900">
+    <div className="h-screen flex overflow-hidden bg-neutral-50 dark:bg-[#141416]">
 
       <Sidebar
         open={sidebarOpen}

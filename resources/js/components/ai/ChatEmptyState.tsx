@@ -3,7 +3,7 @@ import ChatAvatar from '@/components/ai/ChatAvatar';
 export default function ChatEmptyState() {
     return (
         <div className="flex h-full min-h-64 flex-col items-center justify-center px-5 text-center">
-            <div className="mb-4 flex items-center gap-3 border border-purple-100 bg-white px-4 py-3 shadow-sm dark:border-purple-950/50 dark:bg-slate-800">
+            <div className="mb-4 flex items-center gap-3 border border-purple-100 bg-white px-4 py-3 shadow-sm dark:border-purple-950/50 dark:bg-[#1e1f24]">
                 <ChatAvatar role="assistant" size="sm" />
                 <div className="text-left">
                     <p className="text-xs font-semibold text-slate-800 dark:text-slate-100">New Chat</p>

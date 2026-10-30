@@ -15,7 +15,7 @@ interface ChatSidebarProps {
 
 export default function ChatSidebar({ sessions, activeSession, onSelectSession, onCreateSession, onDeleteSession }: ChatSidebarProps) {
     return (
-        <div className="flex h-full w-64 flex-col bg-gray-900 text-white">
+        <div className="flex h-full w-64 flex-col bg-[#141416] text-white">
             <div className="p-4">
                 <button onClick={onCreateSession} className="w-full bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700">
                     + New Chat

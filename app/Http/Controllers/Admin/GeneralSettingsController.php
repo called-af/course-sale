@@ -15,6 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -44,6 +45,57 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
         AppearanceSetting::current()->forceFill($validated)->save();
 
         return back()->with('success', 'Palet tampilan berhasil disimpan.');
+    }
+
+    public function updateIdentity(Request $request): RedirectResponse
+    {
+        $this->authorize('manage-settings');
+
+        $validated = $request->validate([
+            'app_name' => ['required', 'string', 'max:60'],
+            'contact_email' => ['nullable', 'email', 'max:120'],
+        ]);
+
+        AppearanceSetting::current()->forceFill($validated)->save();
+
+        return back()->with('success', 'Identitas aplikasi berhasil disimpan.');
+    }
+
+    public function updateLogo(Request $request): RedirectResponse
+    {
+        $this->authorize('manage-settings');
+
+        $request->validate([
+            'logo' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,svg', 'max:2048'],
+        ]);
+
+        $setting = AppearanceSetting::current();
+        $oldLogo = $setting->logo_path;
+
+        $path = $request->file('logo')->store('branding', 'public');
+
+        $setting->forceFill(['logo_path' => $path])->save();
+
+        if ($oldLogo && $oldLogo !== $path) {
+            Storage::disk('public')->delete($oldLogo);
+        }
+
+        return back()->with('success', 'Logo aplikasi berhasil diperbarui.');
+    }
+
+    public function destroyLogo(): RedirectResponse
+    {
+        $this->authorize('manage-settings');
+
+        $setting = AppearanceSetting::current();
+
+        if ($setting->logo_path) {
+            Storage::disk('public')->delete($setting->logo_path);
+        }
+
+        $setting->forceFill(['logo_path' => null])->save();
+
+        return back()->with('success', 'Logo aplikasi dikembalikan ke default.');
     }
 
     public function verifyPassword(Request $request): JsonResponse
@@ -169,7 +221,7 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
             ], 422);
         }
 
-        $appName = config('app.name', 'Course Sale');
+        $appName = AppearanceSetting::current()->displayName();
         $time = now()->translatedFormat('d M Y, H:i');
         $message = "Halo! Ini adalah pesan uji coba (Test WhatsApp) dari Admin Panel {$appName} via Infobip Gateway.\n\nWaktu: {$time}\nStatus: Konfigurasi DB Aktif & Terhubung.";
 

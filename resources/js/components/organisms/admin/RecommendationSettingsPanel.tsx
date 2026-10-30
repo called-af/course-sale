@@ -51,7 +51,7 @@ export default function RecommendationSettingsPanel({
                     />
                 </div>
 
-                <div className="border-t border-neutral-200 bg-neutral-50/70 p-6 dark:border-slate-700 dark:bg-slate-900/30">
+                <div className="border-t border-neutral-200 bg-neutral-50/70 p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="flex items-start gap-4">
                         <Sparkles className="mt-0.5 h-5 w-5 text-blue-600 dark:text-blue-400" />
                         <div className="space-y-2">

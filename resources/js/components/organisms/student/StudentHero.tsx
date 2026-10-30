@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { Award, Compass, Sparkles } from 'lucide-react';
 import { getGreeting } from '@/lib/dashboard';
+import { useBranding } from '@/hooks/useBranding';
 
 interface StudentHeroProps {
     userName: string;
@@ -9,9 +10,10 @@ interface StudentHeroProps {
 }
 
 export default function StudentHero({ userName, enrolledCount, activeCourseTitle }: StudentHeroProps) {
+    const { name } = useBranding();
     const description =
         enrolledCount === 0
-            ? 'Welcome to KursusIO! Explore the course catalog and start your new learning journey today.'
+            ? `Welcome to ${name}! Explore the course catalog and start your new learning journey today.`
             : activeCourseTitle
               ? `You have active learning progress in "${activeCourseTitle}". Continue the lessons to complete the course!`
               : 'Great job! You have completed all your enrolled courses. Keep improving your skills with new courses.';

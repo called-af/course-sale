@@ -7,9 +7,9 @@ interface CertificateCardProps {
 
 export default function CertificateCard({ certificate }: CertificateCardProps) {
     return (
-        <div className="group flex flex-col gap-2 border border-slate-100 bg-slate-50/60 p-3.5 transition hover:border-purple-200 hover:bg-purple-50/20 dark:border-slate-700 dark:bg-slate-900/50 dark:hover:border-purple-900/60">
+        <div className="group flex flex-col gap-2 border border-slate-100 bg-slate-50/60 p-3.5 transition hover:border-purple-200 hover:bg-purple-50/20 dark:border-slate-700 dark:bg-[#1e1f24] dark:hover:border-purple-900/60">
             <div className="flex items-start gap-3">
-                <div className="h-10 w-14 shrink-0 overflow-hidden bg-slate-200 dark:bg-slate-800">
+                <div className="h-10 w-14 shrink-0 overflow-hidden bg-slate-200 dark:bg-[#141416]">
                     <img
                         src={certificate.course.thumbnail_url ?? '/assets/landscape.jpeg'}
                         alt={certificate.course.title}

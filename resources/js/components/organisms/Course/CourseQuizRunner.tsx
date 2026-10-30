@@ -424,7 +424,7 @@ export default function CourseQuizRunner({
                       ? "bg-purple-600 text-white"
                       : answered
                         ? "border border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-400"
-                        : "border border-slate-200 bg-white text-slate-500 hover:border-purple-300 hover:text-purple-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
+                        : "border border-slate-200 bg-white text-slate-500 hover:border-purple-300 hover:text-purple-600 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400"
                   }`}
                 >
                   {index + 1}
@@ -434,7 +434,7 @@ export default function CourseQuizRunner({
           </div>
 
           {/* Single question */}
-          <div className="border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800 sm:p-5">
+          <div className="border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1e1f24] sm:p-5">
             <PreviewQuizQuestion
               question={currentQuestion}
               questionIndex={currentIndex}
@@ -542,7 +542,7 @@ function IntroScreen({
 
   return (
     <div className="space-y-5 py-4">
-      <div className="mx-auto max-w-xl space-y-4 border border-slate-200 bg-white p-6 text-center dark:border-slate-700 dark:bg-slate-800 sm:p-8">
+      <div className="mx-auto max-w-xl space-y-4 border border-slate-200 bg-white p-6 text-center dark:border-slate-700 dark:bg-[#1e1f24] sm:p-8">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-purple-50 dark:bg-purple-950/40">
           <Sparkles className="h-6 w-6 text-purple-600 dark:text-purple-400" />
         </div>
@@ -680,7 +680,7 @@ function ResultScreen({
 
   return (
     <div className="space-y-5 py-4">
-      <div className="mx-auto max-w-xl space-y-4 border border-slate-200 bg-white p-6 text-center dark:border-slate-700 dark:bg-slate-800 sm:p-8">
+      <div className="mx-auto max-w-xl space-y-4 border border-slate-200 bg-white p-6 text-center dark:border-slate-700 dark:bg-[#1e1f24] sm:p-8">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/40">
           <CheckCircle2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
         </div>
@@ -736,7 +736,7 @@ function ResultScreen({
             return (
               <div
                 key={question.id}
-                className="flex items-start gap-2 border border-slate-200 bg-white px-3 py-2.5 text-xs dark:border-slate-700 dark:bg-slate-800"
+                className="flex items-start gap-2 border border-slate-200 bg-white px-3 py-2.5 text-xs dark:border-slate-700 dark:bg-[#1e1f24]"
               >
                 {detail?.is_correct === true ? (
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />

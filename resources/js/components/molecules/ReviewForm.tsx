@@ -71,7 +71,7 @@ export default function ReviewForm({ courseSlug, existing, onSuccess, onCancel }
                     placeholder="Share your experience with this course..."
                     rows={4}
                     maxLength={2000}
-                    className="w-full border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100 resize-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:placeholder-slate-500 dark:focus:border-purple-500 dark:focus:ring-purple-900/50"
+                    className="w-full border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100 resize-none dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-200 dark:placeholder-slate-500 dark:focus:border-purple-500 dark:focus:ring-purple-900/50"
                 />
                 <div className="mt-1 flex justify-between">
                     {errors.comment

@@ -11,7 +11,7 @@ class LandingController extends Controller
 {
     public function show()
     {
-        if (Auth::check()) {
+        if (Auth::check() && Auth::user()->role !== 'admin') {
             return redirect()->route('home.redirect');
         }
 

@@ -24,7 +24,7 @@ export default function UserTable({
   return (
     <div className="border border-zinc-400 dark:border-slate-700 overflow-hidden">
       <table className="w-full text-sm">
-        <thead className="border-zinc-400 dark:border-slate-700 border-b bg-slate-50 dark:bg-slate-800">
+        <thead className="border-zinc-400 dark:border-slate-700 border-b bg-slate-50 dark:bg-[#1e1f24]">
           <tr className="text-left">
             <th className="px-4 py-3 text-slate-700 dark:text-slate-200">User</th>
             <th className="px-4 py-3 text-slate-700 dark:text-slate-200">Email</th>
@@ -35,7 +35,7 @@ export default function UserTable({
 
         <tbody>
           {users.map((user: any) => (
-            <tr key={user.id} className="border-b border-zinc-400 dark:border-slate-700 last:border-none bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <tr key={user.id} className="border-b border-zinc-400 dark:border-slate-700 last:border-none bg-white dark:bg-[#1e1f24] hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
               <td className="px-4 py-3">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-lg bg-neutral-100 dark:bg-slate-700 overflow-hidden">

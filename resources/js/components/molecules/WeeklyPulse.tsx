@@ -9,7 +9,7 @@ interface WeeklyPulseProps {
 
 export default function WeeklyPulse({ weeklyEnrollments, totalLessons, completionRate, totalCertificates }: WeeklyPulseProps) {
     return (
-        <div className="border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-700 dark:bg-slate-800">
+        <div className="border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-700 dark:bg-[#1e1f24]">
             <div className="flex items-start justify-between">
                 <div>
                     <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase dark:text-slate-500">This week</p>

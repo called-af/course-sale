@@ -31,14 +31,14 @@ function OptionRow({
       className={`flex items-center gap-3 px-3.5 py-2.5 border transition-all cursor-pointer group ${
         option.is_correct
             ? "border-emerald-300 bg-emerald-50/60 shadow-xs ring-1 ring-emerald-500/20 dark:border-emerald-800 dark:bg-emerald-950/40"
-            : "border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/60 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-600 dark:hover:bg-slate-700"
+            : "border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/60 dark:border-slate-700 dark:bg-[#1e1f24] dark:hover:border-slate-600 dark:hover:bg-slate-700"
       }`}
       onClick={() => onSetCorrect(index)}
     >
       <div className={`w-5 h-5 border-2 flex-shrink-0 flex items-center justify-center transition-all ${
         option.is_correct
             ? "border-emerald-500 bg-emerald-500 text-white shadow-xs"
-            : "border-slate-300 group-hover:border-indigo-400 bg-white dark:border-slate-600 dark:bg-slate-800"
+            : "border-slate-300 group-hover:border-indigo-400 bg-white dark:border-slate-600 dark:bg-[#1e1f24]"
       }`}>
         {option.is_correct && <Check className="w-3 h-3 stroke-[3]" />}
       </div>
@@ -101,9 +101,9 @@ function QuestionCard({
   onSetCorrect: (key: string, i: number) => void
 }) {
   return (
-    <div className="border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+    <div className="border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-[#1e1f24] shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
       {/* Question header */}
-      <div className="flex items-center justify-between gap-3 px-4 py-3 bg-slate-50/80 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
+      <div className="flex items-center justify-between gap-3 px-4 py-3 bg-slate-50/80 dark:bg-[#1e1f24] border-b border-slate-100 dark:border-slate-700">
         <div className="flex items-center gap-2.5">
           <GripVertical size={16} className="text-slate-300 dark:text-slate-500 cursor-grab active:cursor-grabbing shrink-0" />
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-900 text-indigo-700 dark:text-indigo-300 text-xs font-bold uppercase tracking-wider">
@@ -250,7 +250,7 @@ export default function QuizBuilder({ courseSlug, moduleId, materialId, contentI
   return (
     <div className="space-y-5">
       {/* Question bank header */}
-      <div className="p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-4 bg-slate-50 dark:bg-[#1e1f24] border border-slate-200/80 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-300 flex items-center justify-center font-bold">
             <HelpCircle size={20} />
@@ -302,7 +302,7 @@ export default function QuizBuilder({ courseSlug, moduleId, materialId, contentI
       </div>
 
       {/* Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white dark:bg-[#1e1f24] border border-slate-200/80 dark:border-slate-700 shadow-xs">
         <Button onClick={quiz.save} disabled={quiz.processing} size="md" className="!rounded-none">
           {quiz.processing ? "Saving Questions..." : "Save All Quiz Questions"}
         </Button>

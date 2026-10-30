@@ -9,7 +9,7 @@ export default function LearningPath({ pathData }: LearningPathProps) {
     if (pathData.length === 0) return null;
 
     return (
-        <section className="mt-5 border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <section className="mt-5 border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
             <div className="mb-4 flex items-center gap-2">
                 <span className="flex h-8 w-8 items-center justify-center bg-purple-100 text-purple-600 dark:bg-purple-950/50 dark:text-purple-400">
                     <Route className="h-4 w-4" />
@@ -28,7 +28,7 @@ export default function LearningPath({ pathData }: LearningPathProps) {
                         {index < pathData.length - 1 && (
                             <span className="absolute top-7 left-[14px] h-[calc(100%+0.75rem)] w-px bg-purple-200 dark:bg-purple-900" />
                         )}
-                        <div className="min-w-0 flex-1 bg-slate-50 px-3 py-2.5 dark:bg-slate-800/70">
+                        <div className="min-w-0 flex-1 bg-slate-50 px-3 py-2.5 dark:bg-[#1e1f24]">
                             <p className="truncate text-xs font-bold text-slate-900 dark:text-white">{step.title}</p>
                             <p className="mt-0.5 text-[10px] text-slate-500 capitalize dark:text-slate-400">{step.level ?? 'Belajar berlanjut'}</p>
                         </div>

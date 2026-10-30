@@ -40,10 +40,19 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
-            'name' => config('app.name'),
-            'appearance' => fn () => [
-                'palette' => AppearanceSetting::current()->palette,
-            ],
+            'name' => fn () => AppearanceSetting::current()->displayName(),
+            'appearance' => function () {
+                $setting = AppearanceSetting::current();
+
+                return [
+                    'palette' => $setting->palette,
+                    'name' => $setting->displayName(),
+                    'contact_email' => $setting->contactEmail(),
+                    'domain' => $setting->domain(),
+                    'logo_url' => $setting->logo_url,
+                    'has_custom_logo' => $setting->hasCustomLogo(),
+                ];
+            },
             'auth' => [
                 'user' => $request->user(),
             ],

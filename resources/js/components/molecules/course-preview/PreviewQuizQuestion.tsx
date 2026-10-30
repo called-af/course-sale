@@ -44,7 +44,7 @@ export default function PreviewQuizQuestion({
       </p>
 
       {question.image && (
-        <div className="overflow-hidden rounded-none border border-slate-200 dark:border-slate-700 max-h-72 bg-slate-50 dark:bg-slate-800 my-2">
+        <div className="overflow-hidden rounded-none border border-slate-200 dark:border-slate-700 max-h-72 bg-slate-50 dark:bg-[#1e1f24] my-2">
           <img
             src={question.image}
             alt={`Question ${questionIndex + 1}`}
@@ -59,7 +59,7 @@ export default function PreviewQuizQuestion({
             const isSelected = userAnswer === option.id
             const isCorrect = option.is_correct
 
-            let btnStyles = "bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
+            let btnStyles = "bg-slate-50 dark:bg-[#1e1f24] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
             let badgeStyles = "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
 
             if (isSelected) {
@@ -98,7 +98,7 @@ export default function PreviewQuizQuestion({
         <div className="pt-1">
           <textarea
             rows={3}
-            className="w-full select-text rounded-none border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900 p-3 text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-purple-200 dark:focus:ring-purple-900/50 transition-colors"
+            className="w-full select-text rounded-none border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-[#1e1f24] p-3 text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-purple-200 dark:focus:ring-purple-900/50 transition-colors"
             placeholder="Write your essay answer here for testing..."
             value={(userAnswer as string) ?? ""}
             onChange={(e) => onChangeEssay(e.target.value)}

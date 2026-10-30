@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Certificate;
+use App\Models\AppearanceSetting;
 use App\Services\CertificateService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,7 @@ class CertificateController extends Controller
      */
     public function index(Request $request): \Inertia\Response
     {
+        $brandName = AppearanceSetting::current()->displayName();
         $certificates = Certificate::where('user_id', $request->user()->id)
             ->with(['course:id,title,slug,thumbnail', 'course.creator:id,name'])
             ->latest('issued_at')
@@ -33,7 +35,7 @@ class CertificateController extends Controller
                     'title'         => $cert->course->title,
                     'slug'          => $cert->course->slug,
                     'thumbnail_url' => $cert->course->thumbnail_url,
-                    'instructor'    => $cert->course->creator?->name ?? 'KursusIO',
+                    'instructor'    => $cert->course->creator?->name ?? $brandName,
                 ],
             ]);
 
@@ -94,7 +96,7 @@ class CertificateController extends Controller
                     'title'         => $certificate->course->title,
                     'slug'          => $certificate->course->slug,
                     'thumbnail_url' => $certificate->course->thumbnail_url,
-                    'instructor'    => $certificate->course->creator?->name ?? 'KursusIO',
+                    'instructor'    => $certificate->course->creator?->name ?? AppearanceSetting::current()->displayName(),
                 ],
             ],
             'valid' => true,

@@ -79,7 +79,7 @@ export default function ReviewCard({
     }
 
     return (
-        <div className="border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+        <div className="border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-[#1e1f24]">
             <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center bg-purple-100 overflow-hidden dark:bg-purple-950/40">

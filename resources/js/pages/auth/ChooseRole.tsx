@@ -36,7 +36,7 @@ export default function ChooseRole() {
     <LoginLayout>
       <Head title="Choose Your Role" />
 
-      <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-white dark:bg-slate-900">
+      <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-white dark:bg-[#141416]">
         {/* Left — decorative panel */}
         <div
           className="hidden md:block bg-cover bg-center"
@@ -72,7 +72,7 @@ export default function ChooseRole() {
                         "cursor-pointer",
                         isSelected
                           ? "border-purple-500 bg-purple-50/60 dark:bg-purple-950/40 shadow-md shadow-purple-500/10"
-                          : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm"
+                          : "border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1f24] hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm"
                       )}
                     >
                       <div className="flex items-start gap-4">

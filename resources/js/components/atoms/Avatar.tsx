@@ -8,7 +8,7 @@ const TONE_STYLES: Record<AvatarTone, string> = {
     indigo: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300',
     amber: 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300',
     emerald: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300',
-    slate: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+    slate: 'bg-slate-100 text-slate-700 dark:bg-[#1e1f24] dark:text-slate-300',
 };
 
 interface AvatarProps {

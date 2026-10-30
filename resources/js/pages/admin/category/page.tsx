@@ -49,7 +49,7 @@ export default function CategoryPage({ categories }: { categories: Category[] })
         />
 
         {/* Content Card */}
-        <div className="bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-sm p-6 sm:p-8 space-y-4">
+        <div className="bg-white dark:bg-[#1e1f24] border border-slate-200/80 dark:border-slate-700 shadow-sm p-6 sm:p-8 space-y-4">
           <div className="pb-4 border-b border-slate-100 dark:border-slate-700">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
               All Categories ({categories.length})
@@ -69,7 +69,7 @@ export default function CategoryPage({ categories }: { categories: Category[] })
             {categories.map((category) => (
               <div
                 key={category.id}
-                className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 hover:bg-neutral-50 dark:hover:bg-slate-700 transition-colors"
+                className="flex items-center justify-between p-4 bg-white dark:bg-[#1e1f24] hover:bg-neutral-50 dark:hover:bg-slate-700 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-neutral-100 dark:bg-slate-700 overflow-hidden flex items-center justify-center">

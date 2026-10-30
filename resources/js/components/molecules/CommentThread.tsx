@@ -84,7 +84,7 @@ function CommentForm({ courseSlug, parentId, defaultValue = '', placeholder, sub
                 placeholder={placeholder ?? 'Write a comment...'}
                 rows={3}
                 maxLength={2000}
-                className="w-full border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100 resize-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:placeholder-slate-500 dark:focus:border-purple-500 dark:focus:ring-purple-900/50"
+                className="w-full border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100 resize-none dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-200 dark:placeholder-slate-500 dark:focus:border-purple-500 dark:focus:ring-purple-900/50"
             />
             {error && <p className="text-xs text-red-500">{error}</p>}
             <div className="flex items-center gap-2">
@@ -199,7 +199,7 @@ function CommentItem({ comment, courseSlug, currentUserId, isReply = false }: Co
                                 rows={2}
                                 maxLength={2000}
                                 autoFocus
-                                className="w-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 resize-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-purple-500 dark:focus:ring-purple-900/50"
+                                className="w-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 resize-none dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-200 dark:focus:border-purple-500 dark:focus:ring-purple-900/50"
                             />
                             <div className="flex gap-2">
                                 <Button type="submit" size="sm">Save</Button>
@@ -291,7 +291,7 @@ export default function CommentThread({ comments: initialComments, courseSlug, c
 
             {/* New comment form */}
             {currentUserId ? (
-                <div className="border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
+                <div className="border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <p className="mb-3 text-xs font-semibold text-slate-600 uppercase tracking-wide dark:text-slate-300">Start a discussion</p>
                     <CommentForm
                         courseSlug={courseSlug}
@@ -300,7 +300,7 @@ export default function CommentThread({ comments: initialComments, courseSlug, c
                     />
                 </div>
             ) : (
-                <div className="border border-slate-200 bg-slate-50 p-4 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                <div className="border border-slate-200 bg-slate-50 p-4 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400">
                     <a href="/login" className="font-medium text-purple-600 hover:underline dark:text-purple-400">Sign in</a> to join the discussion.
                 </div>
             )}

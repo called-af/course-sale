@@ -40,7 +40,7 @@ export default function HeroSection() {
   useEffect(() => { const t = setTimeout(() => setMounted(true), 50); return () => clearTimeout(t) }, [])
 
   return (
-    <section className="min-h-screen bg-[#FAFAF8] dark:bg-[#0f0f0f] overflow-hidden">
+    <section className="min-h-screen bg-[#FAFAF8] dark:bg-[#141416] overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-8 flex items-center justify-between min-h-screen">
 
         <div
@@ -75,7 +75,7 @@ export default function HeroSection() {
           </p>
 
           <div className="flex flex-col lg:flex-row items-center gap-4">
-            <Button widthFull variant="primary" rightIcon={<ArrowRight size={18} />} className="px-8 py-3 text-base bg-gray-900 hover:bg-gray-700 focus:ring-gray-500">
+            <Button widthFull variant="primary" rightIcon={<ArrowRight size={18} />} className="px-8 py-3 text-base bg-[#141416] hover:bg-gray-700 focus:ring-gray-500">
               Explore Courses
             </Button>
             <Button widthFull variant="outline" leftIcon={<Play size={18} />} className="px-6 py-3 text-base">

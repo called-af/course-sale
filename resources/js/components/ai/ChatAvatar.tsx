@@ -14,7 +14,7 @@ export default function ChatAvatar({ role, size = 'sm' }: ChatAvatarProps) {
             className={`flex shrink-0 items-center justify-center ${dimensions} ${
                 isAssistant
                     ? 'bg-gradient-to-br from-purple-500 to-purple-700 text-white shadow-md shadow-purple-500/20'
-                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                    : 'bg-slate-100 text-slate-600 dark:bg-[#1e1f24] dark:text-slate-300'
             }`}
             aria-label={isAssistant ? 'AI Assistant' : 'User'}
         >

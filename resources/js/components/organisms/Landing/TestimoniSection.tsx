@@ -1,6 +1,7 @@
-import Title from "@/components/atoms/Title"
 import Badge from "@/components/atoms/Badge"
+import Title from "@/components/atoms/Title"
 import CommentCard from "@/components/molecules/CommentCard"
+import { useBranding } from "@/hooks/useBranding"
 
 const testimonials = [
   {
@@ -14,7 +15,7 @@ const testimonials = [
     name: "Sari Dewi",
     role: "UI/UX Designer · Gojek",
     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&q=80&fit=crop&crop=face",
-    comment: "After just 3 months on KursusIO, I landed my dream job. The curriculum is well-structured and easy to follow.",
+    comment: "After just 3 months on {brand}, I landed my dream job. The curriculum is well-structured and easy to follow.",
     rating: 5,
   },
   {
@@ -28,7 +29,7 @@ const testimonials = [
     name: "Maya Putri",
     role: "Backend Engineer · Bukalapak",
     avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&q=80&fit=crop&crop=face",
-    comment: "I've tried many learning platforms, but KursusIO is the one that made a real difference. The community is super active too.",
+    comment: "I've tried many learning platforms, but {brand} is the one that made a real difference. The community is super active too.",
     rating: 5,
   },
   {
@@ -48,8 +49,10 @@ const testimonials = [
 ]
 
 export default function TestimonialSection() {
+  const { name } = useBranding()
+
   return (
-    <section className="bg-[#1a1a1a] dark:bg-slate-900/80 py-24">
+    <section className="bg-[#141416] dark:bg-[#FAFAF8] py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
 
         {/* Header */}
@@ -57,16 +60,20 @@ export default function TestimonialSection() {
           <Badge variant="purple" dot>
             Testimonials
           </Badge>
-          <Title as="h2" className="text-white leading-tight" style={{ fontSize: "clamp(1.8rem,4vw,2.8rem)" }}>
+          <Title as="h2" className="text-gray-100 dark:text-gray-900 leading-tight" style={{ fontSize: "clamp(1.8rem,4vw,2.8rem)" }}>
             What Our
-            <span className="bg-purple-400 px-2 ml-2 inline-block text-gray-900">Learners Say</span>
+            <span className="bg-purple-400 px-2 ml-2 inline-block text-white">Learners Say</span>
           </Title>
         </div>
 
         {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {testimonials.map((t) => (
-            <CommentCard key={t.name} {...t} />
+            <CommentCard
+              key={t.name}
+              {...t}
+              comment={t.comment.replaceAll("{brand}", name)}
+            />
           ))}
         </div>
 

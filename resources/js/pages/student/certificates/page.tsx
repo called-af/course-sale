@@ -59,9 +59,9 @@ export default function MyCertificatesPage({ certificates }: Props) {
 
 function CertificateCard({ cert }: { cert: CertificateItem }) {
     return (
-        <div className="flex flex-col border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xs overflow-hidden">
+        <div className="flex flex-col border border-slate-100 dark:border-slate-700 bg-white dark:bg-[#1e1f24] shadow-xs overflow-hidden">
             {/* Thumbnail */}
-            <div className="relative aspect-video w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+            <div className="relative aspect-video w-full overflow-hidden bg-slate-100 dark:bg-[#141416]">
                 <img
                     src={cert.course.thumbnail_url}
                     alt={cert.course.title}
@@ -102,7 +102,7 @@ function CertificateCard({ cert }: { cert: CertificateItem }) {
                     {cert.has_pdf && (
                         <a
                             href={`/student/certificates/${cert.id}/download`}
-                            className="flex flex-1 items-center justify-center gap-1.5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:border-purple-300 dark:hover:border-purple-600 hover:text-purple-700 dark:hover:text-purple-400 transition-colors"
+                            className="flex flex-1 items-center justify-center gap-1.5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1f24] py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:border-purple-300 dark:hover:border-purple-600 hover:text-purple-700 dark:hover:text-purple-400 transition-colors"
                             download
                         >
                             <Download size={13} />
@@ -126,7 +126,7 @@ function CertificateCard({ cert }: { cert: CertificateItem }) {
 
 function EmptyState() {
     return (
-        <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 p-12 text-center shadow-xs">
+        <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-12 text-center shadow-xs">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center bg-purple-50 dark:bg-purple-950/40">
                 <Award size={28} className="text-purple-400" />
             </div>

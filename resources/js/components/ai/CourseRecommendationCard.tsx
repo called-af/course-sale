@@ -11,7 +11,7 @@ export default function CourseRecommendationCard({ course }: CourseRecommendatio
     const hasRating = Number(course.rating_count) > 0 && course.rating !== null && course.rating !== undefined;
 
     return (
-        <article className="group overflow-hidden border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-purple-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:hover:border-purple-800">
+        <article className="group overflow-hidden border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-purple-200 hover:shadow-md dark:border-slate-700 dark:bg-[#1e1f24] dark:hover:border-purple-800">
             <div className="flex min-h-28 gap-3 p-3">
                 <div className="flex h-20 w-24 shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-purple-100 to-indigo-100 text-purple-600 dark:from-purple-950/60 dark:to-indigo-950/40 dark:text-purple-400">
                     {course.thumbnail_url && <img src={course.thumbnail_url} alt="" className="h-full w-full object-cover" />}

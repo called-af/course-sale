@@ -194,7 +194,7 @@ export default function WhatsAppSettingsPanel({
                 </div>
 
                 {/* Configuration Section */}
-                <div className="border-t border-neutral-200 bg-neutral-50/70 p-6 dark:border-slate-700 dark:bg-slate-900/30">
+                <div className="border-t border-neutral-200 bg-neutral-50/70 p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h3 className="font-semibold text-slate-900 dark:text-white">
@@ -217,7 +217,7 @@ export default function WhatsAppSettingsPanel({
 
                     {!isEditing ? (
                         <div className="grid gap-4 md:grid-cols-4">
-                            <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
+                            <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1e1f24]">
                                 <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
                                     Infobip Base URL
                                 </p>
@@ -225,7 +225,7 @@ export default function WhatsAppSettingsPanel({
                                     {data.base_url || "Belum dikonfigurasi"}
                                 </p>
                             </div>
-                            <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
+                            <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1e1f24]">
                                 <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
                                     From Number / Sender
                                 </p>
@@ -233,7 +233,7 @@ export default function WhatsAppSettingsPanel({
                                     +{data.from_number || "447860088970"}
                                 </p>
                             </div>
-                            <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
+                            <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1e1f24]">
                                 <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
                                     Sandbox Keyword
                                 </p>
@@ -241,7 +241,7 @@ export default function WhatsAppSettingsPanel({
                                     {data.sandbox_keyword || "—"}
                                 </p>
                             </div>
-                            <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
+                            <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1e1f24]">
                                 <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
                                     API Key Status
                                 </p>
@@ -255,7 +255,7 @@ export default function WhatsAppSettingsPanel({
                     ) : (
                         <form
                             onSubmit={submitCredentials}
-                            className="grid gap-5 border border-neutral-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800 md:grid-cols-2"
+                            className="grid gap-5 border border-neutral-200 bg-white p-5 dark:border-slate-700 dark:bg-[#1e1f24] md:grid-cols-2"
                         >
                             <InputField
                                 label="Infobip Base URL"
@@ -315,7 +315,7 @@ export default function WhatsAppSettingsPanel({
                                                 ? `••••${initialWhatsApp.api_key_hint?.slice(-4) ?? ""}`
                                                 : "Masukkan Infobip API key"
                                         }
-                                        className="w-full border border-gray-300 bg-white py-2 pl-9 pr-10 text-sm text-slate-900 outline-none focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                                        className="w-full border border-gray-300 bg-white py-2 pl-9 pr-10 text-sm text-slate-900 outline-none focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 dark:border-slate-600 dark:bg-[#1e1f24] dark:text-white"
                                         disabled={processing}
                                     />
                                     <button
@@ -382,7 +382,7 @@ export default function WhatsAppSettingsPanel({
                                     value={testPhone}
                                     onChange={(e) => setTestPhone(e.target.value)}
                                     placeholder="Contoh: 081234567890 atau 6281234567890"
-                                    className="w-full border border-gray-300 bg-white py-2 px-3 text-sm text-slate-900 outline-none focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                                    className="w-full border border-gray-300 bg-white py-2 px-3 text-sm text-slate-900 outline-none focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 dark:border-slate-600 dark:bg-[#1e1f24] dark:text-white"
                                     disabled={isTesting}
                                 />
                             </div>

@@ -28,7 +28,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
   }, [])
 
   return (
-    <header className="sticky top-0 z-30 h-16 bg-white dark:bg-slate-900 border-b border-neutral-100 dark:border-slate-700 flex items-center justify-between px-5">
+    <header className="sticky top-0 z-30 h-16 bg-white dark:bg-[#1e1f24] border-b border-neutral-100 dark:border-slate-700 flex items-center justify-between px-5">
       <button
         onClick={onToggleSidebar}
         className="lg:hidden p-2 text-neutral-400 dark:text-slate-500 hover:text-neutral-700 dark:hover:text-white transition-colors"
@@ -55,7 +55,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
             </button>
 
             {isNotificationsOpen && (
-              <div className="absolute right-0 top-11 z-50 w-80 overflow-hidden bg-white dark:bg-slate-900 border border-neutral-200 dark:border-slate-700 shadow-xl">
+              <div className="absolute right-0 top-11 z-50 w-80 overflow-hidden bg-white dark:bg-[#1e1f24] border border-neutral-200 dark:border-slate-700 shadow-xl">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100 dark:border-slate-800">
                   <div>
                     <p className="text-sm font-semibold text-neutral-800 dark:text-slate-100">Pending approvals</p>

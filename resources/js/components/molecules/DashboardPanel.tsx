@@ -29,7 +29,7 @@ export default function DashboardPanel({
     return (
         <section
             className={clsx(
-                'border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-800',
+                'border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-[#1e1f24]',
                 className,
             )}
         >

@@ -81,7 +81,7 @@ function ContentsSection({ courseSlug, moduleId, materialId, contents, editId, r
           <div className="space-y-1">
             <label className="text-xs font-medium text-neutral-500">Type</label>
             <select value={crud.type} onChange={e => crud.setType(e.target.value as any)}
-              className="w-full border border-neutral-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-300 dark:focus:border-violet-500 transition">
+              className="w-full border border-neutral-200 dark:border-slate-600 bg-white dark:bg-[#1e1f24] text-sm text-slate-800 dark:text-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-300 dark:focus:border-violet-500 transition">
               {Object.entries(TYPE_META).map(([val, { label }]) => (
                 <option key={val} value={val}>{label}</option>
               ))}
@@ -285,7 +285,7 @@ export default function CourseStructure({ course, modules, routePrefix }: Course
 
   return (
     <>
-      <div className="border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm overflow-hidden p-6 sm:p-8 space-y-6">
+      <div className="border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-[#1e1f24] shadow-sm overflow-hidden p-6 sm:p-8 space-y-6">
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-700">
@@ -307,7 +307,7 @@ export default function CourseStructure({ course, modules, routePrefix }: Course
 
         {/* Modules */}
         {crud.sortedModules.length === 0 ? (
-          <div className="flex flex-col items-center py-16 text-center bg-slate-50/50 dark:bg-slate-800/50 border border-dashed border-slate-200 dark:border-slate-700">
+          <div className="flex flex-col items-center py-16 text-center bg-slate-50/50 dark:bg-[#1e1f24] border border-dashed border-slate-200 dark:border-slate-700">
             <div className="w-12 h-12 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center mb-3 shadow-xs">
               <Layers className="w-6 h-6 text-purple-500" />
             </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import Button from '@/components/atoms/Button';
+import AppLogo from '@/components/atoms/AppLogo';
 import { ChevronDown, LayoutDashboard, LogOut, Menu, Moon, Sun, X } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -24,7 +25,7 @@ export default function Navbar() {
         <nav className="absolute z-50 w-full">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
                 <Link href="/" className="flex items-center">
-                    <img src="/images/logo.svg" alt="Logo" className="h-10 w-auto" />
+                    <AppLogo className="h-10 w-auto" />
                 </Link>
 
                 <div className="hidden items-center gap-8 lg:flex">
@@ -81,7 +82,7 @@ export default function Navbar() {
             </div>
 
             {open && (
-                <div className="flex flex-col gap-6 border-t border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-900 px-6 py-6 lg:hidden">
+                <div className="flex flex-col gap-6 border-t border-gray-100 dark:border-slate-700 bg-white dark:bg-[#1e1f24] px-6 py-6 lg:hidden">
                     <div className="flex flex-col gap-4">
                         {menus.map((menu) => (
                             <Link
@@ -192,7 +193,7 @@ function AccountMenu({
             </button>
 
             {open && (
-                <div className="absolute top-full right-0 mt-2 w-52 border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-900 p-2 shadow-lg" role="menu">
+                <div className="absolute top-full right-0 mt-2 w-52 border border-gray-100 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-2 shadow-lg" role="menu">
                     {items.map((item) => (
                         <Link
                             key={item.href}

@@ -73,7 +73,7 @@ export default function AppearanceSettingsPanel({
                             className={`flex min-h-24 items-center gap-3 border p-4 text-left transition-colors disabled:cursor-wait disabled:opacity-70 ${
                                 selected
                                     ? "border-purple-700 bg-purple-50 dark:border-purple-500 dark:bg-purple-950/40"
-                                    : "border-slate-200 bg-white hover:border-purple-300 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-purple-700"
+                                    : "border-slate-200 bg-white hover:border-purple-300 dark:border-slate-700 dark:bg-[#1e1f24] dark:hover:border-purple-700"
                             }`}
                         >
                             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-4 border-white shadow-sm dark:border-slate-700" style={{ backgroundColor: palette.light }}>

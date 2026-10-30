@@ -7,7 +7,7 @@ export default function Login() {
   return (
     <LoginLayout>
     <Head title="Sign Up"/>
-    <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-white dark:bg-slate-900">
+    <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-white dark:bg-[#141416]">
       <div
         className="hidden md:block bg-cover bg-center"
         style={{

@@ -43,7 +43,7 @@ export default function ChatInput({ onSend, disabled = false }: ChatInputProps) 
                     disabled={disabled}
                     maxLength={1000}
                     aria-label="Message AI"
-                    className="h-10 min-h-10 border-slate-200 bg-slate-50 py-2 pr-14 pl-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-purple-500 focus:ring-purple-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500"
+                    className="h-10 min-h-10 border-slate-200 bg-slate-50 py-2 pr-14 pl-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-purple-500 focus:ring-purple-500 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-white dark:placeholder:text-slate-500"
                 />
                 <span className="pointer-events-none absolute right-3 bottom-2.5 text-[9px] font-medium text-slate-400">{input.length}/1000</span>
             </div>

@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { CheckCircle, Download, Play } from 'lucide-react';
 import ProgressBar from '@/components/atoms/ProgressBar';
+import { useBranding } from '@/hooks/useBranding';
 import type { ContinueLearningCourse } from '@/types/dashboard';
 
 interface EnrolledCourseCardProps {
@@ -8,6 +9,7 @@ interface EnrolledCourseCardProps {
 }
 
 export default function EnrolledCourseCard({ course }: EnrolledCourseCardProps) {
+    const { name: appName } = useBranding();
     const progress = course.progress_percent ?? 0;
     const isCompleted = progress === 100;
     const resumeUrl = `/student/courses/${course.slug}${
@@ -17,9 +19,9 @@ export default function EnrolledCourseCard({ course }: EnrolledCourseCardProps) 
     }`;
 
     return (
-        <div className="group flex flex-col justify-between overflow-hidden border border-slate-200 bg-white transition-all duration-200 hover:border-purple-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:hover:border-purple-800">
+        <div className="group flex flex-col justify-between overflow-hidden border border-slate-200 bg-white transition-all duration-200 hover:border-purple-300 hover:shadow-md dark:border-slate-700 dark:bg-[#1e1f24] dark:hover:border-purple-800">
             <div>
-                <div className="relative aspect-video w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+                <div className="relative aspect-video w-full overflow-hidden bg-slate-100 dark:bg-[#141416]">
                     <img
                         src={course.thumbnail_url ?? '/assets/landscape.jpeg'}
                         alt={course.title}
@@ -61,7 +63,7 @@ export default function EnrolledCourseCard({ course }: EnrolledCourseCardProps) 
                         <h3 className="line-clamp-2 text-sm font-bold text-slate-800 group-hover:text-purple-700 dark:text-slate-100 dark:group-hover:text-purple-400">
                             {course.title}
                         </h3>
-                        <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">By {course.creator?.name ?? 'KursusIO'}</p>
+                        <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">By {course.creator?.name ?? appName}</p>
                     </div>
 
                     <div>
@@ -108,7 +110,7 @@ export default function EnrolledCourseCard({ course }: EnrolledCourseCardProps) 
                             </a>
                         )}
                         <Link
-                            href={`/course/${course.slug}`}
+                            href={resumeUrl}
                             title="Open the lesson viewer to review the course materials"
                             className="inline-flex items-center gap-1 bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-purple-700"
                         >

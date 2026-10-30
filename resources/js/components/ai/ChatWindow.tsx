@@ -17,7 +17,7 @@ export default function ChatWindow({ messages, isLoading = false }: ChatWindowPr
     }, [messages, isLoading]);
 
     return (
-        <div className="h-full min-h-0 flex-1 overflow-y-auto bg-slate-50 px-4 py-5 sm:px-5 dark:bg-slate-950">
+        <div className="h-full min-h-0 flex-1 overflow-y-auto bg-slate-50 px-4 py-5 sm:px-5 dark:bg-[#1e1f24]">
             {messages.length === 0 ? (
                 <ChatEmptyState />
             ) : (

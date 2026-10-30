@@ -20,7 +20,7 @@ const renderElement = ({ children, element }: any) => {
       )
     case "code":
       return (
-        <pre className="bg-gray-900 text-green-400 p-4 rounded-lg my-3 text-sm font-mono overflow-x-auto leading-relaxed">
+        <pre className="bg-[#141416] text-green-400 p-4 rounded-lg my-3 text-sm font-mono overflow-x-auto leading-relaxed">
           <code>{children}</code>
         </pre>
       )
@@ -49,14 +49,14 @@ export default function SlatePreview({ value }: Props) {
 
   if (isEmpty) {
     return (
-      <div className="border border-dashed border-gray-200 rounded-xl p-8 text-center bg-gray-50/60 dark:border-slate-700 dark:bg-slate-800/60">
+      <div className="border border-dashed border-gray-200 rounded-xl p-8 text-center bg-gray-50/60 dark:border-slate-700 dark:bg-[#1e1f24]">
         <p className="text-sm text-gray-400 dark:text-slate-500">Your preview will appear here when you start writing.</p>
       </div>
     )
   }
 
   return (
-    <div className="border border-gray-200 rounded-xl p-5 bg-gray-50/60 text-sm overflow-auto max-h-125 dark:border-slate-700 dark:bg-slate-800/60">
+    <div className="border border-gray-200 rounded-xl p-5 bg-gray-50/60 text-sm overflow-auto max-h-125 dark:border-slate-700 dark:bg-[#1e1f24]">
       {value.map((node: any, i: number) => (
         <div key={i}>
           {renderElement({

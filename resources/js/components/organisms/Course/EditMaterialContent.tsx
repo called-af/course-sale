@@ -119,7 +119,7 @@ export default function EditMaterialContent({
   return (
     <div className="space-y-6">
       {/* Card 1: Main Content Settings */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 shadow-sm p-6 sm:p-8 space-y-6">
+      <div className="bg-white dark:bg-[#1e1f24] border border-slate-200/80 dark:border-slate-700 shadow-sm p-6 sm:p-8 space-y-6">
         <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700">
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">Main Content Settings</h2>
@@ -185,7 +185,7 @@ export default function EditMaterialContent({
                   className={`relative flex flex-col items-start p-4 border transition-all text-left group hover:scale-[1.01] ${
                     isSelected
                       ? t.activeCls
-                      : "border-slate-200/90 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50/50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700"
+                      : "border-slate-200/90 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50/50 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700"
                   }`}
                 >
                   <div className={`p-2.5 border mb-3 transition-colors ${t.colorCls}`}>
@@ -210,7 +210,7 @@ export default function EditMaterialContent({
       </div>
 
       {/* Card 2: Content Specific Editor */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 shadow-sm p-6 sm:p-8 space-y-6">
+      <div className="bg-white dark:bg-[#1e1f24] border border-slate-200/80 dark:border-slate-700 shadow-sm p-6 sm:p-8 space-y-6">
         {/* Media URL Input */}
         {(form.type === "video" || form.type === "file" || form.type === "ppt") && (
           <div className="space-y-4">
@@ -232,7 +232,7 @@ export default function EditMaterialContent({
               />
 
               {form.contentUrl && (
-                <div className="p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 flex items-center justify-between text-xs">
+                <div className="p-3 bg-slate-50 dark:bg-[#1e1f24] border border-slate-200/80 dark:border-slate-700 flex items-center justify-between text-xs">
                   <span className="text-slate-600 dark:text-slate-300 truncate max-w-md">{form.contentUrl}</span>
                   <a
                     href={form.contentUrl}
@@ -287,7 +287,7 @@ export default function EditMaterialContent({
                   className={`px-3 py-1 text-xs font-medium border transition-all ${
                     form.duration === mins
                       ? "bg-rose-50 border-rose-300 text-rose-700 font-semibold dark:bg-rose-950/60 dark:border-rose-800 dark:text-rose-300"
-                      : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700"
+                      : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 dark:bg-[#1e1f24] dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700"
                   }`}
                 >
                   {mins} min
@@ -322,7 +322,7 @@ export default function EditMaterialContent({
                 <p className="text-xs text-slate-500 dark:text-slate-400">Write and compose rich text learning material.</p>
               </div>
 
-              <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1">
+              <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#1e1f24] p-1">
                 <button
                   type="button"
                   onClick={() => setSplitView(false)}
@@ -361,7 +361,7 @@ export default function EditMaterialContent({
                   <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1">
                     <Eye className="w-3.5 h-3.5 text-indigo-500" /> Student Preview
                   </span>
-                  <div className="border border-slate-200/80 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 p-4 min-h-[300px]">
+                  <div className="border border-slate-200/80 dark:border-slate-700 bg-slate-50/50 dark:bg-[#1e1f24] p-4 min-h-[300px]">
                     <SlatePreview value={form.contentText} />
                   </div>
                 </div>

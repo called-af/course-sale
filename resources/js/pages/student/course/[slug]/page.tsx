@@ -109,7 +109,7 @@ export default function CourseSlug({ course, categories, tags, enrolled_students
                     {/* Left Column */}
                     <div className="space-y-6 lg:col-span-5">
                         {/* Thumbnail */}
-                        <div className="space-y-4 border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                        <div className="space-y-4 border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
                             <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-700">
                                 <h3 className="flex items-center gap-2 text-sm font-bold tracking-wider text-slate-800 uppercase dark:text-slate-100">
                                     <Image className="h-4 w-4 text-purple-500" />
@@ -125,7 +125,7 @@ export default function CourseSlug({ course, categories, tags, enrolled_students
                         </div>
 
                         {/* Tags */}
-                        <div className="space-y-4 border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                        <div className="space-y-4 border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
                             <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-700">
                                 <h3 className="flex items-center gap-2 text-sm font-bold tracking-wider text-slate-800 uppercase dark:text-slate-100">
                                     <Tag className="h-4 w-4 text-purple-500" />
@@ -147,7 +147,7 @@ export default function CourseSlug({ course, categories, tags, enrolled_students
                     </div>
 
                     {/* Right Column */}
-                    <div className="space-y-6 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 lg:col-span-7 dark:border-slate-700 dark:bg-slate-800">
+                    <div className="space-y-6 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 lg:col-span-7 dark:border-slate-700 dark:bg-[#1e1f24]">
                         <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-700">
                             <div>
                                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">Course Information & Details</h2>
@@ -253,7 +253,7 @@ export default function CourseSlug({ course, categories, tags, enrolled_students
                 <EnrolledStudentsList students={enrolled_students ?? []} />
 
                 {/* Certificate Template Editor */}
-                <div className="space-y-6 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-slate-800">
+                <div className="space-y-6 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="flex items-center gap-3 border-b border-slate-100 pb-4 dark:border-slate-700">
                         <div className="flex h-8 w-8 items-center justify-center bg-purple-50 dark:bg-purple-950/40">
                             <Award className="h-4 w-4 text-purple-600 dark:text-purple-400" />
