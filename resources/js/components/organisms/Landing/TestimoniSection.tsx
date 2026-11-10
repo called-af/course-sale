@@ -1,83 +1,98 @@
-import Badge from "@/components/atoms/Badge"
-import Title from "@/components/atoms/Title"
-import CommentCard from "@/components/molecules/CommentCard"
-import { useBranding } from "@/hooks/useBranding"
+import { motion, useReducedMotion } from 'motion/react';
+import Badge from '@/components/atoms/Badge';
+import RatingStars from '@/components/atoms/RatingStars';
+import Title from '@/components/atoms/Title';
+import CommentCard from '@/components/molecules/CommentCard';
+import { useLanding } from '@/hooks/useLanding';
+import type { TestimonialItem } from '@/types';
 
-const testimonials = [
-  {
-    name: "Andi Wirawan",
-    role: "Frontend Developer · Tokopedia",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&q=80&fit=crop&crop=face",
-    comment: "The courses here truly transformed my career. The content is industry-relevant and the instructors are very responsive.",
-    rating: 5,
-  },
-  {
-    name: "Sari Dewi",
-    role: "UI/UX Designer · Gojek",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&q=80&fit=crop&crop=face",
-    comment: "After just 3 months on {brand}, I landed my dream job. The curriculum is well-structured and easy to follow.",
-    rating: 5,
-  },
-  {
-    name: "Rizky Pratama",
-    role: "Data Analyst · Shopee",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&q=80&fit=crop&crop=face",
-    comment: "The best platform for learning digital skills. Affordable price but quality on par with expensive bootcamps.",
-    rating: 4,
-  },
-  {
-    name: "Maya Putri",
-    role: "Backend Engineer · Bukalapak",
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&q=80&fit=crop&crop=face",
-    comment: "I've tried many learning platforms, but {brand} is the one that made a real difference. The community is super active too.",
-    rating: 5,
-  },
-  {
-    name: "Budi Santoso",
-    role: "Mobile Developer · Traveloka",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&q=80&fit=crop&crop=face",
-    comment: "Content is always up-to-date with the latest tech trends. The instructors are real practitioners, not just theorists.",
-    rating: 5,
-  },
-  {
-    name: "Nita Rahayu",
-    role: "Product Manager · Grab",
-    avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&q=80&fit=crop&crop=face",
-    comment: "The best investment I've ever made. The ROI was felt immediately after finishing my first course.",
-    rating: 4,
-  },
-]
+interface TestimonialSectionProps {
+    /** Approved reviews, provided by the server. */
+    testimonials?: TestimonialItem[];
+}
 
-export default function TestimonialSection() {
-  const { name } = useBranding()
+const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
 
-  return (
-    <section className="bg-[#141416] dark:bg-[#FAFAF8] py-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-8">
+export default function TestimonialSection({ testimonials = [] }: TestimonialSectionProps) {
+    const { testimonial } = useLanding();
+    const reduceMotion = useReducedMotion();
 
-        {/* Header */}
-        <div className="flex flex-col gap-4 mb-12">
-          <Badge variant="purple" dot>
-            Testimonials
-          </Badge>
-          <Title as="h2" className="text-gray-100 dark:text-gray-900 leading-tight" style={{ fontSize: "clamp(1.8rem,4vw,2.8rem)" }}>
-            What Our
-            <span className="bg-purple-400 px-2 ml-2 inline-block text-white">Learners Say</span>
-          </Title>
-        </div>
+    const averageRating = testimonials.length > 0 ? testimonials.reduce((total, item) => total + item.rating, 0) / testimonials.length : 0;
 
-        {/* Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {testimonials.map((t) => (
-            <CommentCard
-              key={t.name}
-              {...t}
-              comment={t.comment.replaceAll("{brand}", name)}
-            />
-          ))}
-        </div>
+    return (
+        <section className="relative overflow-hidden bg-gray-100 py-24 dark:bg-[#141416]">
+            <div className="relative mx-auto max-w-7xl px-4 sm:px-8">
+                {/* Header */}
+                <motion.div
+                    initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.4 }}
+                    transition={{ duration: 0.6, ease: EASE }}
+                    className="mb-12 flex flex-col justify-between gap-8 lg:flex-row lg:items-end"
+                >
+                    <div className="flex flex-col gap-4">
+                        <Badge variant="purple" dot>
+                            {testimonial.badge}
+                        </Badge>
+                        <Title as="h2" className="leading-tight" style={{ fontSize: 'clamp(1.8rem,4vw,2.8rem)' }}>
+                            {testimonial.title_lead}
+                            <span className="relative isolate inline-block bg-purple-400 px-2">
+                                <span
+                                    aria-hidden
+                                    className="pointer-events-none absolute -inset-x-8 -inset-y-6 -z-10 rounded-full bg-purple-400/25 blur-2xl dark:bg-purple-500/25"
+                                />
+                                {testimonial.title_highlight}
+                            </span>
+                        </Title>
+                        <p className="max-w-md text-sm leading-relaxed text-gray-500 dark:text-slate-400">{testimonial.description}</p>
+                    </div>
 
-      </div>
-    </section>
-  )
+                    {testimonials.length > 0 && (
+                        <div className="flex items-center gap-4 bg-white p-5 lg:w-80 dark:bg-[#1e1f24]">
+                            <span className="font-display text-4xl leading-none text-gray-900 dark:text-white">{averageRating.toFixed(1)}</span>
+                            <div className="flex flex-col gap-1.5">
+                                <RatingStars value={averageRating} size={14} />
+                                <span className="text-xs text-gray-500 dark:text-slate-400">
+                                    Based on {testimonials.length} verified review{testimonials.length === 1 ? '' : 's'}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+                </motion.div>
+
+                {/* Grid */}
+                {testimonials.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        {testimonials.map((item, index) => (
+                            <motion.div
+                                key={item.id}
+                                initial={reduceMotion ? false : { opacity: 0, y: 28 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true, amount: 0.15 }}
+                                transition={{ duration: 0.5, delay: Math.min(index, 5) * 0.06, ease: EASE }}
+                                className="group relative z-0 h-full hover:z-10"
+                            >
+                                <motion.div
+                                    whileHover={reduceMotion ? undefined : { y: -6 }}
+                                    transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+                                    className="h-full"
+                                >
+                                    <CommentCard name={item.name} role={item.role} avatar={item.avatar} comment={item.comment} rating={item.rating} />
+                                </motion.div>
+                            </motion.div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center gap-2 border border-dashed border-slate-300 bg-white/60 py-20 text-center dark:border-slate-700 dark:bg-[#1e1f24]/40">
+                        <Title as="h4" className="text-gray-700 dark:text-slate-200">
+                            No testimonials yet
+                        </Title>
+                        <p className="max-w-sm px-6 text-sm text-gray-500 dark:text-slate-400">
+                            Approved course reviews will appear here automatically.
+                        </p>
+                    </div>
+                )}
+            </div>
+        </section>
+    );
 }

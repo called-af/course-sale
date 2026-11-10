@@ -1,50 +1,54 @@
 import { Link } from '@inertiajs/react';
-import { Facebook, Linkedin, Mail, MapPin, Phone, Sparkles, Youtube } from 'lucide-react';
+import { Facebook, Instagram, Linkedin, Mail, MapPin, Phone, Twitter, Youtube, type LucideIcon } from 'lucide-react';
 
 import AppLogo from '@/components/atoms/AppLogo';
+import Button from '@/components/atoms/Button';
 import { useBranding } from '@/hooks/useBranding';
+import { useLanding } from '@/hooks/useLanding';
 
-const links = {
-    Product: [
-        { name: 'Courses', href: '/course' },
-        { name: 'Pricing', href: '/#pricing' },
-        { name: 'FAQ', href: '/faq' },
-        { name: 'Use Cases', href: '/course' },
-    ],
-    Resources: [
-        { name: 'Support', href: '/contact' },
-        { name: 'Contact Us', href: '/contact' },
-        { name: 'Blog', href: '/blog' },
-    ],
-    Features: [
-        { name: 'AI Recommendations', href: '/course' },
-        { name: 'Certification', href: '/certificates' },
-        { name: 'Interactive Quiz', href: '/course' },
-        { name: 'Community', href: '/about' },
-    ],
-    Company: [
-        { name: 'About Us', href: '/about' },
-        { name: 'Blog', href: '/blog' },
-        { name: 'Careers', href: '/careers' },
-    ],
+const socialIcons: Record<string, LucideIcon> = {
+    linkedin: Linkedin,
+    facebook: Facebook,
+    youtube: Youtube,
+    instagram: Instagram,
+    twitter: Twitter,
+    x: Twitter,
 };
-
-const socials = [
-    { name: 'LinkedIn', href: '#', icon: Linkedin },
-    { name: 'Facebook', href: '#', icon: Facebook },
-    { name: 'YouTube', href: '#', icon: Youtube },
-];
 
 interface FooterProps {
     /** Render the call to action above the footer, as one continuous block. */
     withCta?: boolean;
 }
 
-export default function Footer({ withCta = false }: FooterProps) {
-    const { name, contactEmail } = useBranding();
+function isExternal(href: string): boolean {
+    return href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('#');
+}
+
+function FooterLink({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) {
+    if (isExternal(href)) {
+        return (
+            <a href={href} className={className}>
+                {children}
+            </a>
+        );
+    }
 
     return (
-        <footer className="relative bg-[#141416] text-white">
+        <Link href={href} className={className}>
+            {children}
+        </Link>
+    );
+}
+
+export default function Footer({ withCta = false }: FooterProps) {
+    const { name, contactEmail } = useBranding();
+    const { footer } = useLanding();
+
+    const email = footer.email || contactEmail;
+    const phoneHref = `tel:${footer.phone.replace(/[^\d+]/g, '')}`;
+
+    return (
+        <footer className="relative bg-[#141416] text-white dark:bg-[#FAFAF8] dark:text-gray-900">
             {/* Soft glow behind the CTA */}
             {withCta && (
                 <div
@@ -53,54 +57,63 @@ export default function Footer({ withCta = false }: FooterProps) {
                 />
             )}
 
-            <div className="relative mx-auto max-w-7xl border-x border-white/[0.06]">
+            <div className="relative mx-auto max-w-7xl">
                 {withCta && <CtaBlock />}
 
                 {/* Main */}
                 <div className="px-6 pt-14 sm:px-10 lg:px-14">
-                    <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.75fr_0.6fr_repeat(4,minmax(0,1fr))] lg:gap-8">
+                    <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
                         {/* Brand */}
                         <div className="flex flex-col gap-5 sm:col-span-2 lg:col-span-1">
                             <Link href="/" className="flex items-center gap-2.5">
                                 <AppLogo className="h-9 w-9" />
-                                <span className="text-2xl font-semibold tracking-tight text-white">{name}</span>
+                                <span className="text-2xl font-semibold tracking-tight text-white dark:text-gray-900">{name}</span>
                             </Link>
 
-                            <div className="flex flex-col gap-3 text-[13px] leading-relaxed text-white/45">
-                                <p className="flex items-start gap-2.5">
-                                    <MapPin size={14} className="mt-0.5 shrink-0 text-white/30" />
-                                    <span>Jl. Jend. Sudirman Kav. 52, Jakarta 12190, Indonesia</span>
-                                </p>
+                            <div className="flex flex-col gap-3 text-[13px] leading-relaxed text-white/45 dark:text-gray-500">
+                                {footer.address && (
+                                    <p className="flex items-start gap-2.5">
+                                        <MapPin size={14} className="mt-0.5 shrink-0 text-white/30 dark:text-gray-400" />
+                                        <span>{footer.address}</span>
+                                    </p>
+                                )}
 
                                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-                                    <a href="tel:+622150505050" className="inline-flex items-center gap-2 transition-colors hover:text-white/80">
-                                        <Phone size={13} className="text-white/30" />
-                                        +62 21 5050 5050
-                                    </a>
-                                    <a
-                                        href={`mailto:${contactEmail}`}
-                                        className="inline-flex items-center gap-2 transition-colors hover:text-white/80"
-                                    >
-                                        <Mail size={13} className="text-white/30" />
-                                        {contactEmail}
-                                    </a>
+                                    {footer.phone && (
+                                        <a
+                                            href={phoneHref}
+                                            className="inline-flex items-center gap-2 transition-colors hover:text-white/80 dark:hover:text-gray-900"
+                                        >
+                                            <Phone size={13} className="text-white/30 dark:text-gray-400" />
+                                            {footer.phone}
+                                        </a>
+                                    )}
+                                    {email && (
+                                        <a
+                                            href={`mailto:${email}`}
+                                            className="inline-flex items-center gap-2 transition-colors hover:text-white/80 dark:hover:text-gray-900"
+                                        >
+                                            <Mail size={13} className="text-white/30 dark:text-gray-400" />
+                                            {email}
+                                        </a>
+                                    )}
                                 </div>
                             </div>
                         </div>
 
-                        {/* Spacer so the link columns breathe */}
-                        <div aria-hidden className="hidden lg:block" />
-
                         {/* Link groups */}
-                        {Object.entries(links).map(([group, items]) => (
-                            <div key={group} className="flex flex-col gap-4">
-                                <span className="text-[15px] font-semibold text-white">{group}</span>
+                        {footer.columns.map((column) => (
+                            <div key={column.title} className="flex flex-col gap-4">
+                                <span className="text-[15px] font-semibold text-white dark:text-gray-900">{column.title}</span>
                                 <ul className="flex flex-col gap-3.5">
-                                    {items.map((item) => (
-                                        <li key={item.name}>
-                                            <Link href={item.href} className="text-[13px] text-white/45 transition-colors hover:text-white">
-                                                {item.name}
-                                            </Link>
+                                    {column.links.map((item) => (
+                                        <li key={`${column.title}-${item.label}-${item.href}`}>
+                                            <FooterLink
+                                                href={item.href}
+                                                className="text-[13px] text-white/45 transition-colors hover:text-white dark:text-gray-500 dark:hover:text-gray-900"
+                                            >
+                                                {item.label}
+                                            </FooterLink>
                                         </li>
                                     ))}
                                 </ul>
@@ -111,34 +124,47 @@ export default function Footer({ withCta = false }: FooterProps) {
                     {/* Social + legal */}
                     <div className="mt-14 flex flex-col-reverse items-center justify-between gap-6 pb-10 sm:flex-row">
                         <div className="flex items-center gap-5">
-                            {socials.map(({ name, href, icon: Icon }) => (
-                                <a key={name} href={href} aria-label={name} className="text-white/40 transition-colors hover:text-white">
-                                    <Icon size={16} />
-                                </a>
-                            ))}
+                            {footer.socials.map(({ name: socialName, href }) => {
+                                const Icon = socialIcons[socialName.toLowerCase()] ?? Linkedin;
+
+                                return (
+                                    <a
+                                        key={`${socialName}-${href}`}
+                                        href={href}
+                                        aria-label={socialName}
+                                        className="text-white/40 transition-colors hover:text-white dark:text-gray-500 dark:hover:text-gray-900"
+                                    >
+                                        <Icon size={16} />
+                                    </a>
+                                );
+                            })}
                         </div>
 
-                        <div className="flex items-center gap-6 text-[13px] text-white/40">
-                            <Link href="/terms" className="transition-colors hover:text-white">
-                                Terms of Service
-                            </Link>
-                            <Link href="/privacy" className="transition-colors hover:text-white">
-                                Privacy Policy
-                            </Link>
+                        <div className="flex items-center gap-6 text-[13px] text-white/40 dark:text-gray-500">
+                            {footer.legal.map((item) => (
+                                <FooterLink
+                                    key={`${item.label}-${item.href}`}
+                                    href={item.href}
+                                    className="transition-colors hover:text-white dark:hover:text-gray-900"
+                                >
+                                    {item.label}
+                                </FooterLink>
+                            ))}
                         </div>
                     </div>
                 </div>
 
                 {/* Copyright */}
-                <div className="border-t border-white/[0.06]">
-                    <p className="py-6 text-center text-[13px] text-white/35">
-                        © {new Date().getFullYear()} {name}. All rights reserved.
-                    </p>
-                </div>
+                <p className="py-6 text-center text-[13px] text-white/35 dark:text-gray-500">
+                    © {new Date().getFullYear()} {name}. All rights reserved.
+                </p>
 
                 {/* Oversized wordmark */}
-                <div aria-hidden className="relative h-[140px] overflow-hidden border-t border-white/[0.06] select-none sm:h-[230px]">
-                    <span className="absolute inset-x-0 bottom-0 -mb-[0.16em] block bg-gradient-to-b from-white/[0.08] to-white/0 bg-clip-text text-center text-[clamp(3.5rem,15vw,12rem)] leading-[0.78] font-black tracking-[-0.05em] whitespace-nowrap text-transparent">
+                <div
+                    aria-hidden
+                    className="relative h-[140px] overflow-hidden border-t border-white/[0.06] select-none sm:h-[230px] dark:border-gray-200"
+                >
+                    <span className="absolute inset-x-0 bottom-0 -mb-[0.16em] block bg-gradient-to-b from-white/[0.08] to-white/0 bg-clip-text text-center text-[clamp(3.5rem,15vw,12rem)] leading-[0.78] font-black tracking-[-0.05em] whitespace-nowrap text-transparent dark:from-gray-900/10 dark:to-transparent">
                         {name.toUpperCase()}
                     </span>
                 </div>
@@ -148,39 +174,31 @@ export default function Footer({ withCta = false }: FooterProps) {
 }
 
 function CtaBlock() {
+    const { cta } = useLanding();
+
     return (
         <section className="relative">
-            {/* Divider with badge */}
-            <div className="flex items-center gap-4 px-6">
-                <span className="h-px flex-1 bg-white/[0.06]" />
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-[#141416] px-3.5 py-1.5 text-[11px] font-medium text-white/55">
-                    <Sparkles size={12} className="text-purple-400" />
-                    Unlock Your Potential
-                </span>
-                <span className="h-px flex-1 bg-white/[0.06]" />
-            </div>
-
             <div className="px-6 pt-10 pb-16 text-center sm:pt-12 sm:pb-20">
-                <h2 className="mx-auto max-w-3xl text-[clamp(2.1rem,4.6vw,3.4rem)] leading-[1.1] font-semibold tracking-[-0.02em] text-white">
-                    Ready to Turn Complexity
-                    <br className="hidden sm:block" /> into{' '}
-                    <span className="bg-gradient-to-r from-purple-400 via-purple-300 to-purple-500 bg-clip-text text-transparent">Clarity?</span>
+                <h2 className="mx-auto max-w-3xl text-[clamp(2.1rem,4.6vw,3.4rem)] leading-[1.1] font-semibold tracking-[-0.02em] text-white dark:text-gray-900">
+                    {cta.title_line_1}
+                    <br className="hidden sm:block" /> {cta.title_line_2}{' '}
+                    <span className="bg-gradient-to-r from-purple-400 via-purple-300 to-purple-500 bg-clip-text text-transparent dark:from-purple-600 dark:via-purple-500 dark:to-purple-700">
+                        {cta.title_highlight}
+                    </span>
                 </h2>
 
                 <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-                    <Link
-                        href="/register"
-                        className="inline-flex h-11 min-w-[150px] items-center justify-center rounded-lg bg-white px-7 text-[13px] font-semibold text-neutral-900 shadow-[0_1px_0_rgba(255,255,255,0.4)_inset,0_8px_24px_-12px_rgba(255,255,255,0.35)] transition-colors hover:bg-white/90"
-                    >
-                        Start Now
-                    </Link>
+                    <FooterLink href={cta.primary_href}>
+                        <Button variant="primary" className="min-w-[150px] bg-[#141416] px-8 py-3 text-base hover:bg-gray-700 focus:ring-gray-500">
+                            {cta.primary_label}
+                        </Button>
+                    </FooterLink>
 
-                    <Link
-                        href="/contact"
-                        className="inline-flex h-11 min-w-[150px] items-center justify-center rounded-lg border border-white/[0.12] bg-white/[0.02] px-7 text-[13px] font-semibold text-white/80 transition-colors hover:border-white/25 hover:bg-white/[0.06] hover:text-white"
-                    >
-                        Book a Demo
-                    </Link>
+                    <FooterLink href={cta.secondary_href}>
+                        <Button variant="outline" className="min-w-[150px] px-6 py-3 text-base">
+                            {cta.secondary_label}
+                        </Button>
+                    </FooterLink>
                 </div>
             </div>
         </section>

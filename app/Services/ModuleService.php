@@ -64,19 +64,15 @@ class ModuleService
     {
         return DB::transaction(function () use ($module, $data) {
 
-            if (($data['status'] ?? null) === 'published') {
+            $newStatus = $data['status'] ?? $module->status;
+            $isPublishing = $newStatus === 'published' && ! $module->isPublished();
 
-                if ($module->isPublished()) {
-                    throw new DomainException('This module has already been published.');
-                }
-
+            if ($isPublishing) {
                 Gate::authorize('publish', $module);
 
                 if (! $module->canBePublished()) {
-                    throw new DomainException('This module is incomplete and cannot be published.');
+                    throw new DomainException('This module is incomplete and cannot be published. Publish at least one material and its content first.');
                 }
-
-                $data['published_at'] = now();
             }
 
             $module->update([

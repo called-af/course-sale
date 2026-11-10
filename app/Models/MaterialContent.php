@@ -20,10 +20,11 @@ class MaterialContent extends Model
         'type',
         'title',
         'content_url',
+        'preview_url',
         'content_text',
         'duration',
         'sort_order',
-        'status'
+        'status',
     ];
 
     /**
@@ -38,6 +39,16 @@ class MaterialContent extends Model
             'material_id' => 'integer',
             'content_text' => 'array',
         ];
+    }
+
+    public function isPublished(): bool
+    {
+        return $this->status === 'published';
+    }
+
+    public function isDraft(): bool
+    {
+        return $this->status === 'draft';
     }
 
     public function material(): BelongsTo

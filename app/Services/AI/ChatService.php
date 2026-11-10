@@ -2,13 +2,14 @@
 
 namespace App\Services\AI;
 
-use App\Models\ChatSession;
 use App\Models\ChatMessage;
+use App\Models\ChatSession;
 use Illuminate\Support\Facades\DB;
 
 class ChatService
 {
     protected AIOrchestrator $orchestrator;
+
     protected PromptService $promptService;
 
     public function __construct(AIOrchestrator $orchestrator, PromptService $promptService)
@@ -21,6 +22,7 @@ class ChatService
     {
         if ($sessionId) {
             $session = ChatSession::where('user_id', $user->id)->findOrFail($sessionId);
+
             return $session;
         }
 
@@ -44,7 +46,7 @@ class ChatService
             // Build context
             $context = $this->buildContext($session);
 
-            // Send to orchestrator which handles tools and NVIDIA
+            // Send to orchestrator which handles tools and the AI service
             $aiResponse = $this->orchestrator->handleChat($context, $session);
 
             // Save assistant response
@@ -70,22 +72,26 @@ class ChatService
     protected function buildContext(ChatSession $session): array
     {
         $messages = [];
-        
+
         // 1. System Prompt
         $messages[] = $this->promptService->getSystemPrompt($session->user);
 
-        // 2. Chat History (last 10 messages to save context)
+        // 2. Chat history: take the most recent 20 messages, then restore
+        // chronological order before sending them to the model.
         $history = $session->messages()
-            ->orderBy('created_at', 'asc')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->take(20)
-            ->get();
+            ->get()
+            ->reverse()
+            ->values();
 
         foreach ($history as $msg) {
             $formatted = [
                 'role' => $msg->role,
                 'content' => $msg->content,
             ];
-            
+
             if ($msg->tool_call_id) {
                 $formatted['tool_call_id'] = $msg->tool_call_id;
             }

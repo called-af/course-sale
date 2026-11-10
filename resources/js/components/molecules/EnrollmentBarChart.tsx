@@ -20,15 +20,15 @@ export default function EnrollmentBarChart({ days, caption }: EnrollmentBarChart
                             <div className="flex w-full flex-1 items-end">
                                 <div
                                     className={`w-full transition-all duration-500 ${
-                                        day.count > 0
-                                            ? 'bg-gradient-to-t from-purple-600 to-indigo-400'
-                                            : 'bg-slate-100 dark:bg-slate-700'
+                                        day.count > 0 ? 'bg-gradient-to-t from-purple-600 to-indigo-400' : 'bg-slate-100 dark:bg-slate-700'
                                     } ${day.is_today ? 'ring-2 ring-purple-300 ring-offset-1 dark:ring-purple-600 dark:ring-offset-slate-800' : ''}`}
                                     style={{ height: `${height}%` }}
                                     title={`${day.date}: ${day.count} new students`}
                                 />
                             </div>
-                            <span className={`text-[10px] ${day.is_today ? 'font-bold text-purple-600 dark:text-purple-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                            <span
+                                className={`text-[10px] ${day.is_today ? 'font-bold text-purple-600 dark:text-purple-400' : 'text-slate-400 dark:text-slate-500'}`}
+                            >
                                 {day.day_name}
                             </span>
                         </div>

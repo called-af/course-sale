@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Course;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Course\MoveCourseResourceRequest;
 use App\Http\Requests\MaterialContent\StoreMaterialContentRequest;
 use App\Http\Requests\MaterialContent\UpdateMaterialContentRequest;
-use App\Http\Requests\Course\MoveCourseResourceRequest;
 use App\Models\Course;
 use App\Models\Material;
 use App\Models\MaterialContent;
 use App\Models\Module;
-use App\Services\MaterialContentService;
 use App\Services\CourseStructureService;
+use App\Services\MaterialContentService;
 use Inertia\Inertia;
 
 class MaterialContentController extends Controller
@@ -55,7 +55,11 @@ class MaterialContentController extends Controller
     ) {
         $this->structureService->ensureContentHierarchy($course, $module, $material, $content);
 
-        return Inertia::render('admin/course/[material]/page', [
+        $view = auth()->user()?->role === 'instructor'
+            ? 'student/course/[material]/page'
+            : 'admin/course/[material]/page';
+
+        return Inertia::render($view, [
             'material' => $material->load([
                 'module.course',
                 'contents',
@@ -94,7 +98,11 @@ class MaterialContentController extends Controller
     ) {
         $this->structureService->ensureContentHierarchy($course, $module, $material, $content);
 
-        $this->service->update($content, $request->validated());
+        try {
+            $this->service->update($content, $request->validated());
+        } catch (\DomainException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
 
         return back()->with('success', 'Content updated');
     }

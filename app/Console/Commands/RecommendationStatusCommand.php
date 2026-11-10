@@ -77,7 +77,7 @@ class RecommendationStatusCommand extends Command
         $elapsedMs = round((microtime(true) - $startTime) * 1000, 2);
 
         $this->line("Execution Time: <info>{$elapsedMs} ms</info>");
-        $this->line("Items Returned: <info>".count($results).'</info>');
+        $this->line('Items Returned: <info>'.count($results).'</info>');
 
         if (! empty($results)) {
             $rows = [];
@@ -100,6 +100,7 @@ class RecommendationStatusCommand extends Command
         }
 
         $this->newLine();
+
         return Command::SUCCESS;
     }
 }

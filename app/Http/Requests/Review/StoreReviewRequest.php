@@ -14,7 +14,7 @@ class StoreReviewRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'rating'  => ['required', 'integer', 'min:1', 'max:5'],
+            'rating' => ['required', 'integer', 'min:1', 'max:5'],
             'comment' => ['nullable', 'string', 'max:2000'],
         ];
     }
@@ -23,9 +23,9 @@ class StoreReviewRequest extends FormRequest
     {
         return [
             'rating.required' => 'Please provide a rating.',
-            'rating.min'      => 'Rating must be at least 1 star.',
-            'rating.max'      => 'Rating cannot exceed 5 stars.',
-            'comment.max'     => 'Comment cannot exceed 2000 characters.',
+            'rating.min' => 'Rating must be at least 1 star.',
+            'rating.max' => 'Rating cannot exceed 5 stars.',
+            'comment.max' => 'Comment cannot exceed 2000 characters.',
         ];
     }
 }

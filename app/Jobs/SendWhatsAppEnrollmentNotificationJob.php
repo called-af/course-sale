@@ -51,6 +51,7 @@ class SendWhatsAppEnrollmentNotificationJob implements ShouldQueue
                 'enrollment_id' => $this->enrollmentId,
                 'course_id' => $this->courseId,
             ]);
+
             return;
         }
 
@@ -62,6 +63,7 @@ class SendWhatsAppEnrollmentNotificationJob implements ShouldQueue
             Log::info('WhatsApp enrollment notification is currently locked by another worker', [
                 'enrollment_id' => $this->enrollmentId,
             ]);
+
             return;
         }
 
@@ -79,6 +81,7 @@ class SendWhatsAppEnrollmentNotificationJob implements ShouldQueue
                     'enabled' => (bool) $instructor?->whatsapp_notification_enabled,
                     'has_number' => ! empty($instructor?->whatsapp_number),
                 ]);
+
                 return;
             }
 
@@ -88,6 +91,7 @@ class SendWhatsAppEnrollmentNotificationJob implements ShouldQueue
                 Log::warning('WhatsApp notification aborted: enrollment not found or not active', [
                     'enrollment_id' => $this->enrollmentId,
                 ]);
+
                 return;
             }
 
@@ -100,6 +104,7 @@ class SendWhatsAppEnrollmentNotificationJob implements ShouldQueue
                     'student_id' => $this->studentId,
                     'course_id' => $this->courseId,
                 ]);
+
                 return;
             }
 
@@ -127,7 +132,7 @@ class SendWhatsAppEnrollmentNotificationJob implements ShouldQueue
 
                 // Trigger queue retry for transient delivery failures if API is configured
                 if ($whatsAppService->isConfigured()) {
-                    throw new \RuntimeException('Failed to send WhatsApp enrollment notification: ' . ($result['error'] ?? 'API error'));
+                    throw new \RuntimeException('Failed to send WhatsApp enrollment notification: '.($result['error'] ?? 'API error'));
                 }
             }
         } finally {

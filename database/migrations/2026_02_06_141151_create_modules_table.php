@@ -15,7 +15,7 @@ return new class extends Migration
 
         Schema::create('modules', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('course_id')->constrained();
+            $table->foreignId('course_id')->constrained()->cascadeOnDelete();
             $table->string('title');
             $table->integer('sort_order');
             $table->enum('status', ['draft', 'published'])->default('draft');

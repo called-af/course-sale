@@ -1,11 +1,11 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import clsx from 'clsx';
-import AppLogo from '@/components/atoms/AppLogo';
 import {
     Award,
     Bell,
     BookOpen,
     CheckCircle,
+    ClipboardCheck,
     Compass,
     GraduationCap,
     LayoutDashboard,
@@ -18,8 +18,10 @@ import {
     X,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import AppLogo from '@/components/atoms/AppLogo';
 import { useBranding } from '@/hooks/useBranding';
 import { useTheme } from '@/hooks/useTheme';
+import type { SharedPageProps } from '@/types/shared';
 
 interface UserNavbarProps {
     title?: string;
@@ -36,6 +38,7 @@ function buildNavigation(role: string): NavigationItem[] {
         return [
             { label: 'Dashboard', href: '/instructor/dashboard', icon: LayoutDashboard },
             { label: 'My Courses', href: '/instructor/courses', icon: BookOpen },
+            { label: 'Quiz Submissions', href: '/instructor/quiz-attempts', icon: ClipboardCheck },
             { label: 'Settings', href: '/instructor/settings', icon: Settings },
             { label: 'Profile', href: '/instructor/profile', icon: User },
         ];
@@ -46,14 +49,15 @@ function buildNavigation(role: string): NavigationItem[] {
         { label: 'My Learning', href: '/student/courses', icon: GraduationCap },
         { label: 'My Certificates', href: '/student/certificates', icon: Award },
         { label: 'Explore', href: '/course', icon: Compass },
+        { label: 'Profile', href: '/student/profile', icon: User },
     ];
 }
 
 export default function UserNavbar({ title }: UserNavbarProps) {
     const { name: appName } = useBranding();
-    const { props, url } = usePage();
-    const auth = (props as any).auth;
-    const instructorApprovalNotifications = (props as any).instructorApprovalNotifications;
+    const { props, url } = usePage<SharedPageProps>();
+    const auth = props.auth;
+    const instructorApprovalNotifications = props.instructorApprovalNotifications;
     const [menuOpen, setMenuOpen] = useState(false);
     const [notificationsOpen, setNotificationsOpen] = useState(false);
     const notificationRef = useRef<HTMLDivElement>(null);
@@ -140,7 +144,7 @@ export default function UserNavbar({ title }: UserNavbarProps) {
                             </button>
 
                             {notificationsOpen && (
-                                <div className="absolute top-11 right-0 z-50 w-80 overflow-hidden border border-neutral-200 bg-white shadow-xl dark:border-slate-700 dark:bg-[#1e1f24]">
+                                <div className="absolute top-11 right-0 z-50 w-[min(22rem,calc(100vw-1rem))] overflow-hidden border border-neutral-200 bg-white shadow-xl dark:border-slate-700 dark:bg-[#1e1f24]">
                                     <div className="border-b border-neutral-100 px-4 py-3 dark:border-slate-800">
                                         <p className="text-sm font-semibold text-neutral-800 dark:text-slate-100">Approved courses</p>
                                         <p className="text-xs text-neutral-400 dark:text-slate-500">Courses approved by an administrator</p>
@@ -151,7 +155,7 @@ export default function UserNavbar({ title }: UserNavbarProps) {
                                                 No course approvals yet.
                                             </p>
                                         ) : (
-                                            approvedCourses.map((course: any) => (
+                                            approvedCourses.map((course) => (
                                                 <button
                                                     key={course.id}
                                                     type="button"
@@ -181,7 +185,13 @@ export default function UserNavbar({ title }: UserNavbarProps) {
 
                     {/* User pill */}
                     <Link
-                        href={auth?.user?.role === 'instructor' ? '/instructor/profile' : auth?.user?.role === 'admin' ? '/admin/profile' : '#'}
+                        href={
+                            auth?.user?.role === 'instructor'
+                                ? '/instructor/profile'
+                                : auth?.user?.role === 'admin'
+                                  ? '/admin/profile'
+                                  : '/student/profile'
+                        }
                         className="flex items-center gap-2.5 p-1 transition-colors hover:bg-neutral-100 dark:hover:bg-slate-800"
                         title="Lihat Profil"
                     >

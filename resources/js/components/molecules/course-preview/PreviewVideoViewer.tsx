@@ -10,17 +10,13 @@ interface PreviewVideoViewerProps {
 function getEmbedUrl(url?: string | null): string | null {
     if (!url) return null;
 
-    const ytMatch = url.match(
-        /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/,
-    );
+    const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
     if (ytMatch) {
         const origin = typeof window !== 'undefined' ? window.location.origin : '';
         return `https://www.youtube.com/embed/${ytMatch[1]}?rel=0&modestbranding=1&enablejsapi=1&origin=${encodeURIComponent(origin)}`;
     }
 
-    const vimeoMatch = url.match(
-        /vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^/]*)\/videos\/|album\/(?:\d+)\/video\/|video\/|)(\d+)/,
-    );
+    const vimeoMatch = url.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^/]*)\/videos\/|album\/(?:\d+)\/video\/|video\/|)(\d+)/);
     if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}?dnt=1&api=1`;
 
     return null;
@@ -83,21 +79,12 @@ export default function PreviewVideoViewer({ title, contentUrl, onCompleted }: P
             if (!frame?.contentWindow) return;
 
             if (embedUrl?.includes('youtube.com')) {
-                frame.contentWindow.postMessage(
-                    JSON.stringify({ event: 'listening', id: 'course-video-player' }),
-                    '*',
-                );
+                frame.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 'course-video-player' }), '*');
             }
 
             if (embedUrl?.includes('vimeo.com')) {
-                frame.contentWindow.postMessage(
-                    JSON.stringify({ method: 'addEventListener', value: 'play' }),
-                    '*',
-                );
-                frame.contentWindow.postMessage(
-                    JSON.stringify({ method: 'addEventListener', value: 'finish' }),
-                    '*',
-                );
+                frame.contentWindow.postMessage(JSON.stringify({ method: 'addEventListener', value: 'play' }), '*');
+                frame.contentWindow.postMessage(JSON.stringify({ method: 'addEventListener', value: 'finish' }), '*');
             }
         };
 

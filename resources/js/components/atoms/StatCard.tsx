@@ -20,14 +20,7 @@ interface StatCardProps {
     className?: string;
 }
 
-export default function StatCard({
-    icon,
-    label,
-    value,
-    subtext,
-    tone = 'purple',
-    className,
-}: StatCardProps) {
+export default function StatCard({ icon, label, value, subtext, tone = 'purple', className }: StatCardProps) {
     return (
         <div
             className={clsx(

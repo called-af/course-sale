@@ -1,10 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { useState } from 'react';
 import { CheckCircle2, MessageSquare, Trash2, XCircle } from 'lucide-react';
-import AdminLayout from '@/components/templates/AdminLayout';
-import PageHeader from '@/components/molecules/PageHeader';
-import Button from '@/components/atoms/Button';
+import { useState } from 'react';
 import Badge from '@/components/atoms/Badge';
+import Button from '@/components/atoms/Button';
+import PageHeader from '@/components/molecules/PageHeader';
+import AdminLayout from '@/components/templates/AdminLayout';
 
 interface CommentItem {
     id: number;
@@ -13,7 +13,7 @@ interface CommentItem {
     is_approved: boolean;
     created_at: string;
     user: { id: number; name: string };
-    course: { id: number; title: string; slug: string };
+    course: { id: number | null; title: string; slug: string | null };
 }
 
 interface Props {
@@ -38,18 +38,26 @@ export default function AdminCommentsPage({ comments }: Props) {
 
     const approve = (id: number) => {
         setProcessingId(id);
-        router.put(`/admin/comments/${id}/approve`, {}, {
-            preserveScroll: true,
-            onFinish: () => setProcessingId(null),
-        });
+        router.put(
+            `/admin/comments/${id}/approve`,
+            {},
+            {
+                preserveScroll: true,
+                onFinish: () => setProcessingId(null),
+            },
+        );
     };
 
     const reject = (id: number) => {
         setProcessingId(id);
-        router.put(`/admin/comments/${id}/reject`, {}, {
-            preserveScroll: true,
-            onFinish: () => setProcessingId(null),
-        });
+        router.put(
+            `/admin/comments/${id}/reject`,
+            {},
+            {
+                preserveScroll: true,
+                onFinish: () => setProcessingId(null),
+            },
+        );
     };
 
     const destroy = (id: number) => {
@@ -72,7 +80,7 @@ export default function AdminCommentsPage({ comments }: Props) {
                 />
 
                 {/* Stats */}
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <StatCard label="Total Comments" value={comments.length} />
                     <StatCard label="Approved" value={comments.filter((c) => c.is_approved).length} color="emerald" />
                     <StatCard label="Pending" value={pending} color={pending > 0 ? 'amber' : 'slate'} />
@@ -85,10 +93,10 @@ export default function AdminCommentsPage({ comments }: Props) {
                             key={f}
                             type="button"
                             onClick={() => setFilter(f)}
-                            className={`px-4 py-2.5 text-sm font-semibold capitalize transition-colors border-b-2 ${
+                            className={`border-b-2 px-4 py-2.5 text-sm font-semibold capitalize transition-colors ${
                                 filter === f
                                     ? 'border-purple-600 text-purple-700 dark:text-purple-400'
-                                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                    : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                             }`}
                         >
                             {f}
@@ -108,38 +116,58 @@ export default function AdminCommentsPage({ comments }: Props) {
                         <p className="text-sm">No comments found.</p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1f24] shadow-sm">
+                    <div className="overflow-x-auto border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
                         <table className="w-full text-sm">
-                            <thead className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#1e1f24]">
+                            <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-[#1e1f24]">
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">User</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Course</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Comment</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Type</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Status</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Date</th>
-                                    <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Actions</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                        User
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                        Course
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                        Comment
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                        Type
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                        Status
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                        Date
+                                    </th>
+                                    <th className="px-4 py-3 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                        Actions
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {filtered.map((comment) => (
-                                    <tr key={comment.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                        <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-200 whitespace-nowrap">{comment.user.name}</td>
-                                        <td className="px-4 py-3">
-                                            <Link
-                                                href={`/admin/courses/${comment.course.slug}`}
-                                                className="font-medium text-purple-600 dark:text-purple-400 hover:underline line-clamp-1"
-                                            >
-                                                {comment.course.title}
-                                            </Link>
+                                    <tr key={comment.id} className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800">
+                                        <td className="px-4 py-3 font-medium whitespace-nowrap text-slate-700 dark:text-slate-200">
+                                            {comment.user.name}
                                         </td>
-                                        <td className="px-4 py-3 max-w-xs">
+                                        <td className="px-4 py-3">
+                                            {comment.course.slug ? (
+                                                <Link
+                                                    href={`/admin/courses/${comment.course.slug}`}
+                                                    className="line-clamp-1 font-medium text-purple-600 hover:underline dark:text-purple-400"
+                                                >
+                                                    {comment.course.title}
+                                                </Link>
+                                            ) : (
+                                                <span className="line-clamp-1 font-medium text-slate-500 dark:text-slate-400">
+                                                    {comment.course.title}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="max-w-xs px-4 py-3">
                                             <p className="line-clamp-2 text-slate-600 dark:text-slate-300">{comment.body}</p>
                                         </td>
                                         <td className="px-4 py-3">
-                                            <Badge variant={comment.parent_id ? 'info' : 'default'}>
-                                                {comment.parent_id ? 'Reply' : 'Comment'}
-                                            </Badge>
+                                            <Badge variant={comment.parent_id ? 'info' : 'default'}>{comment.parent_id ? 'Reply' : 'Comment'}</Badge>
                                         </td>
                                         <td className="px-4 py-3">
                                             {comment.is_approved ? (
@@ -148,7 +176,7 @@ export default function AdminCommentsPage({ comments }: Props) {
                                                 <Badge variant="warning">Pending</Badge>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3 text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                                        <td className="px-4 py-3 text-xs whitespace-nowrap text-slate-400 dark:text-slate-500">
                                             {formatDate(comment.created_at)}
                                         </td>
                                         <td className="px-4 py-3">
@@ -206,8 +234,8 @@ function StatCard({ label, value, color = 'slate' }: { label: string; value: num
         amber: 'text-amber-600 dark:text-amber-400',
     };
     return (
-        <div className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-5 shadow-sm">
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">{label}</p>
+        <div className="border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
+            <p className="text-xs font-medium tracking-wide text-slate-500 uppercase dark:text-slate-400">{label}</p>
             <p className={`mt-2 text-3xl font-extrabold tabular-nums ${colorMap[color] ?? colorMap.slate}`}>{value}</p>
         </div>
     );

@@ -18,7 +18,9 @@ class RecommendationServiceTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Course $course1;
+
     protected Course $course2;
 
     protected function setUp(): void

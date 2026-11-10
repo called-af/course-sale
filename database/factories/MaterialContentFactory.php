@@ -14,12 +14,13 @@ class MaterialContentFactory extends Factory
     {
         return [
             'material_id' => Material::factory(),
-            'type' => fake()->randomElement(["video","text","quiz","file","ppt"]),
+            'type' => fake()->randomElement(['video', 'text', 'quiz', 'file', 'ppt']),
             'title' => fake()->sentence(4),
             'content_url' => fake()->text(),
             'content_text' => fake()->text(),
-            'duration' => fake()->numberBetween(-10000, 10000),
+            'duration' => fake()->numberBetween(0, 10000),
             'sort_order' => fake()->numberBetween(-10000, 10000),
+            'status' => 'published',
         ];
     }
 }

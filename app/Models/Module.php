@@ -48,7 +48,10 @@ class Module extends Model
 
     public function canBePublished(): bool
     {
-        return $this->materials()->exists();
+        return $this->materials()
+            ->where('status', 'published')
+            ->whereHas('contents', fn ($contents) => $contents->where('status', 'published'))
+            ->exists();
     }
 
     public function course(): BelongsTo

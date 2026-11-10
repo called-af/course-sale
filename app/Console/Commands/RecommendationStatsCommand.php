@@ -52,7 +52,7 @@ class RecommendationStatsCommand extends Command
                 ['Published Courses', $data['overview']['published_courses']],
                 ['Total Tracked Events', $data['overview']['total_events']],
                 ['Unique (User, Course) Pairs', $data['overview']['unique_user_course_interactions']],
-                ['User-Course Matrix Sparsity', $data['overview']['matrix_sparsity_percentage'] . '%'],
+                ['User-Course Matrix Sparsity', $data['overview']['matrix_sparsity_percentage'].'%'],
             ]
         );
 
@@ -62,7 +62,7 @@ class RecommendationStatsCommand extends Command
         $eventRows = [];
         foreach ($data['events_by_type'] as $type => $count) {
             $pct = $data['overview']['total_events'] > 0
-                ? round(($count / $data['overview']['total_events']) * 100, 1) . '%'
+                ? round(($count / $data['overview']['total_events']) * 100, 1).'%'
                 : '0%';
             $eventRows[] = [$type, $count, $pct];
         }

@@ -1,12 +1,11 @@
 <?php
 
-use App\Models\Course;
 use App\Models\User;
 use App\Policies\UserPolicy;
 use App\Services\AI\Tool\InstructorStudentTool;
 
 it('tests UserPolicy viewAny and view rules for instructor, student, and admin', function () {
-    $policy = new UserPolicy();
+    $policy = new UserPolicy;
 
     $admin = new User(['role' => 'admin']);
     $admin->id = 1;
@@ -55,7 +54,7 @@ it('tests UserPolicy viewAny and view rules for instructor, student, and admin',
 });
 
 it('denies InstructorStudentTool execution when user is not an instructor', function () {
-    $tool = new InstructorStudentTool();
+    $tool = new InstructorStudentTool;
     $tool->setUserId(999);
 
     // Mock User::find to return student
@@ -64,7 +63,7 @@ it('denies InstructorStudentTool execution when user is not an instructor', func
 
     // When User is mocked or queried
     // Let's test with non-existent user or student
-    $resultNoUser = (new InstructorStudentTool())->execute([]);
+    $resultNoUser = (new InstructorStudentTool)->execute([]);
     expect($resultNoUser)->toHaveKey('error')
         ->and($resultNoUser['error'])->toBe('User context not available');
 });

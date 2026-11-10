@@ -1,48 +1,61 @@
 import axios from 'axios';
 import { Bot, X, Plus, Trash2 } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import ConfirmationDelete from '@/components/molecules/ConfirmationDelete';
 import ChatAssistantHeader from './ChatAssistantHeader';
 import ChatInput from './ChatInput';
 import ChatWindow from './ChatWindow';
+import type { ChatMessageData, ChatSessionData } from './types';
+
+interface SendMessageResponse {
+    session_title?: string;
+    assistant_message: ChatMessageData;
+}
 
 export default function FloatingAIChat() {
     const [isOpen, setIsOpen] = useState(false);
-    const [activeSession, setActiveSession] = useState<any>(null);
-    const [messages, setMessages] = useState<any[]>([]);
+    const [activeSession, setActiveSession] = useState<ChatSessionData | null>(null);
+    const [messages, setMessages] = useState<ChatMessageData[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<'history' | 'room'>('room');
-    const [chatSessions, setChatSessions] = useState<any[]>([]);
+    const [chatSessions, setChatSessions] = useState<ChatSessionData[]>([]);
     const [hasLoaded, setHasLoaded] = useState(false);
 
     // For delete confirmation
-    const [sessionToDelete, setSessionToDelete] = useState<any>(null);
+    const [sessionToDelete, setSessionToDelete] = useState<ChatSessionData | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
-        if (isOpen && !hasLoaded) {
-            loadSessions();
-            setHasLoaded(true);
+        if (!isOpen || hasLoaded) {
+            return;
         }
-    }, [isOpen]);
 
-    const loadSessions = async () => {
-        try {
-            const response = await axios.get('/ai/chat/sessions');
-            setChatSessions(response.data);
-            if (response.data.length > 0) {
-                fetchMessages(response.data[0]);
+        setHasLoaded(true);
+
+        const load = async () => {
+            try {
+                const response = await axios.get<ChatSessionData[]>('/ai/chat/sessions');
+                setChatSessions(response.data);
+                if (response.data.length > 0) {
+                    const session = response.data[0];
+                    const messagesResponse = await axios.get<ChatMessageData[]>(`/ai/chat/${session.id}/messages`);
+                    setMessages(messagesResponse.data);
+                    setActiveSession(session);
+                    setActiveTab('room');
+                }
+            } catch (error) {
+                console.error('Error loading sessions', error);
             }
-        } catch (error) {
-            console.error('Error loading sessions', error);
-        }
-    };
+        };
 
-    const fetchMessages = async (session: any) => {
+        load();
+    }, [isOpen, hasLoaded]);
+
+    const fetchMessages = async (session: ChatSessionData) => {
         setIsLoading(true);
         try {
-            const response = await axios.get(`/ai/chat/${session.id}/messages`);
+            const response = await axios.get<ChatMessageData[]>(`/ai/chat/${session.id}/messages`);
             setMessages(response.data);
             setActiveSession(session);
             setActiveTab('room');
@@ -60,14 +73,14 @@ export default function FloatingAIChat() {
         }
 
         try {
-            const response = await axios.post('/ai/chat', { title: 'Chat Baru' });
+            const response = await axios.post<ChatSessionData>('/ai/chat', { title: 'Chat Baru' });
             setChatSessions([response.data, ...chatSessions]);
             setActiveSession(response.data);
             setMessages([]);
             setIsLoading(false);
             setActiveTab('room');
-        } catch (error: any) {
-            if (error.response && error.response.status === 422) {
+        } catch (error: unknown) {
+            if (axios.isAxiosError<{ error?: string }>(error) && error.response?.status === 422) {
                 toast.error(error.response.data.error || 'You have reached the maximum number of chat sessions.');
             } else {
                 toast.error('Unable to create a chat session.');
@@ -76,7 +89,7 @@ export default function FloatingAIChat() {
         }
     };
 
-    const confirmDeleteSession = (session: any) => {
+    const confirmDeleteSession = (session: ChatSessionData) => {
         setSessionToDelete(session);
     };
 
@@ -117,13 +130,13 @@ export default function FloatingAIChat() {
                 return;
             }
             try {
-                const response = await axios.post('/ai/chat', { title: 'Chat Baru' });
+                const response = await axios.post<ChatSessionData>('/ai/chat', { title: 'Chat Baru' });
                 currentSession = response.data;
                 setChatSessions([currentSession, ...chatSessions]);
                 setActiveSession(currentSession);
                 setMessages([]);
-            } catch (error: any) {
-                if (error.response && error.response.status === 422) {
+            } catch (error: unknown) {
+                if (axios.isAxiosError<{ error?: string }>(error) && error.response?.status === 422) {
                     toast.error(error.response.data.error || 'You have reached the maximum number of chat sessions.');
                 }
                 console.error('Error creating session', error);
@@ -131,19 +144,18 @@ export default function FloatingAIChat() {
             }
         }
 
-        const newUserMessage = { role: 'user', content };
+        const newUserMessage: ChatMessageData = { role: 'user', content };
         setMessages((prev) => [...prev, newUserMessage]);
         setIsLoading(true);
 
         try {
-            const response = await axios.post(`/ai/chat/${currentSession.id}/messages`, { message: content });
+            const response = await axios.post<SendMessageResponse>(`/ai/chat/${currentSession.id}/messages`, { message: content });
 
             // Check if title updated
             if (response.data.session_title && response.data.session_title !== currentSession.title) {
-                setChatSessions((prevSessions) =>
-                    prevSessions.map((s) => (s.id === currentSession.id ? { ...s, title: response.data.session_title } : s)),
-                );
-                currentSession.title = response.data.session_title;
+                const newTitle = response.data.session_title;
+                setChatSessions((prevSessions) => prevSessions.map((s) => (s.id === currentSession.id ? { ...s, title: newTitle } : s)));
+                currentSession.title = newTitle;
                 setActiveSession({ ...currentSession });
             }
 

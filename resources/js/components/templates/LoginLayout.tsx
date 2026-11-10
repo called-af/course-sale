@@ -8,13 +8,7 @@ export default function LoginLayout({ children }: { children: React.ReactNode })
         <>
             {children}
 
-            <ToastContainer
-                position="top-right"
-                autoClose={4000}
-                newestOnTop
-                pauseOnHover
-                closeOnClick
-            />
+            <ToastContainer position="top-right" autoClose={4000} newestOnTop pauseOnHover closeOnClick />
         </>
     );
 }

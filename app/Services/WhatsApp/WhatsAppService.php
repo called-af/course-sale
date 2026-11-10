@@ -281,14 +281,14 @@ class WhatsAppService
     }
 
     /**
-     * Send text message via Infobip WhatsApp API.
+     * Send text message via WhatsApp provider API.
      */
     public function sendInfobipTextMessage(string $recipient, string $text): array
     {
         if (! $this->isConfigured()) {
             return [
                 'success' => false,
-                'error' => 'Infobip WhatsApp API belum dikonfigurasi (API key atau Base URL belum diatur di Admin Panel atau .env).',
+                'error' => 'WhatsApp API belum dikonfigurasi (API key atau Base URL belum diatur di Admin Panel atau .env).',
             ];
         }
 
@@ -319,17 +319,17 @@ class WhatsAppService
                     if ($statusName === 'REJECTED_DESTINATION_NOT_REGISTERED') {
                         return [
                             'success' => false,
-                            'error' => "Nomor WhatsApp Anda ({$recipient}) belum terdaftar di Sandbox Infobip. Silakan kirim chat WhatsApp: \"{$this->infobipSandboxKeyword}\" ke nomor +{$this->infobipFrom} dari HP Anda untuk mengaktifkan sandbox.",
+                            'error' => "Nomor WhatsApp Anda ({$recipient}) belum terdaftar di sandbox. Silakan kirim chat WhatsApp ke nomor +{$this->infobipFrom} dari HP Anda untuk mengaktifkan sandbox.",
                         ];
                     }
 
                     return [
                         'success' => false,
-                        'error' => "Infobip menolak pesan: {$statusDesc} ({$statusName})",
+                        'error' => "WhatsApp Gateway menolak pesan: {$statusDesc} ({$statusName})",
                     ];
                 }
 
-                Log::info('WhatsApp message sent via Infobip successfully', [
+                Log::info('WhatsApp message sent via gateway successfully', [
                     'recipient' => $this->maskPhoneNumber($recipient),
                     'message_id' => $data['messageId'] ?? null,
                 ]);
@@ -346,10 +346,10 @@ class WhatsAppService
 
             return [
                 'success' => false,
-                'error' => "Gagal kirim via Infobip: {$errorMsg}",
+                'error' => "Gagal kirim via WhatsApp Gateway: {$errorMsg}",
             ];
         } catch (\Throwable $e) {
-            Log::error('Exception while calling Infobip API: '.$e->getMessage(), [
+            Log::error('Exception while calling WhatsApp API: '.$e->getMessage(), [
                 'recipient' => $this->maskPhoneNumber($recipient),
             ]);
 

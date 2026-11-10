@@ -21,10 +21,10 @@ class Certificate extends Model
     protected function casts(): array
     {
         return [
-            'id'         => 'integer',
-            'user_id'    => 'integer',
-            'course_id'  => 'integer',
-            'issued_at'  => 'datetime',
+            'id' => 'integer',
+            'user_id' => 'integer',
+            'course_id' => 'integer',
+            'issued_at' => 'datetime',
         ];
     }
 
@@ -35,6 +35,6 @@ class Certificate extends Model
 
     public function course(): BelongsTo
     {
-        return $this->belongsTo(Course::class);
+        return $this->belongsTo(Course::class)->withTrashed();
     }
 }

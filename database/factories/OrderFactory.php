@@ -15,7 +15,7 @@ class OrderFactory extends Factory
         return [
             'user_id' => User::factory(),
             'total_price' => fake()->randomFloat(2, 0, 99999999.99),
-            'status' => fake()->randomElement(["pending","paid","failed","expired"]),
+            'status' => fake()->randomElement(['pending', 'paid', 'failed', 'expired']),
         ];
     }
 }

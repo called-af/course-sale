@@ -1,27 +1,24 @@
-import { Head, router } from "@inertiajs/react"
-import { Bot, Sparkles } from "lucide-react"
-import { route } from "ziggy-js"
+import { Head, router } from '@inertiajs/react';
+import { Bot, Sparkles } from 'lucide-react';
+import { route } from 'ziggy-js';
 
-import Card from "@/components/atoms/Card"
-import Toggle from "@/components/atoms/Toggle"
-import Title from "@/components/atoms/Title"
+import Card from '@/components/atoms/Card';
+import Toggle from '@/components/atoms/Toggle';
 
 interface RecommendationSettingsData {
-    enabled: boolean
+    enabled: boolean;
 }
 
 interface RecommendationSettingsPanelProps {
-    initialRecommendation: RecommendationSettingsData
+    initialRecommendation: RecommendationSettingsData;
 }
 
-export default function RecommendationSettingsPanel({
-    initialRecommendation,
-}: RecommendationSettingsPanelProps) {
+export default function RecommendationSettingsPanel({ initialRecommendation }: RecommendationSettingsPanelProps) {
     const toggleRecommendation = (checked: boolean) => {
-        router.patch(route("admin.settings.recommendation.toggle"), {
+        router.patch(route('admin.settings.recommendation.toggle'), {
             enabled: checked,
-        })
-    }
+        });
+    };
 
     return (
         <section className="space-y-6">
@@ -34,13 +31,8 @@ export default function RecommendationSettingsPanel({
                             <Bot size={21} />
                         </span>
                         <div>
-                            <h2 className="font-semibold text-slate-900 dark:text-white">
-                                Rekomendasi Python AI
-                            </h2>
-                            <p className="mt-1 text-sm text-neutral-500">
-                                Aktifkan atau nonaktifkan layanan rekomendasi
-                                dari microservice Python.
-                            </p>
+                            <h2 className="font-semibold text-slate-900 dark:text-white">Rekomendasi Python AI</h2>
+                            <p className="mt-1 text-sm text-neutral-500">Aktifkan atau nonaktifkan layanan rekomendasi dari microservice Python.</p>
                         </div>
                     </div>
 
@@ -55,18 +47,16 @@ export default function RecommendationSettingsPanel({
                     <div className="flex items-start gap-4">
                         <Sparkles className="mt-0.5 h-5 w-5 text-blue-600 dark:text-blue-400" />
                         <div className="space-y-2">
-                            <h3 className="font-semibold text-slate-900 dark:text-white">
-                                Status layanan
-                            </h3>
+                            <h3 className="font-semibold text-slate-900 dark:text-white">Status layanan</h3>
                             <p className="text-sm leading-6 text-neutral-500">
                                 {initialRecommendation.enabled
-                                    ? "Kayanan aktif. Sistem akan mengambil rekomendasi dari Python microservice."
-                                    : "Layanan sedang dimatikan. Rekomendasi tidak akan ditampilkan."}
+                                    ? 'Kayanan aktif. Sistem akan mengambil rekomendasi dari Python microservice.'
+                                    : 'Layanan sedang dimatikan. Rekomendasi tidak akan ditampilkan.'}
                             </p>
                         </div>
                     </div>
                 </div>
             </Card>
         </section>
-    )
+    );
 }

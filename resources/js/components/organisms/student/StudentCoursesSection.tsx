@@ -22,15 +22,9 @@ export default function StudentCoursesSection({ enrolledCourses }: StudentCourse
         [enrolledCourses],
     );
 
-    const completedList = useMemo(
-        () => enrolledCourses.filter((item) => (item.course.progress_percent ?? 0) === 100),
-        [enrolledCourses],
-    );
+    const completedList = useMemo(() => enrolledCourses.filter((item) => (item.course.progress_percent ?? 0) === 100), [enrolledCourses]);
 
-    const notStartedList = useMemo(
-        () => enrolledCourses.filter((item) => (item.course.progress_percent ?? 0) === 0),
-        [enrolledCourses],
-    );
+    const notStartedList = useMemo(() => enrolledCourses.filter((item) => (item.course.progress_percent ?? 0) === 0), [enrolledCourses]);
 
     const filteredCourses = useMemo(() => {
         let baseList = enrolledCourses;
@@ -99,7 +93,9 @@ export default function StudentCoursesSection({ enrolledCourses }: StudentCourse
                         </div>
                         <p className="mt-3 text-sm font-semibold text-slate-700 dark:text-slate-200">{emptyTitle}</p>
                         <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
-                            {searchQuery ? 'Try another keyword to find courses.' : 'Visit the catalog to discover courses that match your interests.'}
+                            {searchQuery
+                                ? 'Try another keyword to find courses.'
+                                : 'Visit the catalog to discover courses that match your interests.'}
                         </p>
                         {enrolledCourses.length === 0 && (
                             <div className="mt-4">

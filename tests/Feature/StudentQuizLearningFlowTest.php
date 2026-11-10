@@ -119,6 +119,24 @@ it('saves quiz drafts, shows the score after submit, and resets the attempt', fu
         ->where('is_completed', true)
         ->exists())->toBeTrue();
 
+    // Returning to the quiz must show the completed state with the score.
+    $this->actingAs($student)
+        ->get("/student/courses/{$course->slug}")
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('student/course/[enroll]/page')
+            ->where("quizStates.{$quizContent->id}.status", 'completed')
+            ->where("quizStates.{$quizContent->id}.score", 50));
+
+    // A late autosave after submitting must not create a fresh attempt that
+    // would hide the score behind a "continue quiz" state.
+    $this->actingAs($student)
+        ->postJson("/student/courses/{$course->slug}/quiz/{$quizContent->id}/draft", [
+            'answers' => $allAnswers,
+        ])
+        ->assertOk()
+        ->assertJsonPath('state.status', 'completed');
+
     $this->actingAs($student)
         ->postJson("/student/courses/{$course->slug}/quiz/{$quizContent->id}/reset")
         ->assertOk()
@@ -126,38 +144,8 @@ it('saves quiz drafts, shows the score after submit, and resets the attempt', fu
         ->assertJsonPath('state.answered', 0);
 });
 
-it('requires every lesson content to be finished before a material can be marked complete', function () {
-    [
-        'student' => $student,
-        'course' => $course,
-        'material' => $material,
-        'quizContent' => $quizContent,
-        'textContent' => $textContent,
-        'questions' => $questions,
-    ] = makeStudentQuizCourse();
-
-    $this->actingAs($student)
-        ->post("/student/courses/{$course->slug}/progress", ['material_id' => $material->id])
-        ->assertRedirect();
-
-    expect(MaterialProgress::where('user_id', $student->id)
-        ->where('material_id', $material->id)
-        ->where('is_completed', true)
-        ->exists())->toBeFalse();
-
-    $this->actingAs($student)
-        ->postJson("/student/courses/{$course->slug}/contents/{$textContent->id}/complete")
-        ->assertOk()
-        ->assertJsonPath('success', true);
-
-    $this->actingAs($student)
-        ->postJson("/student/courses/{$course->slug}/quiz/{$quizContent->id}/submit", [
-            'answers' => [
-                $questions[0]['question']->id => $questions[0]['correct']->id,
-                $questions[1]['question']->id => $questions[1]['correct']->id,
-            ],
-        ])
-        ->assertOk();
+it('marks a material complete without requiring every lesson to be finished', function () {
+    ['student' => $student, 'course' => $course, 'material' => $material] = makeStudentQuizCourse();
 
     $this->actingAs($student)
         ->post("/student/courses/{$course->slug}/progress", ['material_id' => $material->id])
@@ -179,4 +167,65 @@ it('rejects quiz submission when a question is still unanswered', function () {
             ],
         ])
         ->assertStatus(422);
+});
+
+it('marks the quiz lesson complete on submission even when the score is below 100', function () {
+    ['student' => $student, 'course' => $course, 'quizContent' => $quizContent, 'questions' => $questions] = makeStudentQuizCourse();
+
+    $this->actingAs($student)
+        ->postJson("/student/courses/{$course->slug}/quiz/{$quizContent->id}/submit", [
+            'answers' => [
+                $questions[0]['question']->id => $questions[0]['correct']->id,
+                $questions[1]['question']->id => $questions[1]['wrong']->id,
+            ],
+        ])
+        ->assertOk()
+        ->assertJsonPath('data.score', 50);
+
+    expect(MaterialContentProgress::where('user_id', $student->id)
+        ->where('material_content_id', $quizContent->id)
+        ->where('is_completed', true)
+        ->exists())->toBeTrue();
+});
+
+it('marks the quiz lesson complete on submission while essay answers await review', function () {
+    ['student' => $student, 'course' => $course, 'quizContent' => $quizContent] = makeStudentQuizCourse();
+
+    $essay = QuizQuestion::factory()->create([
+        'material_content_id' => $quizContent->id,
+        'question' => 'Explain your answer',
+        'type' => 'essay',
+        'sort_order' => 3,
+    ]);
+
+    $this->actingAs($student)
+        ->postJson("/student/courses/{$course->slug}/quiz/{$quizContent->id}/start")
+        ->assertOk();
+
+    $answers = [
+        $essay->id => 'Because the design system keeps components consistent.',
+    ];
+
+    // The quiz also contains the two multiple choice questions created by the helper.
+    $mcQuestions = QuizQuestion::where('material_content_id', $quizContent->id)
+        ->where('type', 'multiple_choice')
+        ->with('quizOptions')
+        ->get();
+
+    foreach ($mcQuestions as $question) {
+        $answers[$question->id] = $question->quizOptions->firstWhere('is_correct', true)->id;
+    }
+
+    $this->actingAs($student)
+        ->postJson("/student/courses/{$course->slug}/quiz/{$quizContent->id}/submit", [
+            'answers' => $answers,
+        ])
+        ->assertOk()
+        ->assertJsonPath('data.needs_review', true)
+        ->assertJsonPath('data.score', null);
+
+    expect(MaterialContentProgress::where('user_id', $student->id)
+        ->where('material_content_id', $quizContent->id)
+        ->where('is_completed', true)
+        ->exists())->toBeTrue();
 });

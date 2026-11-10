@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Certificate;
 use App\Models\AppearanceSetting;
+use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\Material;
 use App\Models\MaterialProgress;
@@ -19,10 +19,12 @@ class CertificateService
      */
     public function isCourseCompleted(User $user, Course $course): bool
     {
-        $course->loadMissing(['modules.materials']);
-
-        $materialIds = $course->modules
-            ->flatMap(fn ($module) => $module->materials->pluck('id'))
+        $materialIds = Material::where('status', 'published')
+            ->whereHas('module', fn ($query) => $query
+                ->where('course_id', $course->id)
+                ->where('status', 'published'))
+            ->whereHas('contents', fn ($query) => $query->where('status', 'published'))
+            ->pluck('id')
             ->filter()
             ->values();
 
@@ -70,10 +72,10 @@ class CertificateService
 
         // Create DB record first
         $certificate = Certificate::create([
-            'user_id'            => $user->id,
-            'course_id'          => $course->id,
+            'user_id' => $user->id,
+            'course_id' => $course->id,
             'certificate_number' => $certificateNumber,
-            'issued_at'          => $issuedAt,
+            'issued_at' => $issuedAt,
         ]);
 
         // Generate PDF
@@ -85,36 +87,58 @@ class CertificateService
     }
 
     /**
+     * Re-generate the PDF of an already issued certificate (e.g. after the
+     * course template was edited).
+     */
+    public function regenerate(Certificate $certificate): Certificate
+    {
+        $certificate->loadMissing(['user', 'course.creator']);
+
+        if (! $certificate->course) {
+            throw new \RuntimeException('The course for this certificate no longer exists.');
+        }
+
+        $pdfPath = $this->generatePdf($certificate);
+
+        return $certificate->update(['pdf_path' => $pdfPath]) ?? $certificate;
+    }
+
+    /**
      * Render and store the certificate PDF. Returns storage path.
      */
     public function generatePdf(Certificate $certificate): string
     {
         $certificate->loadMissing(['user', 'course.creator']);
 
-        $course    = $certificate->course;
-        $template  = $course->certificate_template ?? [];
+        $course = $certificate->course;
+
+        if (! $course) {
+            throw new \RuntimeException('The course for this certificate no longer exists.');
+        }
+
+        $template = $course->certificate_template ?? [];
         $verifyUrl = url('/certificate/'.$certificate->certificate_number);
         $appearance = AppearanceSetting::current();
         $brandName = $appearance->displayName();
 
         $pdf = Pdf::loadView('pdf.certificate', [
-            'studentName'       => $certificate->user->name,
-            'courseTitle'       => $course->title,
-            'instructorName'    => $course->creator?->name ?? $brandName,
-            'issuedAt'          => $certificate->issued_at->format('d F Y'),
+            'studentName' => $certificate->user?->name ?? 'Student',
+            'courseTitle' => $course->title,
+            'instructorName' => $course->creator?->name ?? $brandName,
+            'issuedAt' => ($certificate->issued_at ?? now())->format('d F Y'),
             'certificateNumber' => $certificate->certificate_number,
-            'verifyUrl'         => $verifyUrl,
-            'brandName'         => $brandName,
-            'brandDomain'       => $appearance->domain(),
+            'verifyUrl' => $verifyUrl,
+            'brandName' => $brandName,
+            'brandDomain' => $appearance->domain(),
 
             // Template customisations (dengan fallback ke default)
-            'primaryColor'   => $template['primary_color']  ?? '#7c3aed',
-            'accentColor'    => $template['accent_color']   ?? '#a78bfa',
-            'bgStyle'        => $template['bg_style']       ?? 'dark',
-            'showSignature'  => (bool) ($template['show_signature'] ?? false),
-            'signatureName'  => $template['signature_name'] ?? ($course->creator?->name ?? $brandName),
-            'customTitle'    => filled($template['custom_title'] ?? '') ? $template['custom_title'] : 'Certificate of Completion',
-            'footerNote'     => $template['footer_note']   ?? '',
+            'primaryColor' => $template['primary_color'] ?? '#7c3aed',
+            'accentColor' => $template['accent_color'] ?? '#a78bfa',
+            'bgStyle' => $template['bg_style'] ?? 'dark',
+            'showSignature' => (bool) ($template['show_signature'] ?? false),
+            'signatureName' => $template['signature_name'] ?? ($course->creator?->name ?? $brandName),
+            'customTitle' => filled($template['custom_title'] ?? '') ? $template['custom_title'] : 'Certificate of Completion',
+            'footerNote' => $template['footer_note'] ?? '',
         ]);
 
         $pdf->setPaper('a4', 'landscape');

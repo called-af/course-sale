@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Certificate;
 use App\Models\Course;
+use App\Services\CertificateService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -10,6 +12,10 @@ use Inertia\Inertia;
 
 class CertificateTemplateController extends Controller
 {
+    public function __construct(
+        protected CertificateService $certificateService,
+    ) {}
+
     /**
      * Show certificate template editor for a course.
      * Accessible by: admin (any course), instructor (own course only).
@@ -21,15 +27,15 @@ class CertificateTemplateController extends Controller
         $template = $course->certificate_template ?? [];
 
         return Inertia::render('certificate-template/page', [
-            'course'   => $course->only('id', 'slug', 'title'),
+            'course' => $course->only('id', 'slug', 'title'),
             'template' => [
-                'primary_color'  => $template['primary_color']  ?? '#7c3aed',
-                'accent_color'   => $template['accent_color']   ?? '#a78bfa',
-                'bg_style'       => $template['bg_style']       ?? 'dark',
+                'primary_color' => $template['primary_color'] ?? '#7c3aed',
+                'accent_color' => $template['accent_color'] ?? '#a78bfa',
+                'bg_style' => $template['bg_style'] ?? 'dark',
                 'show_signature' => (bool) ($template['show_signature'] ?? false),
                 'signature_name' => $template['signature_name'] ?? '',
-                'custom_title'   => $template['custom_title']   ?? '',
-                'footer_note'    => $template['footer_note']    ?? '',
+                'custom_title' => $template['custom_title'] ?? '',
+                'footer_note' => $template['footer_note'] ?? '',
             ],
         ]);
     }
@@ -42,16 +48,21 @@ class CertificateTemplateController extends Controller
         $this->authorizeAccess($request, $course);
 
         $validated = $request->validate([
-            'primary_color'  => ['required', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
-            'accent_color'   => ['required', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
-            'bg_style'       => ['required', Rule::in(['dark', 'light', 'gradient'])],
+            'primary_color' => ['required', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'accent_color' => ['required', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'bg_style' => ['required', Rule::in(['dark', 'light', 'gradient'])],
             'show_signature' => ['required', 'boolean'],
             'signature_name' => ['nullable', 'string', 'max:100'],
-            'custom_title'   => ['nullable', 'string', 'max:100'],
-            'footer_note'    => ['nullable', 'string', 'max:200'],
+            'custom_title' => ['nullable', 'string', 'max:100'],
+            'footer_note' => ['nullable', 'string', 'max:200'],
         ]);
 
         $course->update(['certificate_template' => $validated]);
+
+        $certificates = Certificate::where('course_id', $course->id)->get();
+        foreach ($certificates as $certificate) {
+            $this->certificateService->regenerate($certificate);
+        }
 
         return back()->with('success', 'Certificate template saved successfully.');
     }

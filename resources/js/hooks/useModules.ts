@@ -1,6 +1,6 @@
-import { useState } from 'react';
 import { router } from '@inertiajs/react';
-import { Module } from '@/types/modules';
+import { useState } from 'react';
+import type { Module } from '@/types/modules';
 
 export function useModules(courseSlug: string, modules: Module[], routePrefix: 'admin' | 'instructor') {
     const [open, setOpen] = useState(false);

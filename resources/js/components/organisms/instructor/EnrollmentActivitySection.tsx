@@ -20,10 +20,7 @@ export default function EnrollmentActivitySection({ trend, weeklyEnrollments }: 
                 </span>
             }
         >
-            <EnrollmentBarChart
-                days={trend}
-                caption="Consistent publishing and engagement help keep enrollment momentum going."
-            />
+            <EnrollmentBarChart days={trend} caption="Consistent publishing and engagement help keep enrollment momentum going." />
         </DashboardPanel>
     );
 }

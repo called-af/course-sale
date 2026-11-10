@@ -39,6 +39,11 @@ class UpdateAiCredentialsRequest extends FormRequest
                 'min:8',
                 Rule::requiredIf($baseUrlChanged || ! $hasExistingKey),
             ],
+            'provider' => [
+                'nullable',
+                'string',
+                Rule::in(['nvidia', 'openai']),
+            ],
             'current_password' => [
                 'required',
                 'string',

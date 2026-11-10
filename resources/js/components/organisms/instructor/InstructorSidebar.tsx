@@ -13,13 +13,7 @@ interface InstructorSidebarProps {
     recentReviews: RecentReview[];
 }
 
-export default function InstructorSidebar({
-    statusCounts,
-    courseCount,
-    totalLessons,
-    recentEnrollments,
-    recentReviews,
-}: InstructorSidebarProps) {
+export default function InstructorSidebar({ statusCounts, courseCount, totalLessons, recentEnrollments, recentReviews }: InstructorSidebarProps) {
     const statusRows = [
         { key: 'published', label: 'Published', color: 'bg-emerald-500', value: statusCounts.published ?? 0 },
         { key: 'review', label: 'In Review', color: 'bg-blue-500', value: statusCounts.review ?? 0 },
@@ -38,19 +32,11 @@ export default function InstructorSidebar({
                 </div>
             </DashboardPanel>
 
-            <DashboardPanel
-                title="Recent Enrollments"
-                description="Students who recently joined your classes."
-                icon={<UserPlus size={15} />}
-            >
+            <DashboardPanel title="Recent Enrollments" description="Students who recently joined your classes." icon={<UserPlus size={15} />}>
                 <RecentEnrollmentsList enrollments={recentEnrollments} />
             </DashboardPanel>
 
-            <DashboardPanel
-                title="Recent Reviews"
-                description="What students say about your courses."
-                icon={<MessageSquare size={15} />}
-            >
+            <DashboardPanel title="Recent Reviews" description="What students say about your courses." icon={<MessageSquare size={15} />}>
                 <RecentReviewsList reviews={recentReviews} />
             </DashboardPanel>
         </div>

@@ -1,12 +1,12 @@
-import { useState } from 'react'
-import clsx from 'clsx'
+import clsx from 'clsx';
+import { useState } from 'react';
 
 interface StarRatingProps {
-    value?: number
-    onChange?: (rating: number) => void
-    readonly?: boolean
-    size?: 'sm' | 'md' | 'lg'
-    showLabel?: boolean
+    value?: number;
+    onChange?: (rating: number) => void;
+    readonly?: boolean;
+    size?: 'sm' | 'md' | 'lg';
+    showLabel?: boolean;
 }
 
 const LABELS: Record<number, string> = {
@@ -15,23 +15,17 @@ const LABELS: Record<number, string> = {
     3: 'Good',
     4: 'Very Good',
     5: 'Excellent',
-}
+};
 
 const SIZE_MAP = {
     sm: 'w-4 h-4',
     md: 'w-6 h-6',
     lg: 'w-8 h-8',
-}
+};
 
-export default function StarRating({
-    value = 0,
-    onChange,
-    readonly = false,
-    size = 'md',
-    showLabel = false,
-}: StarRatingProps) {
-    const [hovered, setHovered] = useState(0)
-    const effective = hovered || value
+export default function StarRating({ value = 0, onChange, readonly = false, size = 'md', showLabel = false }: StarRatingProps) {
+    const [hovered, setHovered] = useState(0);
+    const effective = hovered || value;
 
     return (
         <div className="flex items-center gap-1.5">
@@ -67,12 +61,8 @@ export default function StarRating({
                     </button>
                 ))}
             </div>
-            {showLabel && effective > 0 && (
-                <span className="text-sm font-medium text-amber-600">{LABELS[effective]}</span>
-            )}
-            {showLabel && effective === 0 && !readonly && (
-                <span className="text-sm text-slate-400">Select a rating</span>
-            )}
+            {showLabel && effective > 0 && <span className="text-sm font-medium text-amber-600">{LABELS[effective]}</span>}
+            {showLabel && effective === 0 && !readonly && <span className="text-sm text-slate-400">Select a rating</span>}
         </div>
-    )
+    );
 }

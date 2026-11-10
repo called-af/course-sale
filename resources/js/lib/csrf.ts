@@ -2,7 +2,7 @@
  * Ambil CSRF token dari meta tag yang di-inject oleh Laravel.
  */
 export function getCsrfToken(): string {
-    return document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''
+    return document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
 }
 
 /**
@@ -17,5 +17,5 @@ export async function apiFetch(url: string, options: RequestInit = {}): Promise<
             'X-CSRF-TOKEN': getCsrfToken(),
             ...options.headers,
         },
-    })
+    });
 }

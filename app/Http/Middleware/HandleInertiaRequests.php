@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\AppearanceSetting;
+use App\Models\LandingSetting;
 use App\Services\AdminReviewNotificationService;
 use App\Services\InstructorApprovalNotificationService;
 use Illuminate\Http\Request;
@@ -53,6 +54,7 @@ class HandleInertiaRequests extends Middleware
                     'has_custom_logo' => $setting->hasCustomLogo(),
                 ];
             },
+            'landing' => fn () => LandingSetting::allSections(),
             'auth' => [
                 'user' => $request->user(),
             ],

@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\Category;
 use App\Models\Course;
-use App\Models\MaterialProgress;
+use App\Models\MaterialContentProgress;
 use App\Models\Tag;
 use App\Models\User;
 use DomainException;
@@ -34,7 +34,7 @@ class CourseService
     public function detailData(Course $course): array
     {
         $course->load([
-            'creator:id,name', 'categories:id,name', 'tags:id,name,slug',
+            'creator:id,name', 'categories:id,name', 'tags:id,name,slug', 'resources',
             'modules' => fn ($modules) => $modules->select('id', 'course_id', 'title', 'sort_order', 'status')->orderBy('sort_order')->with([
                 'materials' => fn ($materials) => $materials->orderBy('sort_order')->with([
                     'contents' => fn ($contents) => $contents->orderBy('sort_order'),
@@ -42,76 +42,98 @@ class CourseService
             ]),
         ])->append('thumbnail_url');
 
+        return [
+            'course' => $course,
+            'categories' => Category::select('id', 'name', 'img', 'desc')->get(),
+            'tags' => Tag::select('id', 'name')->get(),
+            'enrolled_students' => $this->enrolledStudents($course),
+        ];
+    }
+
+    /**
+     * Enrolled students with their progress — shared by the course detail page
+     * and the CSV export.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function enrolledStudents(Course $course): array
+    {
+        $course->loadMissing([
+            'modules:id,course_id',
+            'modules.materials:id,module_id',
+        ]);
+
         $enrollments = $course->enrollments()
             ->whereHas('user', fn ($query) => $query->withoutTrashed())
             ->with(['user' => fn ($query) => $query->withoutTrashed()->select('id', 'name', 'email', 'avatar')])
             ->latest('enrolled_at')
             ->get();
 
-        $materialIds = $course->modules->flatMap(fn ($m) => $m->materials->pluck('id'));
-        $totalMaterials = $materialIds->count();
+        // Progress is tracked per content (lesson/file/video/quiz) — the same
+        // basis the course detail page uses — instead of per material or module.
+        $contentIds = $course->modules
+            ->flatMap(fn ($module) => $module->materials->flatMap(fn ($material) => $material->contents->pluck('id')));
+        $totalContents = $contentIds->count();
 
-        $completedCounts = $totalMaterials > 0 && $enrollments->isNotEmpty()
-            ? MaterialProgress::whereIn('user_id', $enrollments->pluck('user_id'))
-                ->whereIn('material_id', $materialIds)
-                ->where('is_completed', true)
-                ->selectRaw('user_id, count(*) as count')
-                ->groupBy('user_id')
-                ->pluck('count', 'user_id')
-            : collect();
-
-        $enrolledStudents = $enrollments
+        return $enrollments
             ->filter(fn ($enrollment) => $enrollment->user !== null)
-            ->map(function ($enrollment) use ($completedCounts, $totalMaterials) {
-            $user = $enrollment->user;
-            $completed = $completedCounts[$enrollment->user_id] ?? 0;
-            $percent = $totalMaterials > 0 ? (int) round(($completed / $totalMaterials) * 100) : 0;
+            ->map(function ($enrollment) use ($contentIds, $totalContents) {
+                $user = $enrollment->user;
 
-            $enrolledAt = $enrollment->enrolled_at;
-            if ($enrolledAt) {
-                if (is_numeric($enrolledAt)) {
-                    $formattedDate = date('Y-m-d H:i:s', (int) $enrolledAt);
-                } elseif ($enrolledAt instanceof \DateTimeInterface) {
-                    $formattedDate = $enrolledAt->format('Y-m-d H:i:s');
+                $completedContentIds = MaterialContentProgress::where('user_id', $enrollment->user_id)
+                    ->whereIn('material_content_id', $contentIds)
+                    ->where('is_completed', true)
+                    ->pluck('material_content_id');
+                $completed = $completedContentIds->count();
+                $percent = $totalContents > 0 ? (int) round(($completed / $totalContents) * 100) : 0;
+
+                $enrolledAt = $enrollment->enrolled_at;
+                if ($enrolledAt) {
+                    if (is_numeric($enrolledAt)) {
+                        $formattedDate = date('Y-m-d H:i:s', (int) $enrolledAt);
+                    } elseif ($enrolledAt instanceof \DateTimeInterface) {
+                        $formattedDate = $enrolledAt->format('Y-m-d H:i:s');
+                    } else {
+                        $formattedDate = (string) $enrolledAt;
+                    }
                 } else {
-                    $formattedDate = (string) $enrolledAt;
+                    $formattedDate = (string) $enrollment->created_at;
                 }
-            } else {
-                $formattedDate = (string) $enrollment->created_at;
-            }
 
-            return [
-                'id' => $enrollment->id,
-                'user_id' => $user?->id,
-                'name' => $user?->name ?? 'Unknown Student',
-                'email' => $user?->email ?? '',
-                'avatar_url' => $user?->avatar_url,
-                'status' => $enrollment->status,
-                'enrolled_at' => $formattedDate,
-                'progress_percent' => $percent,
-                'completed_materials' => $completed,
-                'total_materials' => $totalMaterials,
-            ];
-        })->values()->all();
-
-        return [
-            'course' => $course,
-            'categories' => Category::select('id', 'name', 'img', 'desc')->get(),
-            'tags' => Tag::select('id', 'name')->get(),
-            'enrolled_students' => $enrolledStudents,
-        ];
+                return [
+                    'id' => $enrollment->id,
+                    'user_id' => $user?->id,
+                    'name' => $user?->name ?? 'Unknown Student',
+                    'email' => $user?->email ?? '',
+                    'avatar_url' => $user?->avatar_url,
+                    'status' => $enrollment->status,
+                    'enrolled_at' => $formattedDate,
+                    'progress_percent' => $percent,
+                    'completed_contents' => $completed,
+                    'total_contents' => $totalContents,
+                ];
+            })->values()->all();
     }
 
-    public function previewData(Course $course): array
+    public function previewData(Course $course, User $user): array
     {
-        return ['course' => $course->load([
-            'creator:id,name', 'categories:id,name',
-            'modules' => fn ($modules) => $modules->select('id', 'course_id', 'title', 'sort_order', 'status')->orderBy('sort_order')->with([
-                'materials' => fn ($materials) => $materials->select('id', 'module_id', 'title', 'sort_order', 'status')->orderBy('sort_order')->with([
-                    'contents' => fn ($contents) => $contents->orderBy('sort_order')->with('quizQuestions.quizOptions'),
+        // Quiz contents of the course, flattened for the preview runner.
+        $quizContents = $course->modules
+            ->flatMap(fn ($module) => ($module->materials ?? [])->flatMap(fn ($material) => ($material->contents ?? [])))
+            ->filter(fn ($content) => $content->type === 'quiz')
+            ->values();
+
+        return [
+            'course' => $course->load([
+                'creator:id,name', 'categories:id,name', 'resources',
+                'modules' => fn ($modules) => $modules->select('id', 'course_id', 'title', 'sort_order', 'status')->orderBy('sort_order')->with([
+                    'materials' => fn ($materials) => $materials->select('id', 'module_id', 'title', 'sort_order', 'status')->orderBy('sort_order')->with([
+                        'contents' => fn ($contents) => $contents->orderBy('sort_order')->with('quizQuestions.quizOptions'),
+                    ]),
                 ]),
-            ]),
-        ])->append('thumbnail_url')];
+            ])->append('thumbnail_url'),
+            'quizStates' => app(QuizService::class)->statesFor($user, $quizContents),
+        ];
     }
 
     public function delete(Course $course): void
@@ -139,6 +161,7 @@ class CourseService
             return $course->refresh();
         });
     }
+
     /**
      * Creates a course.
      */

@@ -1,21 +1,22 @@
 import { Head } from '@inertiajs/react';
+
+import AboutSection from '@/components/organisms/Landing/AboutSection';
+import CategorySection from '@/components/organisms/Landing/CategorySection';
+import CourseSection from '@/components/organisms/Landing/CourseSection';
+import HeroSection from '@/components/organisms/Landing/HeroSection';
+import TestimonialSection from '@/components/organisms/Landing/TestimoniSection';
 import WelcomeLayout from '@/components/templates/WelcomeLayout';
 
-import HeroSection from '@/components/organisms/Landing/HeroSection';
-import AboutSection from '@/components/organisms/Landing/AboutSection';
-import CourseSection from '@/components/organisms/Landing/CourseSection';
-import TestimonialSection from '@/components/organisms/Landing/TestimoniSection';
-import CategorySection from '@/components/organisms/Landing/CategorySection';
-
-import { Course } from '@/types';
-import { Category } from '@/types/category';
+import type { Course, TestimonialItem } from '@/types';
+import type { Category } from '@/types/category';
 
 interface WelcomeProps {
     courses: Course[];
     categories: Category[];
+    testimonials: TestimonialItem[];
 }
 
-export default function Welcome({ courses, categories }: WelcomeProps) {
+export default function Welcome({ courses, categories, testimonials }: WelcomeProps) {
     return (
         <>
             <Head title="Welcome to our digital course" />
@@ -23,8 +24,8 @@ export default function Welcome({ courses, categories }: WelcomeProps) {
             <HeroSection />
             <AboutSection />
             <CourseSection courses={courses} />
-            <TestimonialSection />
             <CategorySection categories={categories} />
+            <TestimonialSection testimonials={testimonials} />
         </>
     );
 }

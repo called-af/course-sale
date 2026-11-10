@@ -22,8 +22,8 @@ class UpdateCommentRequest extends FormRequest
     {
         return [
             'body.required' => 'Comment cannot be empty.',
-            'body.min'      => 'Comment must be at least 3 characters.',
-            'body.max'      => 'Comment cannot exceed 2000 characters.',
+            'body.min' => 'Comment must be at least 3 characters.',
+            'body.max' => 'Comment cannot exceed 2000 characters.',
         ];
     }
 }

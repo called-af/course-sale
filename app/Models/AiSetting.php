@@ -16,6 +16,7 @@ class AiSetting extends Model
         'base_url',
         'model',
         'api_key',
+        'provider',
     ];
 
     protected $hidden = [
@@ -28,6 +29,7 @@ class AiSetting extends Model
             'id' => 'integer',
             'enabled' => 'boolean',
             'api_key' => 'encrypted',
+            'provider' => 'string',
         ];
     }
 
@@ -38,6 +40,7 @@ class AiSetting extends Model
             'base_url' => null,
             'model' => null,
             'api_key' => null,
+            'provider' => 'nvidia',
         ]);
     }
 

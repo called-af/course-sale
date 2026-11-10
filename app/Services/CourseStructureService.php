@@ -40,7 +40,7 @@ class CourseStructureService
     private function ensure(bool $condition): void
     {
         if (! $condition) {
-            throw new NotFoundHttpException();
+            throw new NotFoundHttpException;
         }
     }
 }

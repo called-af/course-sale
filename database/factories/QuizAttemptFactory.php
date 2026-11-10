@@ -20,7 +20,7 @@ class QuizAttemptFactory extends Factory
             'finished_at' => fake()->dateTime(),
             'time_spent' => fake()->numberBetween(-10000, 10000),
             'score' => fake()->randomFloat(2, 0, 999.99),
-            'status' => fake()->randomElement(["in_progress","completed","expired"]),
+            'status' => fake()->randomElement(['in_progress', 'completed', 'expired']),
         ];
     }
 }

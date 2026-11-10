@@ -44,7 +44,7 @@ class UpdateQuizQuestionRequest extends FormRequest
             foreach ($questions as $index => $q) {
                 if (($q['type'] ?? '') === 'multiple_choice') {
                     $options = $q['options'] ?? [];
-                    if (!is_array($options) || count($options) < 2) {
+                    if (! is_array($options) || count($options) < 2) {
                         $validator->errors()->add(
                             "questions.{$index}.options",
                             'Soal pilihan ganda minimal memiliki 2 pilihan jawaban.'
@@ -53,10 +53,10 @@ class UpdateQuizQuestionRequest extends FormRequest
                         $hasEmpty = false;
                         $hasCorrect = false;
                         foreach ($options as $opt) {
-                            if (!isset($opt['option_text']) || trim((string) $opt['option_text']) === '') {
+                            if (! isset($opt['option_text']) || trim((string) $opt['option_text']) === '') {
                                 $hasEmpty = true;
                             }
-                            if (!empty($opt['is_correct'])) {
+                            if (! empty($opt['is_correct'])) {
                                 $hasCorrect = true;
                             }
                         }
@@ -66,7 +66,7 @@ class UpdateQuizQuestionRequest extends FormRequest
                                 'Semua opsi pilihan ganda harus memiliki teks jawaban.'
                             );
                         }
-                        if (!$hasCorrect) {
+                        if (! $hasCorrect) {
                             $validator->errors()->add(
                                 "questions.{$index}.options",
                                 'Soal pilihan ganda harus memilih minimal 1 jawaban yang benar.'

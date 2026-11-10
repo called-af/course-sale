@@ -8,6 +8,7 @@
 @theme {
     --font-sans:
         'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display: 'Anton', 'Arial Narrow', ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Dark mode base */
@@ -18,13 +19,14 @@ html.dark {
 }
 
 :root {
-    --app-surface: #f3f1f6;
-    --app-surface-raised: #f8f7fa;
+    /* Light theme: page background is a soft gray, raised surfaces stay white. */
+    --app-surface: #f3f4f6; /* gray-100 */
+    --app-surface-raised: #ffffff;
     --app-surface-dark: #141416;
     --app-surface-dark-raised: #1e1f24;
 }
 
-html[data-palette="purple"] {
+html[data-palette='purple'] {
     --color-purple-50: #faf5ff;
     --color-purple-100: #f3e8ff;
     --color-purple-200: #e9d5ff;
@@ -38,7 +40,7 @@ html[data-palette="purple"] {
     --color-purple-950: #2e1065;
 }
 
-html[data-palette="indigo"] {
+html[data-palette='indigo'] {
     --color-purple-50: #eef2ff;
     --color-purple-100: #e0e7ff;
     --color-purple-200: #c7d2fe;
@@ -52,7 +54,7 @@ html[data-palette="indigo"] {
     --color-purple-950: #17153b;
 }
 
-html[data-palette="rose"] {
+html[data-palette='rose'] {
     --color-purple-50: #fff1f2;
     --color-purple-100: #ffe4e6;
     --color-purple-200: #fecdd3;
@@ -66,7 +68,7 @@ html[data-palette="rose"] {
     --color-purple-950: #3b0414;
 }
 
-html[data-palette="teal"] {
+html[data-palette='teal'] {
     --color-purple-50: #f0fdfa;
     --color-purple-100: #ccfbf1;
     --color-purple-200: #99f6e4;
@@ -80,7 +82,7 @@ html[data-palette="teal"] {
     --color-purple-950: #032624;
 }
 
-html[data-palette="blue"] {
+html[data-palette='blue'] {
     --color-purple-50: #eff6ff;
     --color-purple-100: #dbeafe;
     --color-purple-200: #bfdbfe;
@@ -94,7 +96,7 @@ html[data-palette="blue"] {
     --color-purple-950: #0c142a;
 }
 
-html[data-palette="cyan"] {
+html[data-palette='cyan'] {
     --color-purple-50: #ecfeff;
     --color-purple-100: #cffafe;
     --color-purple-200: #a5f3fc;
@@ -108,7 +110,7 @@ html[data-palette="cyan"] {
     --color-purple-950: #062c3b;
 }
 
-html[data-palette="emerald"] {
+html[data-palette='emerald'] {
     --color-purple-50: #ecfdf5;
     --color-purple-100: #d1fae5;
     --color-purple-200: #a7f3d0;
@@ -122,7 +124,7 @@ html[data-palette="emerald"] {
     --color-purple-950: #01221b;
 }
 
-html[data-palette="pink"] {
+html[data-palette='pink'] {
     --color-purple-50: #fdf2f8;
     --color-purple-100: #fce7f3;
     --color-purple-200: #fbcfe8;
@@ -136,7 +138,7 @@ html[data-palette="pink"] {
     --color-purple-950: #3b051b;
 }
 
-html[data-palette="orange"] {
+html[data-palette='orange'] {
     --color-purple-50: #fff7ed;
     --color-purple-100: #ffedd5;
     --color-purple-200: #fed7aa;
@@ -150,7 +152,7 @@ html[data-palette="orange"] {
     --color-purple-950: #2d0c04;
 }
 
-html[data-palette="amber"] {
+html[data-palette='amber'] {
     --color-purple-50: #fffbeb;
     --color-purple-100: #fef3c7;
     --color-purple-200: #fde68a;
@@ -164,7 +166,7 @@ html[data-palette="amber"] {
     --color-purple-950: #301201;
 }
 
-html.dark[data-palette="purple"] {
+html.dark[data-palette='purple'] {
     --color-purple-600: #9333ea;
     --color-purple-700: #7e22ce;
     --color-purple-800: #6b21a8;
@@ -172,7 +174,7 @@ html.dark[data-palette="purple"] {
     --color-purple-950: #3b0764;
 }
 
-html.dark[data-palette="indigo"] {
+html.dark[data-palette='indigo'] {
     --color-purple-600: #4f46e5;
     --color-purple-700: #4338ca;
     --color-purple-800: #3730a3;
@@ -180,7 +182,7 @@ html.dark[data-palette="indigo"] {
     --color-purple-950: #1e1b4b;
 }
 
-html.dark[data-palette="rose"] {
+html.dark[data-palette='rose'] {
     --color-purple-600: #e11d48;
     --color-purple-700: #be123c;
     --color-purple-800: #9f1239;
@@ -188,7 +190,7 @@ html.dark[data-palette="rose"] {
     --color-purple-950: #4c0519;
 }
 
-html.dark[data-palette="teal"] {
+html.dark[data-palette='teal'] {
     --color-purple-600: #0d9488;
     --color-purple-700: #0f766e;
     --color-purple-800: #115e59;
@@ -196,7 +198,7 @@ html.dark[data-palette="teal"] {
     --color-purple-950: #042f2e;
 }
 
-html.dark[data-palette="blue"] {
+html.dark[data-palette='blue'] {
     --color-purple-600: #2563eb;
     --color-purple-700: #1d4ed8;
     --color-purple-800: #1e40af;
@@ -204,7 +206,7 @@ html.dark[data-palette="blue"] {
     --color-purple-950: #172554;
 }
 
-html.dark[data-palette="cyan"] {
+html.dark[data-palette='cyan'] {
     --color-purple-600: #0891b2;
     --color-purple-700: #0e7490;
     --color-purple-800: #155e75;
@@ -212,7 +214,7 @@ html.dark[data-palette="cyan"] {
     --color-purple-950: #083344;
 }
 
-html.dark[data-palette="emerald"] {
+html.dark[data-palette='emerald'] {
     --color-purple-600: #059669;
     --color-purple-700: #047857;
     --color-purple-800: #065f46;
@@ -220,7 +222,7 @@ html.dark[data-palette="emerald"] {
     --color-purple-950: #022c22;
 }
 
-html.dark[data-palette="pink"] {
+html.dark[data-palette='pink'] {
     --color-purple-600: #db2777;
     --color-purple-700: #be185d;
     --color-purple-800: #9d174d;
@@ -228,7 +230,7 @@ html.dark[data-palette="pink"] {
     --color-purple-950: #500724;
 }
 
-html.dark[data-palette="orange"] {
+html.dark[data-palette='orange'] {
     --color-purple-600: #ea580c;
     --color-purple-700: #c2410c;
     --color-purple-800: #9a3412;
@@ -236,7 +238,7 @@ html.dark[data-palette="orange"] {
     --color-purple-950: #431407;
 }
 
-html.dark[data-palette="amber"] {
+html.dark[data-palette='amber'] {
     --color-purple-600: #d97706;
     --color-purple-700: #b45309;
     --color-purple-800: #92400e;
@@ -274,4 +276,68 @@ html.dark .dark\:bg-slate-800 {
 
 html.dark .dark\:border-slate-700 {
     border-color: #383a40;
+}
+
+/* Dark theme button hover — the white wipe turns the label dark as it covers the button */
+html.dark .btn-sweep:hover .btn-sweep-label {
+    color: var(--color-neutral-900);
+}
+
+/* ------------------------------------------------------------------
+ | Custom scrollbar
+ | Thin, rounded scrollbar that follows the active appearance: the
+ | palette accent (purple variables are remapped by each palette) and
+ | the light/dark theme. Applied globally so every scroll area (page,
+ | sidebar, lists, modals) uses the same style.
+ |
+ | WebKit gets the rounded pseudo-element scrollbar; Firefox (and
+ | engines without ::-webkit-scrollbar) use the standard properties.
+ | Do not set scrollbar-width/color globally for WebKit: Chrome 121+
+ | then ignores the ::-webkit-scrollbar styling entirely.
+ | ------------------------------------------------------------------ */
+@supports not selector(::-webkit-scrollbar) {
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-purple-300) transparent;
+    }
+
+    html.dark * {
+        scrollbar-color: var(--color-purple-700) transparent;
+    }
+}
+
+*::-webkit-scrollbar {
+    width: 11px;
+    height: 11px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: var(--color-purple-300);
+    background-clip: content-box;
+    border: 3px solid transparent;
+    border-radius: 9999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-purple-400);
+}
+
+*::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+html.dark *::-webkit-scrollbar-thumb {
+    background-color: var(--color-purple-700);
+}
+
+html.dark *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-purple-500);
+}
+
+.custom-scrollbar {
+    overscroll-behavior: contain;
 }

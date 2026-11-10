@@ -190,7 +190,19 @@ class QuizService
     public function saveDraft(User $user, MaterialContent $content, array $answers): array
     {
         return DB::transaction(function () use ($user, $content, $answers) {
-            $attempt = $this->resolveInProgressAttempt($user, $content);
+            // Only autosave into an attempt that is actually in progress. Never
+            // create a new attempt here — a late autosave after submitting would
+            // otherwise hide the score behind a fresh "continue" state.
+            $attempt = QuizAttempt::where('user_id', $user->id)
+                ->where('material_content_id', $content->id)
+                ->where('status', 'in_progress')
+                ->latest('id')
+                ->first();
+
+            if (! $attempt) {
+                return $this->getState($user, $content);
+            }
+
             $content->loadMissing('quizQuestions.quizOptions');
 
             foreach ($content->quizQuestions as $question) {
@@ -304,6 +316,7 @@ class QuizService
 
             $attempt = $this->resolveInProgressAttempt($user, $content);
             $mcQuestions = $questions->where('type', 'multiple_choice');
+            $essayQuestions = $questions->where('type', 'essay');
             $totalMc = $mcQuestions->count();
             $correctMc = 0;
             $details = [];
@@ -347,43 +360,55 @@ class QuizService
                 ];
             }
 
-            $percentageScore = $totalMc > 0 ? round(($correctMc / $totalMc) * 100, 2) : 100;
+            $needsReview = $essayQuestions->isNotEmpty();
+
+            // Essay answers cannot be auto-scored. Never hand out a perfect
+            // score for a quiz that has no auto-gradable questions.
+            $percentageScore = $needsReview
+                ? null
+                : ($totalMc > 0 ? round(($correctMc / $totalMc) * 100, 2) : 0);
 
             $attempt->update([
                 'finished_at' => now(),
                 'status' => 'completed',
                 'score' => $percentageScore,
+                'needs_review' => $needsReview,
             ]);
 
+            // Submitting the quiz is what completes the lesson. The score does
+            // not have to be perfect, and essay answers can be graded later
+            // without blocking the student's progress.
             $this->markContentCompleted($user, $content);
 
             $material = $material ?? $content->material;
             $course = $course ?? $material?->module?->course;
 
-            $trackingService = app(EventTrackingService::class);
-            $trackingService->trackQuizAttempt(
-                $user,
-                $course,
-                $material,
-                $percentageScore,
-                [
-                    'attempt_id' => $attempt->id,
-                    'total_questions' => $questions->count(),
-                    'correct_answers' => $correctMc,
-                    'total_mc' => $totalMc,
-                ]
-            );
+            if ($percentageScore !== null) {
+                $trackingService = app(EventTrackingService::class);
+                $trackingService->trackQuizAttempt(
+                    $user,
+                    $course,
+                    $material,
+                    $percentageScore,
+                    [
+                        'attempt_id' => $attempt->id,
+                        'total_questions' => $questions->count(),
+                        'correct_answers' => $correctMc,
+                        'total_mc' => $totalMc,
+                    ]
+                );
 
-            $trackingService->trackQuizComplete(
-                $user,
-                $course,
-                $material,
-                $percentageScore,
-                [
-                    'attempt_id' => $attempt->id,
-                    'score' => $percentageScore,
-                ]
-            );
+                $trackingService->trackQuizComplete(
+                    $user,
+                    $course,
+                    $material,
+                    $percentageScore,
+                    [
+                        'attempt_id' => $attempt->id,
+                        'score' => $percentageScore,
+                    ]
+                );
+            }
 
             return [
                 'attempt' => $attempt->fresh(),
@@ -391,9 +416,83 @@ class QuizService
                 'correct' => $correctMc,
                 'total' => $totalMc,
                 'total_questions' => $questions->count(),
+                'needs_review' => $needsReview,
                 'details' => $details,
                 'state' => $this->getState($user, $content),
             ];
+        });
+    }
+
+    /**
+     * Grade essay answers for an attempt. The grader supplies a map of
+     * quiz_answer_id (or quiz_question_id) => boolean correctness.
+     *
+     * @param  array<int|string, bool>  $grades
+     */
+    public function gradeAttempt(QuizAttempt $attempt, array $grades, User $grader): QuizAttempt
+    {
+        return DB::transaction(function () use ($attempt, $grades, $grader) {
+            $attempt->loadMissing(['answers.quizQuestion', 'materialContent.material.module.course']);
+
+            if (! $attempt->needs_review) {
+                throw ValidationException::withMessages([
+                    'grades' => 'This quiz attempt does not need manual review.',
+                ]);
+            }
+
+            $answers = $attempt->answers;
+            $essayAnswers = $answers->filter(
+                fn (QuizAnswer $answer) => $answer->quizQuestion?->type === 'essay'
+            );
+
+            foreach ($essayAnswers as $answer) {
+                $value = $grades[$answer->id]
+                    ?? $grades[$answer->quiz_question_id]
+                    ?? null;
+
+                if ($value === null) {
+                    throw ValidationException::withMessages([
+                        'grades' => 'Please grade every essay answer before saving.',
+                    ]);
+                }
+
+                $answer->update(['is_correct' => filter_var($value, FILTER_VALIDATE_BOOLEAN)]);
+            }
+
+            $answers = $attempt->answers()->with('quizQuestion')->get();
+            $total = $answers->count();
+            $correct = $answers->where('is_correct', true)->count();
+            $score = $total > 0 ? round(($correct / $total) * 100, 2) : 0;
+
+            $attempt->update([
+                'score' => $score,
+                'needs_review' => false,
+                'reviewed_by' => $grader->id,
+                'reviewed_at' => now(),
+            ]);
+
+            $content = $attempt->materialContent;
+
+            if ($content) {
+                $this->markContentCompleted($attempt->user, $content);
+
+                $material = $content->material;
+                $course = $material?->module?->course;
+
+                app(EventTrackingService::class)->trackQuizComplete(
+                    $attempt->user,
+                    $course,
+                    $material,
+                    $score,
+                    [
+                        'attempt_id' => $attempt->id,
+                        'score' => $score,
+                        'graded_by' => $grader->id,
+                    ]
+                );
+            }
+
+            return $attempt->refresh();
         });
     }
 
@@ -458,19 +557,23 @@ class QuizService
                 'total' => $totalMc,
                 'correct' => null,
                 'score' => null,
+                'needs_review' => false,
             ];
         }
 
         if ($completed) {
+            $needsReview = (bool) $completed->needs_review;
+
             return [
-                'status' => 'completed',
+                'status' => $needsReview ? 'pending_review' : 'completed',
                 'attempt_id' => $completed->id,
                 'answers' => [],
                 'answered' => $totalQuestions,
                 'total_questions' => $totalQuestions,
                 'total' => $totalMc,
                 'correct' => $completed->answers->where('is_correct', true)->count(),
-                'score' => (float) $completed->score,
+                'score' => $needsReview ? null : (float) $completed->score,
+                'needs_review' => $needsReview,
             ];
         }
 
@@ -483,6 +586,7 @@ class QuizService
             'total' => $totalMc,
             'correct' => null,
             'score' => null,
+            'needs_review' => false,
         ];
     }
 

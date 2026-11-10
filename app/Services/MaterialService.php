@@ -31,19 +31,15 @@ class MaterialService
     {
         return DB::transaction(function () use ($material, $data) {
 
-            if (($data['status'] ?? null) === 'published') {
+            $newStatus = $data['status'] ?? $material->status;
+            $isPublishing = $newStatus === 'published' && ! $material->isPublished();
 
-                if ($material->isPublished()) {
-                    throw new DomainException('This material has already been published.');
-                }
-
+            if ($isPublishing) {
                 Gate::authorize('publish', $material);
 
                 if (! $material->canBePublished()) {
-                    throw new DomainException('This material is incomplete and cannot be published.');
+                    throw new DomainException('This material is incomplete and cannot be published. Publish at least one lesson first.');
                 }
-
-                $data['published_at'] = now();
             }
 
             $material->update([

@@ -17,12 +17,12 @@ use Illuminate\Support\Facades\Log;
 
 class AIOrchestrator
 {
-    protected NvidiaService $nvidiaService;
+    protected AiService $aiService;
 
     protected array $tools = [];
 
     public function __construct(
-        NvidiaService $nvidiaService,
+        AiService $aiService,
         CourseSearchTool $courseSearch,
         CourseDetailTool $courseDetail,
         RecommendationTool $recommendationTool,
@@ -31,7 +31,7 @@ class AIOrchestrator
         ?InstructorStudentTool $instructorStudents = null,
         ?InstructorAnalyticsTool $instructorAnalytics = null
     ) {
-        $this->nvidiaService = $nvidiaService;
+        $this->aiService = $aiService;
         $instructorStudents ??= app(InstructorStudentTool::class);
         $instructorAnalytics ??= app(InstructorAnalyticsTool::class);
 
@@ -50,16 +50,29 @@ class AIOrchestrator
     {
         $toolDefinitions = $this->getToolDefinitions($session->user);
 
-        // 1. Initial call to NVIDIA
-        $response = $this->nvidiaService->chat($messages, $toolDefinitions);
+        // 1. Initial call to AI service
+        $response = $this->aiService->chat($messages, $toolDefinitions);
         $message = $response['choices'][0]['message'] ?? null;
 
         if (! $message) {
             throw new Exception('Invalid response from AI');
         }
 
-        // 2. Handle Tool Calls
+        // 2. Handle Tool Calls. Hard-cap the loop so a misbehaving model cannot
+        // keep calling tools forever and exhaust the request timeout.
+        $maxToolRounds = 5;
+        $toolRound = 0;
+
         while (isset($message['tool_calls']) && count($message['tool_calls']) > 0) {
+            if (++$toolRound > $maxToolRounds) {
+                Log::warning('AI tool loop limit reached', ['session_id' => $session->id]);
+
+                return [
+                    'content' => 'Maaf, saya membutuhkan terlalu banyak langkah untuk menjawab pertanyaan ini. Silakan coba pertanyaan yang lebih spesifik.',
+                    'metadata' => ['tool_loop_limit_reached' => true],
+                ];
+            }
+
             $messages[] = $message; // Add assistant message with tool calls to context
 
             // Save tool call message to db
@@ -100,8 +113,8 @@ class AIOrchestrator
                 ]);
             }
 
-            // Call NVIDIA again with tool results
-            $response = $this->nvidiaService->chat($messages, $toolDefinitions);
+            // Call AI service again with tool results
+            $response = $this->aiService->chat($messages, $toolDefinitions);
             $message = $response['choices'][0]['message'] ?? null;
 
             if (! $message) {

@@ -27,12 +27,7 @@ export default function DashboardPanel({
     const hasHeader = Boolean(title || description || icon || action);
 
     return (
-        <section
-            className={clsx(
-                'border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-[#1e1f24]',
-                className,
-            )}
-        >
+        <section className={clsx('border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-[#1e1f24]', className)}>
             {hasHeader && (
                 <div
                     className={clsx(

@@ -1,43 +1,32 @@
-import { usePage } from "@inertiajs/react"
-import { useState, useEffect } from "react"
-import Navbar from "@/components/organisms/admin/AdminNavbar"
-import Sidebar from "@/components/organisms/admin/AdminSidebar"
-import { ToastContainer } from "react-toastify"
-import { useInertiaToast } from "@/hooks/useInertiaToast"
+import { useState, useEffect } from 'react';
+import { ToastContainer } from 'react-toastify';
+import Navbar from '@/components/organisms/admin/AdminNavbar';
+import Sidebar from '@/components/organisms/admin/AdminSidebar';
+import { useInertiaToast } from '@/hooks/useInertiaToast';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  useInertiaToast()
+    useInertiaToast();
 
-  useEffect(() => {
-    document.body.style.overflow = sidebarOpen ? "hidden" : ""
-    return () => { document.body.style.overflow = "" }
-  }, [sidebarOpen])
+    useEffect(() => {
+        document.body.style.overflow = sidebarOpen ? 'hidden' : '';
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [sidebarOpen]);
 
-  return (
-    <div className="h-screen flex overflow-hidden bg-neutral-50 dark:bg-[#141416]">
+    return (
+        <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-[#141416]">
+            <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <Sidebar
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
+            <div className="flex flex-1 flex-col overflow-hidden">
+                <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+                <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+            </div>
 
-        <main className="flex-1 overflow-y-auto p-6">
-          {children}
-        </main>
-      </div>
-
-      <ToastContainer
-        position="top-right"
-        autoClose={4000}
-        newestOnTop
-        pauseOnHover
-        closeOnClick
-      />
-    </div>
-  )
+            <ToastContainer position="top-right" autoClose={4000} newestOnTop pauseOnHover closeOnClick />
+        </div>
+    );
 }

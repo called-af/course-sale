@@ -2,7 +2,7 @@ import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import '../css/app.css';
-import 'react-toastify/dist/ReactToastify.css'
+import 'react-toastify/dist/ReactToastify.css';
 
 const fallbackAppName = import.meta.env.VITE_APP_NAME || 'KursusIO';
 let appName = fallbackAppName;
@@ -12,8 +12,7 @@ createInertiaApp({
     resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
     setup({ el, App, props }) {
         const applyPalette = (palette: unknown) => {
-            document.documentElement.dataset.palette =
-                typeof palette === 'string' ? palette : 'purple';
+            document.documentElement.dataset.palette = typeof palette === 'string' ? palette : 'purple';
         };
 
         const resolveAppName = (pageProps: Record<string, unknown>) => {

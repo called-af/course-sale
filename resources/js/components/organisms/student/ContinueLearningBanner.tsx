@@ -22,11 +22,7 @@ export default function ContinueLearningBanner({ course }: ContinueLearningBanne
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-4">
                     <div className="relative aspect-video w-32 shrink-0 overflow-hidden bg-slate-200 shadow-xs sm:w-40 dark:bg-[#141416]">
-                        <img
-                            src={course.thumbnail_url ?? '/assets/landscape.jpeg'}
-                            alt={course.title}
-                            className="h-full w-full object-cover"
-                        />
+                        <img src={course.thumbnail_url ?? '/assets/landscape.jpeg'} alt={course.title} className="h-full w-full object-cover" />
                     </div>
 
                     <div className="space-y-1.5">

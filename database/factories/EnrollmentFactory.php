@@ -16,7 +16,7 @@ class EnrollmentFactory extends Factory
         return [
             'user_id' => User::factory(),
             'course_id' => Course::factory(),
-            'status' => fake()->randomElement(["active","revoked","expired"]),
+            'status' => fake()->randomElement(['active', 'revoked', 'expired']),
             'enrolled_at' => fake()->dateTime(),
         ];
     }

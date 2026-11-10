@@ -59,14 +59,10 @@ export default function MyCertificatesPage({ certificates }: Props) {
 
 function CertificateCard({ cert }: { cert: CertificateItem }) {
     return (
-        <div className="flex flex-col border border-slate-100 dark:border-slate-700 bg-white dark:bg-[#1e1f24] shadow-xs overflow-hidden">
+        <div className="flex flex-col overflow-hidden border border-slate-100 bg-white shadow-xs dark:border-slate-700 dark:bg-[#1e1f24]">
             {/* Thumbnail */}
             <div className="relative aspect-video w-full overflow-hidden bg-slate-100 dark:bg-[#141416]">
-                <img
-                    src={cert.course.thumbnail_url}
-                    alt={cert.course.title}
-                    className="h-full w-full object-cover"
-                />
+                <img src={cert.course.thumbnail_url} alt={cert.course.title} className="h-full w-full object-cover" />
                 {/* Gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 {/* Badge */}
@@ -77,23 +73,21 @@ function CertificateCard({ cert }: { cert: CertificateItem }) {
             </div>
 
             {/* Body */}
-            <div className="flex flex-1 flex-col p-4 space-y-3">
+            <div className="flex flex-1 flex-col space-y-3 p-4">
                 <div>
-                    <p className="font-semibold text-slate-800 dark:text-slate-100 line-clamp-2 leading-snug">
-                        {cert.course.title}
-                    </p>
+                    <p className="line-clamp-2 leading-snug font-semibold text-slate-800 dark:text-slate-100">{cert.course.title}</p>
                     <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">By {cert.course.instructor}</p>
                 </div>
 
                 {/* Certificate meta */}
-                <div className="space-y-1.5 border-t border-slate-100 dark:border-slate-700 pt-3">
+                <div className="space-y-1.5 border-t border-slate-100 pt-3 dark:border-slate-700">
                     <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                        <Calendar size={12} className="text-slate-400 dark:text-slate-500 shrink-0" />
+                        <Calendar size={12} className="shrink-0 text-slate-400 dark:text-slate-500" />
                         <span>Issued on {cert.issued_at}</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                        <Shield size={12} className="text-purple-500 shrink-0" />
-                        <span className="font-mono text-purple-600 dark:text-purple-400 truncate">{cert.certificate_number}</span>
+                        <Shield size={12} className="shrink-0 text-purple-500" />
+                        <span className="truncate font-mono text-purple-600 dark:text-purple-400">{cert.certificate_number}</span>
                     </div>
                 </div>
 
@@ -102,7 +96,7 @@ function CertificateCard({ cert }: { cert: CertificateItem }) {
                     {cert.has_pdf && (
                         <a
                             href={`/student/certificates/${cert.id}/download`}
-                            className="flex flex-1 items-center justify-center gap-1.5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1f24] py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:border-purple-300 dark:hover:border-purple-600 hover:text-purple-700 dark:hover:text-purple-400 transition-colors"
+                            className="flex flex-1 items-center justify-center gap-1.5 border border-slate-200 bg-white py-2 text-xs font-medium text-slate-700 transition-colors hover:border-purple-300 hover:text-purple-700 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-200 dark:hover:border-purple-600 dark:hover:text-purple-400"
                             download
                         >
                             <Download size={13} />
@@ -113,7 +107,7 @@ function CertificateCard({ cert }: { cert: CertificateItem }) {
                         href={`/certificate/${cert.certificate_number}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex flex-1 items-center justify-center gap-1.5 border border-purple-200 dark:border-purple-900/50 bg-purple-50 dark:bg-purple-950/40 py-2 text-xs font-medium text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-950/60 transition-colors"
+                        className="flex flex-1 items-center justify-center gap-1.5 border border-purple-200 bg-purple-50 py-2 text-xs font-medium text-purple-700 transition-colors hover:bg-purple-100 dark:border-purple-900/50 dark:bg-purple-950/40 dark:text-purple-300 dark:hover:bg-purple-950/60"
                     >
                         <ExternalLink size={13} />
                         Verify
@@ -126,7 +120,7 @@ function CertificateCard({ cert }: { cert: CertificateItem }) {
 
 function EmptyState() {
     return (
-        <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-12 text-center shadow-xs">
+        <div className="border border-slate-100 bg-white p-12 text-center shadow-xs dark:border-slate-700 dark:bg-[#1e1f24]">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center bg-purple-50 dark:bg-purple-950/40">
                 <Award size={28} className="text-purple-400" />
             </div>
@@ -136,7 +130,7 @@ function EmptyState() {
             </p>
             <Link
                 href="/student/courses"
-                className="mt-5 inline-flex items-center gap-2 bg-purple-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-purple-800 transition-colors"
+                className="mt-5 inline-flex items-center gap-2 bg-purple-700 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-purple-800"
             >
                 <BookOpen size={15} />
                 Continue Learning

@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Course;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\QuizQuestion\ListQuizQuestionRequest;
 use App\Http\Requests\QuizQuestion\StoreQuizQuestionRequest;
 use App\Http\Requests\QuizQuestion\UpdateQuizQuestionRequest;
-use App\Http\Requests\QuizQuestion\ListQuizQuestionRequest;
 use App\Models\Course;
 use App\Models\Material;
 use App\Models\MaterialContent;
 use App\Models\Module;
 use App\Models\QuizQuestion;
-use App\Services\QuizService;
 use App\Services\CourseStructureService;
+use App\Services\QuizService;
 use Illuminate\Http\JsonResponse;
 
 class QuizController extends Controller
@@ -28,14 +28,13 @@ class QuizController extends Controller
         Module $module,
         Material $material,
         MaterialContent $content,
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $this->structureService->ensureContentHierarchy($course, $module, $material, $content);
         $questions = $this->quizService->getQuestions($content->id);
 
         return response()->json([
             'message' => 'Quiz questions retrieved successfully.',
-            'data'    => $questions,
+            'data' => $questions,
         ]);
     }
 

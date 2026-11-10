@@ -16,8 +16,15 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained();
+            $table->string('order_number')->unique();
+            $table->string('currency')->default('IDR');
+            $table->foreignId('payment_method_id')->nullable();
             $table->decimal('total_price', 10, 2);
-            $table->enum('status', ["pending","paid","failed","expired"]);
+            $table->decimal('refunded_amount', 12, 2)->default(0);
+            $table->decimal('chargeback_amount', 12, 2)->default(0);
+            $table->enum('status', ['pending', 'paid', 'failed', 'expired', 'refunded', 'chargeback'])->default('pending');
+            $table->timestamp('paid_at')->nullable();
+            $table->timestamp('expires_at')->nullable();
             $table->timestamps();
         });
 

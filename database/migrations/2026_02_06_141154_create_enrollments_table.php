@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained();
             $table->foreignId('course_id')->constrained();
-            $table->enum('status', ["active","revoked","expired"])->default('active');
+            $table->enum('status', ['active', 'revoked', 'expired'])->default('active');
             $table->timestamp('enrolled_at');
             $table->unique(['user_id', 'course_id']);
             $table->timestamps();

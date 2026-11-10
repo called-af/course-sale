@@ -13,6 +13,7 @@
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=anton:400" rel="stylesheet" />
 
         {{-- Anti-FOUC: apply dark class before first render --}}
         <script>
@@ -31,7 +32,7 @@
         @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         @inertiaHead
     </head>
-    <body class="font-sans antialiased">
+    <body class="font-sans antialiased bg-gray-100 dark:bg-[#141416]">
         @inertia
     </body>
 </html>

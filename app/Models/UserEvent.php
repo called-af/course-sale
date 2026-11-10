@@ -11,10 +11,15 @@ class UserEvent extends Model
     use HasFactory;
 
     public const TYPE_COURSE_VIEW = 'course_view';
+
     public const TYPE_COURSE_ENROLL = 'course_enroll';
+
     public const TYPE_MATERIAL_VIEW = 'material_view';
+
     public const TYPE_MATERIAL_COMPLETE = 'material_complete';
+
     public const TYPE_QUIZ_ATTEMPT = 'quiz_attempt';
+
     public const TYPE_QUIZ_COMPLETE = 'quiz_complete';
 
     protected $fillable = [

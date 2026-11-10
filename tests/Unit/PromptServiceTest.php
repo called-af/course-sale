@@ -10,7 +10,7 @@ it('generates system prompt for instructor with access rules for own enrolled st
     ]);
     $instructor->id = 42;
 
-    $service = new PromptService();
+    $service = new PromptService;
     $prompt = $service->getSystemPrompt($instructor);
 
     expect($prompt['role'])->toBe('system');
@@ -41,7 +41,7 @@ it('generates system prompt for student preventing access to other users and ins
     ]);
     $student->id = 99;
 
-    $service = new PromptService();
+    $service = new PromptService;
     $prompt = $service->getSystemPrompt($student);
 
     $content = $prompt['content'];
@@ -53,7 +53,7 @@ it('generates system prompt for student preventing access to other users and ins
 });
 
 it('generates default system prompt containing role-based rules when user is null', function () {
-    $service = new PromptService();
+    $service = new PromptService;
     $prompt = $service->getSystemPrompt(null);
 
     $content = $prompt['content'];

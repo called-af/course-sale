@@ -1,15 +1,10 @@
-import { Head } from "@inertiajs/react"
-import { Course } from "@/types"
-import AdminLayout from "@/components/templates/AdminLayout"
-import CoursePreviewTemplate from "@/components/templates/CoursePreviewTemplate"
+import type { ReactNode } from 'react';
+import type { QuizState } from '@/components/organisms/Course/CourseQuizRunner';
+import CourseLearningTemplate, { CourseLearningLayout } from '@/components/templates/CourseLearningTemplate';
+import type { Course } from '@/types';
 
-export default function CoursePreview({ course }: { course: Course }) {
-  return (
-    <>
-      <Head title={`Preview: ${course.title} - Admin`} />
-      <CoursePreviewTemplate course={course} />
-    </>
-  )
+export default function CoursePreview({ course, quizStates }: { course: Course; quizStates?: Record<number, QuizState> }) {
+    return <CourseLearningTemplate course={course} quizStates={quizStates} mode="preview" />;
 }
 
-CoursePreview.layout = (page: React.ReactNode) => <AdminLayout>{page}</AdminLayout>
+CoursePreview.layout = (page: ReactNode) => <CourseLearningLayout>{page}</CourseLearningLayout>;

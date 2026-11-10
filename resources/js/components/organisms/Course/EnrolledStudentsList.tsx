@@ -1,12 +1,13 @@
+import { Users, Search, Calendar, CheckCircle2, Clock, UserX, X, Download } from 'lucide-react';
 import React, { useState, useMemo } from 'react';
-import { Users, Search, Calendar, CheckCircle2, Clock, GraduationCap, UserX, X } from 'lucide-react';
-import { EnrolledStudent } from '@/types';
+import type { EnrolledStudent } from '@/types';
 
 interface EnrolledStudentsListProps {
     students?: EnrolledStudent[];
+    exportUrl?: string;
 }
 
-export default function EnrolledStudentsList({ students = [] }: EnrolledStudentsListProps) {
+export default function EnrolledStudentsList({ students = [], exportUrl }: EnrolledStudentsListProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'in_progress' | 'not_started'>('all');
 
@@ -23,8 +24,7 @@ export default function EnrolledStudentsList({ students = [] }: EnrolledStudents
     const filteredStudents = useMemo(() => {
         return students.filter((student) => {
             const matchesSearch =
-                student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                student.email.toLowerCase().includes(searchQuery.toLowerCase());
+                student.name.toLowerCase().includes(searchQuery.toLowerCase()) || student.email.toLowerCase().includes(searchQuery.toLowerCase());
 
             if (!matchesSearch) return false;
 
@@ -74,44 +74,55 @@ export default function EnrolledStudentsList({ students = [] }: EnrolledStudents
                     </div>
                 </div>
 
-                {/* Status Badges Filter */}
-                {metrics.total > 0 && (
-                    <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <button
-                            type="button"
-                            onClick={() => setStatusFilter('all')}
-                            className={`px-3 py-1.5 font-medium transition-colors ${
-                                statusFilter === 'all'
-                                    ? 'bg-purple-600 text-white'
-                                    : 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-300'
-                            }`}
+                {/* Status Badges Filter + export */}
+                <div className="flex flex-wrap items-center gap-2">
+                    {metrics.total > 0 && (
+                        <div className="flex flex-wrap items-center gap-2 text-xs">
+                            <button
+                                type="button"
+                                onClick={() => setStatusFilter('all')}
+                                className={`px-3 py-1.5 font-medium transition-colors ${
+                                    statusFilter === 'all'
+                                        ? 'bg-purple-600 text-white'
+                                        : 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-300'
+                                }`}
+                            >
+                                Semua ({metrics.total})
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setStatusFilter('in_progress')}
+                                className={`px-3 py-1.5 font-medium transition-colors ${
+                                    statusFilter === 'in_progress'
+                                        ? 'bg-purple-600 text-white'
+                                        : 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-300'
+                                }`}
+                            >
+                                Sedang Belajar ({metrics.inProgress})
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setStatusFilter('completed')}
+                                className={`px-3 py-1.5 font-medium transition-colors ${
+                                    statusFilter === 'completed'
+                                        ? 'bg-purple-600 text-white'
+                                        : 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-300'
+                                }`}
+                            >
+                                Selesai ({metrics.completed})
+                            </button>
+                        </div>
+                    )}
+
+                    {exportUrl && (
+                        <a
+                            href={exportUrl}
+                            className="flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300"
                         >
-                            Semua ({metrics.total})
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setStatusFilter('in_progress')}
-                            className={`px-3 py-1.5 font-medium transition-colors ${
-                                statusFilter === 'in_progress'
-                                    ? 'bg-purple-600 text-white'
-                                    : 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-300'
-                            }`}
-                        >
-                            Sedang Belajar ({metrics.inProgress})
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setStatusFilter('completed')}
-                            className={`px-3 py-1.5 font-medium transition-colors ${
-                                statusFilter === 'completed'
-                                    ? 'bg-purple-600 text-white'
-                                    : 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-300'
-                            }`}
-                        >
-                            Selesai ({metrics.completed})
-                        </button>
-                    </div>
-                )}
+                            <Download size={14} /> Export CSV
+                        </a>
+                    )}
+                </div>
             </div>
 
             {/* Metrics Quick Overview */}
@@ -230,10 +241,7 @@ export default function EnrolledStudentsList({ students = [] }: EnrolledStudents
                                     : 'ST';
 
                                 return (
-                                    <tr
-                                        key={student.id}
-                                        className="transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-900/30"
-                                    >
+                                    <tr key={student.id} className="transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-900/30">
                                         {/* Student Info */}
                                         <td className="px-5 py-4">
                                             <div className="flex items-center gap-3">
@@ -249,18 +257,14 @@ export default function EnrolledStudentsList({ students = [] }: EnrolledStudents
                                                     </div>
                                                 )}
                                                 <div>
-                                                    <div className="font-semibold text-slate-900 dark:text-white">
-                                                        {student.name}
-                                                    </div>
-                                                    <div className="text-xs text-slate-500 dark:text-slate-400">
-                                                        {student.email}
-                                                    </div>
+                                                    <div className="font-semibold text-slate-900 dark:text-white">{student.name}</div>
+                                                    <div className="text-xs text-slate-500 dark:text-slate-400">{student.email}</div>
                                                 </div>
                                             </div>
                                         </td>
 
                                         {/* Enrolled Date */}
-                                        <td className="px-5 py-4 whitespace-nowrap text-xs text-slate-600 dark:text-slate-300">
+                                        <td className="px-5 py-4 text-xs whitespace-nowrap text-slate-600 dark:text-slate-300">
                                             <div className="flex items-center gap-1.5">
                                                 <Calendar className="h-3.5 w-3.5 text-slate-400" />
                                                 <span>{formatDate(student.enrolled_at)}</span>
@@ -275,7 +279,7 @@ export default function EnrolledStudentsList({ students = [] }: EnrolledStudents
                                                         {student.progress_percent}%
                                                     </span>
                                                     <span className="text-[11px] text-slate-400">
-                                                        {student.completed_materials} / {student.total_materials} Materi
+                                                        {student.completed_contents ?? 0} / {student.total_contents ?? 0} Contents
                                                     </span>
                                                 </div>
                                                 <div className="h-2 w-full overflow-hidden bg-slate-100 dark:bg-slate-700">

@@ -1,9 +1,11 @@
-import { useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
-import Button from '@/components/atoms/Button';
-import AppLogo from '@/components/atoms/AppLogo';
 import { ChevronDown, LayoutDashboard, LogOut, Menu, Moon, Sun, X } from 'lucide-react';
+import { useState } from 'react';
+import AppLogo from '@/components/atoms/AppLogo';
+import Button from '@/components/atoms/Button';
 import { useTheme } from '@/hooks/useTheme';
+import type { SharedPageProps } from '@/types/shared';
+import type { User } from '@/types/user';
 
 const menus = [
     { name: 'Home', href: '/' },
@@ -14,7 +16,7 @@ const menus = [
 export default function Navbar() {
     const [open, setOpen] = useState(false);
     const [accountOpen, setAccountOpen] = useState(false);
-    const { auth } = usePage().props as any;
+    const { auth } = usePage<SharedPageProps>().props;
     const user = auth?.user;
     const accountMenus = getAccountMenus(user?.role);
     const { toggle, isDark } = useTheme();
@@ -33,7 +35,7 @@ export default function Navbar() {
                         <Link
                             key={menu.name}
                             href={menu.href}
-                            className="font-medium text-gray-700 dark:text-slate-300 hover:text-purple-700 dark:hover:text-purple-400 transition-colors"
+                            className="font-medium text-gray-700 transition-colors hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-400"
                         >
                             {menu.name}
                         </Link>
@@ -44,7 +46,7 @@ export default function Navbar() {
                     {/* Dark mode toggle */}
                     <button
                         onClick={toggle}
-                        className="p-2 text-gray-600 dark:text-slate-400 hover:text-purple-700 dark:hover:text-purple-400 transition-colors"
+                        className="p-2 text-gray-600 transition-colors hover:text-purple-700 dark:text-slate-400 dark:hover:text-purple-400"
                         title="Toggle dark mode"
                     >
                         {isDark ? <Sun size={18} /> : <Moon size={18} />}
@@ -72,23 +74,20 @@ export default function Navbar() {
                         </div>
                     )}
 
-                    <button
-                        className="p-2 text-gray-700 dark:text-slate-300 lg:hidden"
-                        onClick={() => setOpen(!open)}
-                    >
+                    <button className="p-2 text-gray-700 lg:hidden dark:text-slate-300" onClick={() => setOpen(!open)}>
                         {open ? <X size={24} /> : <Menu size={24} />}
                     </button>
                 </div>
             </div>
 
             {open && (
-                <div className="flex flex-col gap-6 border-t border-gray-100 dark:border-slate-700 bg-white dark:bg-[#1e1f24] px-6 py-6 lg:hidden">
+                <div className="flex flex-col gap-6 border-t border-gray-100 bg-white px-6 py-6 lg:hidden dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="flex flex-col gap-4">
                         {menus.map((menu) => (
                             <Link
                                 key={menu.name}
                                 href={menu.href}
-                                className="text-lg font-medium text-gray-700 dark:text-slate-300 hover:text-purple-700 dark:hover:text-purple-400 transition-colors"
+                                className="text-lg font-medium text-gray-700 transition-colors hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-400"
                                 onClick={() => setOpen(false)}
                             >
                                 {menu.name}
@@ -96,11 +95,13 @@ export default function Navbar() {
                         ))}
                     </div>
 
-                    <div className="flex flex-col gap-3 border-t border-gray-100 dark:border-slate-700 pt-4">
+                    <div className="flex flex-col gap-3 border-t border-gray-100 pt-4 dark:border-slate-700">
                         {!user ? (
                             <>
                                 <Link href="/login" onClick={() => setOpen(false)}>
-                                    <Button variant="outline" widthFull>Sign In</Button>
+                                    <Button variant="outline" widthFull>
+                                        Sign In
+                                    </Button>
                                 </Link>
                                 <Link href="/register" onClick={() => setOpen(false)}>
                                     <Button widthFull>Sign Up</Button>
@@ -113,7 +114,7 @@ export default function Navbar() {
                                         key={item.href}
                                         href={item.href}
                                         onClick={() => setOpen(false)}
-                                        className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-slate-800 hover:text-purple-700 dark:hover:text-purple-400"
+                                        className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-purple-400"
                                     >
                                         <LayoutDashboard size={16} />
                                         {item.label}
@@ -165,7 +166,7 @@ function AccountMenu({
     onNavigate,
     onLogout,
 }: {
-    user: any;
+    user: User;
     items: { label: string; href: string }[];
     open: boolean;
     onToggle: () => void;
@@ -177,11 +178,11 @@ function AccountMenu({
             <button
                 type="button"
                 onClick={onToggle}
-                className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-gray-700 dark:text-slate-300 transition hover:bg-white/70 dark:hover:bg-slate-800"
+                className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-gray-700 transition hover:bg-white/70 dark:text-slate-300 dark:hover:bg-slate-800"
                 aria-expanded={open}
                 aria-haspopup="menu"
             >
-                <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-purple-100 dark:bg-purple-950/40 text-xs font-bold text-purple-700 dark:text-purple-300">
+                <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-purple-100 text-xs font-bold text-purple-700 dark:bg-purple-950/40 dark:text-purple-300">
                     {user.avatar_url ? (
                         <img src={user.avatar_url} alt={user.name} className="h-full w-full object-cover" />
                     ) : (
@@ -193,13 +194,16 @@ function AccountMenu({
             </button>
 
             {open && (
-                <div className="absolute top-full right-0 mt-2 w-52 border border-gray-100 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-2 shadow-lg" role="menu">
+                <div
+                    className="absolute top-full right-0 mt-2 w-52 border border-gray-100 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-[#1e1f24]"
+                    role="menu"
+                >
                     {items.map((item) => (
                         <Link
                             key={item.href}
                             href={item.href}
                             onClick={onNavigate}
-                            className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-slate-800 hover:text-purple-700 dark:hover:text-purple-400"
+                            className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-purple-400"
                             role="menuitem"
                         >
                             <LayoutDashboard size={16} />

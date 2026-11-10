@@ -17,13 +17,19 @@ class CourseSeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->environment('production') && blank(env('SEEDER_PASSWORD'))) {
+            $this->command?->warn('SEEDER_PASSWORD is not set. Skipping course seeding for production.');
+
+            return;
+        }
+
         $adminUser = User::where('role', 'admin')->first();
 
         if (! $adminUser) {
             $adminUser = User::create([
                 'name' => 'Admin User',
                 'email' => 'admin@example.com',
-                'password' => bcrypt('password'),
+                'password' => bcrypt((string) (env('SEEDER_PASSWORD') ?: 'password')),
                 'role' => 'admin',
             ]);
         }
@@ -37,7 +43,7 @@ class CourseSeeder extends Seeder
 
         $ytUrl = 'https://www.youtube.com/watch?v=0xyxtzD54rM&list=RD0xyxtzD54rM&start_radio=1';
         $pdfUrl = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
-        $pptUrl = 'https://www.slideshare.net';
+        $pptUrl = '/demo/ui-ux-case-study/index.html';
 
         $categoriesMap = Category::all()->keyBy('name');
 

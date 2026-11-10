@@ -19,7 +19,7 @@ class PaymentFactory extends Factory
             'reference' => fake()->word(),
             'amount' => fake()->randomFloat(2, 0, 99999999.99),
             'currency' => fake()->word(),
-            'status' => fake()->randomElement(["pending","paid","failed","expired","refunded"]),
+            'status' => fake()->randomElement(['pending', 'paid', 'failed', 'expired', 'refunded']),
             'payment_url' => fake()->text(),
             'paid_at' => fake()->dateTime(),
         ];

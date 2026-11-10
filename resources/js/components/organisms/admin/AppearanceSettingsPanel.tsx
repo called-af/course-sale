@@ -1,52 +1,50 @@
-import { router } from "@inertiajs/react"
-import { Check, LoaderCircle, Palette } from "lucide-react"
-import { useState } from "react"
+import { router } from '@inertiajs/react';
+import { Check, LoaderCircle, Palette } from 'lucide-react';
+import { useState } from 'react';
 
 const palettes = [
-    { id: "purple", label: "Purple", light: "#6b21a8", dark: "#9333ea" },
-    { id: "indigo", label: "Indigo", light: "#3730a3", dark: "#4f46e5" },
-    { id: "blue", label: "Blue", light: "#1d4ed8", dark: "#2563eb" },
-    { id: "teal", label: "Teal", light: "#115e59", dark: "#0d9488" },
-    { id: "emerald", label: "Emerald", light: "#047857", dark: "#059669" },
-    { id: "cyan", label: "Cyan", light: "#0e7490", dark: "#0891b2" },
-    { id: "rose", label: "Rose", light: "#9f1239", dark: "#e11d48" },
-    { id: "pink", label: "Pink", light: "#be185d", dark: "#db2777" },
-    { id: "orange", label: "Orange", light: "#c2410c", dark: "#ea580c" },
-    { id: "amber", label: "Amber", light: "#b45309", dark: "#d97706" },
-] as const
+    { id: 'purple', label: 'Purple', light: '#6b21a8', dark: '#9333ea' },
+    { id: 'indigo', label: 'Indigo', light: '#3730a3', dark: '#4f46e5' },
+    { id: 'blue', label: 'Blue', light: '#1d4ed8', dark: '#2563eb' },
+    { id: 'teal', label: 'Teal', light: '#115e59', dark: '#0d9488' },
+    { id: 'emerald', label: 'Emerald', light: '#047857', dark: '#059669' },
+    { id: 'cyan', label: 'Cyan', light: '#0e7490', dark: '#0891b2' },
+    { id: 'rose', label: 'Rose', light: '#9f1239', dark: '#e11d48' },
+    { id: 'pink', label: 'Pink', light: '#be185d', dark: '#db2777' },
+    { id: 'orange', label: 'Orange', light: '#c2410c', dark: '#ea580c' },
+    { id: 'amber', label: 'Amber', light: '#b45309', dark: '#d97706' },
+] as const;
 
-type PaletteId = (typeof palettes)[number]["id"]
+type PaletteId = (typeof palettes)[number]['id'];
 
 interface AppearanceSettingsPanelProps {
-    initialPalette: PaletteId
+    initialPalette: PaletteId;
 }
 
-export default function AppearanceSettingsPanel({
-    initialPalette,
-}: AppearanceSettingsPanelProps) {
-    const [selectedPalette, setSelectedPalette] = useState<PaletteId>(initialPalette)
-    const [saving, setSaving] = useState(false)
+export default function AppearanceSettingsPanel({ initialPalette }: AppearanceSettingsPanelProps) {
+    const [selectedPalette, setSelectedPalette] = useState<PaletteId>(initialPalette);
+    const [saving, setSaving] = useState(false);
 
     const selectPalette = (palette: PaletteId) => {
-        if (saving || palette === selectedPalette) return
+        if (saving || palette === selectedPalette) return;
 
-        setSelectedPalette(palette)
-        setSaving(true)
-        document.documentElement.dataset.palette = palette
+        setSelectedPalette(palette);
+        setSaving(true);
+        document.documentElement.dataset.palette = palette;
 
         router.put(
-            "/admin/settings/appearance",
+            '/admin/settings/appearance',
             { palette },
             {
                 preserveScroll: true,
                 onError: () => {
-                    setSelectedPalette(initialPalette)
-                    document.documentElement.dataset.palette = initialPalette
+                    setSelectedPalette(initialPalette);
+                    document.documentElement.dataset.palette = initialPalette;
                 },
                 onFinish: () => setSaving(false),
             },
-        )
-    }
+        );
+    };
 
     return (
         <section className="space-y-5" aria-labelledby="appearance-heading">
@@ -54,14 +52,12 @@ export default function AppearanceSettingsPanel({
                 <h2 id="appearance-heading" className="text-lg font-semibold text-slate-900 dark:text-white">
                     Palet warna
                 </h2>
-                <p className="mt-1 text-sm text-neutral-500">
-                    Pilihan ini mengubah aksen warna untuk semua pengguna.
-                </p>
+                <p className="mt-1 text-sm text-neutral-500">Pilihan ini mengubah aksen warna untuk semua pengguna.</p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 {palettes.map((palette) => {
-                    const selected = selectedPalette === palette.id
+                    const selected = selectedPalette === palette.id;
 
                     return (
                         <button
@@ -72,11 +68,14 @@ export default function AppearanceSettingsPanel({
                             aria-pressed={selected}
                             className={`flex min-h-24 items-center gap-3 border p-4 text-left transition-colors disabled:cursor-wait disabled:opacity-70 ${
                                 selected
-                                    ? "border-purple-700 bg-purple-50 dark:border-purple-500 dark:bg-purple-950/40"
-                                    : "border-slate-200 bg-white hover:border-purple-300 dark:border-slate-700 dark:bg-[#1e1f24] dark:hover:border-purple-700"
+                                    ? 'border-purple-700 bg-purple-50 dark:border-purple-500 dark:bg-purple-950/40'
+                                    : 'border-slate-200 bg-white hover:border-purple-300 dark:border-slate-700 dark:bg-[#1e1f24] dark:hover:border-purple-700'
                             }`}
                         >
-                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-4 border-white shadow-sm dark:border-slate-700" style={{ backgroundColor: palette.light }}>
+                            <span
+                                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-4 border-white shadow-sm dark:border-slate-700"
+                                style={{ backgroundColor: palette.light }}
+                            >
                                 <span className="h-3 w-3 rounded-full" style={{ backgroundColor: palette.dark }} />
                             </span>
                             <span className="min-w-0 flex-1">
@@ -94,16 +93,14 @@ export default function AppearanceSettingsPanel({
                                 <Check className="h-4 w-4 shrink-0 text-purple-800 dark:text-purple-400" />
                             ) : null}
                         </button>
-                    )
+                    );
                 })}
             </div>
 
             <div className="flex items-start gap-3 border-t border-neutral-200 pt-4 text-sm text-neutral-500 dark:border-slate-700">
                 <Palette className="mt-0.5 h-4 w-4 shrink-0 text-purple-800 dark:text-purple-400" />
-                <p>
-                    Latar terang memakai abu-abu lembut. Mode gelap memakai charcoal berundertone ungu dengan aksen yang lebih terang.
-                </p>
+                <p>Latar terang memakai abu-abu lembut. Mode gelap memakai charcoal berundertone ungu dengan aksen yang lebih terang.</p>
             </div>
         </section>
-    )
+    );
 }

@@ -20,7 +20,7 @@ class RecommendationService
     public function getRecommendations(?User $user, int $limit = 6): array
     {
         // 1. Check both the legacy environment switch and the admin-managed
-        // Python recommendation switch. They remain separate from AI NVIDIA.
+        // Python recommendation switch. They remain separate from the AI service.
         if (! config('recommendation.enabled', true)
             || ! RecommendationSetting::isEnabled()) {
             return [];
@@ -30,11 +30,11 @@ class RecommendationService
         $cacheKey = $user ? "recommendations:user:{$user->id}:limit:{$limit}" : "recommendations:guest:limit:{$limit}";
 
         try {
-            return Cache::store('redis')->remember($cacheKey, $ttl, function () use ($user, $limit) {
+            return $this->cacheStore()->remember($cacheKey, $ttl, function () use ($user, $limit) {
                 return $this->computeRecommendations($user, $limit);
             });
         } catch (\Throwable $e) {
-            Log::warning('Redis recommendation cache fallback to direct compute: '.$e->getMessage());
+            Log::warning('Recommendation cache fallback to direct compute: '.$e->getMessage());
 
             return $this->computeRecommendations($user, $limit);
         }
@@ -357,12 +357,29 @@ class RecommendationService
     public function invalidateUserCache(int $userId): void
     {
         try {
-            Cache::store('redis')->forget("recommendations:user:{$userId}:limit:4");
-            Cache::store('redis')->forget("recommendations:user:{$userId}:limit:6");
-            Cache::store('redis')->forget("recommendations:user:{$userId}:limit:8");
-            Cache::store('redis')->forget("recommendations:user:{$userId}:limit:10");
+            $store = $this->cacheStore();
+
+            foreach ([4, 6, 8, 10] as $limit) {
+                $store->forget("recommendations:user:{$userId}:limit:{$limit}");
+            }
+
+            $store->forget('recommendations:guest:limit:4');
+            $store->forget('recommendations:guest:limit:6');
+            $store->forget('recommendations:guest:limit:8');
+            $store->forget('recommendations:guest:limit:10');
         } catch (\Throwable $e) {
-            Log::warning("Failed to clear Redis recommendation cache: {$e->getMessage()}");
+            Log::warning("Failed to clear recommendation cache: {$e->getMessage()}");
         }
+    }
+
+    /**
+     * Resolve the cache store without hard-coding Redis, so deployments that
+     * use database/file/memcached keep working instead of throwing.
+     */
+    protected function cacheStore(): \Illuminate\Contracts\Cache\Repository
+    {
+        $store = config('recommendation.cache_store');
+
+        return Cache::store($store ?: config('cache.default'));
     }
 }

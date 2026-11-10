@@ -10,6 +10,7 @@ use App\Models\AppearanceSetting;
 use App\Models\RecommendationSetting;
 use App\Models\WhatsAppSetting;
 use App\Services\AiSettings;
+use App\Services\Payment\PaymentSettings;
 use App\Services\WhatsApp\WhatsAppService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -27,11 +28,61 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
 
         return Inertia::render('admin/settings/General', [
             'ai' => app(AiSettings::class)->forDisplay(),
+            'payment' => app(PaymentSettings::class)->forDisplay(),
             'recommendation' => [
                 'enabled' => RecommendationSetting::isEnabled(),
             ],
             'whatsapp' => WhatsAppSetting::current()->forDisplay(),
         ]);
+    }
+
+    public function editPayment(): \Inertia\Response
+    {
+        $this->authorize('manage-settings');
+
+        return Inertia::render('admin/settings/General', [
+            'ai' => app(AiSettings::class)->forDisplay(),
+            'payment' => app(PaymentSettings::class)->forDisplay(),
+            'recommendation' => [
+                'enabled' => RecommendationSetting::isEnabled(),
+            ],
+            'whatsapp' => WhatsAppSetting::current()->forDisplay(),
+        ]);
+    }
+
+    public function updatePayment(Request $request): RedirectResponse
+    {
+        $this->authorize('manage-settings');
+
+        $validated = $request->validate([
+            'gateway' => ['required', 'string', Rule::in(['midtrans'])],
+            'currency' => ['required', 'string', Rule::in(['IDR'])],
+            'platform_fee_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'payout_hold_days' => ['nullable', 'integer', 'min:0', 'max:90'],
+            'payout_minimum' => ['nullable', 'numeric', 'min:0'],
+            'payout_account_lock_hours' => ['nullable', 'integer', 'min:0', 'max:168'],
+        ]);
+
+        try {
+            $settings = app(PaymentSettings::class);
+            $settings->saveGateway($validated['gateway'], $validated['currency']);
+
+            if ($request->filled('platform_fee_percent')) {
+                $settings->updatePlatformFee((float) $validated['platform_fee_percent']);
+            }
+
+            if ($request->hasAny(['payout_hold_days', 'payout_minimum', 'payout_account_lock_hours'])) {
+                $settings->updatePayoutSettings(
+                    $request->filled('payout_hold_days') ? (int) $validated['payout_hold_days'] : $settings->payoutHoldDays(),
+                    $request->filled('payout_minimum') ? (float) $validated['payout_minimum'] : $settings->payoutMinimum(),
+                    $request->filled('payout_account_lock_hours') ? (int) $validated['payout_account_lock_hours'] : $settings->payoutAccountLockHours(),
+                );
+            }
+        } catch (\RuntimeException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return back()->with('success', 'Pengaturan pembayaran berhasil disimpan.');
     }
 
     public function updateAppearance(Request $request): RedirectResponse
@@ -121,7 +172,12 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
 
         $service = app(AiSettings::class);
         $enabled = (bool) $request->input('enabled', false);
-        $result = $service->setEnabled($enabled);
+
+        try {
+            $result = $service->setEnabled($enabled);
+        } catch (\RuntimeException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
 
         $this->recordAudit($request, ['enabled']);
 
@@ -162,7 +218,16 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
             $changedFields[] = 'api_key';
         }
 
-        $service->saveCredentials($request->validated());
+        if ($request->input('provider') !== AiSetting::current()->provider) {
+            $changedFields[] = 'provider';
+        }
+
+        try {
+            $service->saveCredentials($request->validated());
+        } catch (\RuntimeException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
         $this->recordAudit($request, $changedFields);
 
         return back()->with('success', 'Konfigurasi AI disimpan.');
@@ -193,6 +258,7 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
         $setting->base_url = $validated['base_url'];
         $setting->from_number = $validated['from_number'];
         $setting->sandbox_keyword = $validated['sandbox_keyword'] ?? null;
+        $setting->provider = $validated['provider'] ?? $setting->provider;
 
         if (! empty($validated['api_key'])) {
             $setting->api_key = $validated['api_key'];
@@ -202,7 +268,7 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
 
         app(WhatsAppService::class)->loadConfiguration();
 
-        return back()->with('success', 'Konfigurasi WhatsApp Infobip berhasil disimpan.');
+        return back()->with('success', 'Konfigurasi WhatsApp berhasil disimpan.');
     }
 
     public function testWhatsapp(Request $request, WhatsAppService $whatsAppService): JsonResponse
@@ -223,7 +289,7 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
 
         $appName = AppearanceSetting::current()->displayName();
         $time = now()->translatedFormat('d M Y, H:i');
-        $message = "Halo! Ini adalah pesan uji coba (Test WhatsApp) dari Admin Panel {$appName} via Infobip Gateway.\n\nWaktu: {$time}\nStatus: Konfigurasi DB Aktif & Terhubung.";
+        $message = "Halo! Ini adalah pesan uji coba (Test WhatsApp) dari Admin Panel {$appName} via WhatsApp Gateway.\n\nWaktu: {$time}\nStatus: Konfigurasi DB Aktif & Terhubung.";
 
         $result = $whatsAppService->sendInfobipTextMessage($recipient, $message);
 

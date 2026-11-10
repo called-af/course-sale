@@ -1,13 +1,19 @@
 <?php
 
 use App\Http\Controllers\Admin\CourseApprovalController;
+use App\Http\Controllers\Admin\ExportController;
 use App\Http\Controllers\Admin\GeneralSettingsController;
+use App\Http\Controllers\Admin\LandingSettingsController;
+use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\AuthControllers;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\CertificateTemplateController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\Course\CourseController;
+use App\Http\Controllers\Course\CourseResourceController;
+use App\Http\Controllers\Course\CourseStudentsExportController;
 use App\Http\Controllers\Course\MaterialContentController;
 use App\Http\Controllers\Course\MaterialController;
 use App\Http\Controllers\Course\ModuleController;
@@ -17,17 +23,31 @@ use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\Instructor\InstructorProfileController;
 use App\Http\Controllers\Instructor\InstructorSettingsController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\Legal\LegalController;
+use App\Http\Controllers\Payment\CheckoutController;
+use App\Http\Controllers\Payment\PaymentController;
+use App\Http\Controllers\Payment\PaymentWebhookController;
+use App\Http\Controllers\QuizGradingController;
 use App\Http\Controllers\RecommendationController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\Student\CourseResourceDownloadController;
+use App\Http\Controllers\Student\StudentProfileController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\UserController;
 use App\Models\Course;
 use App\Services\EventTrackingService;
+use App\Services\Payment\PaymentService;
+use App\Services\Payment\PaymentSettings;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+/*
+|--------------------------------------------------------------------------
+| STATIC / MARKETING PAGES
+|--------------------------------------------------------------------------
+*/
 Route::get('/', [LandingController::class, 'show'])->name('home');
 Route::get('/certificate/{certificateNumber}', [CertificateController::class, 'verify'])->name('certificate.verify');
 Route::get('/courses/recommended', [RecommendationController::class, 'index'])->name('courses.recommended');
@@ -71,52 +91,66 @@ Route::get('/course/{course:slug}', function (Course $course) {
     $canReview = false;
     $progressPercent = 0;
     $completedCount = 0;
-    $totalMaterials = 0;
+    $totalContents = 0;
+    $refundPolicy = null;
     if ($isEnrolled && $user) {
         /** @var \App\Services\EnrollmentService $enrollmentService */
         $enrollmentService = app(\App\Services\EnrollmentService::class);
         $canReview = $enrollmentService->isCompleted($user, $course);
+        $refundPolicy = $enrollmentService->refundPolicy($user, $course);
 
-        // Follow lesson/content level completion so a watched video, opened file,
-        // read text or submitted quiz immediately reflects on the progress.
+        // Track progress per lesson/content (not per material or module) so a
+        // watched video, opened file, read text or submitted quiz immediately
+        // reflects on the progress bar.
         $course->load([
-            'modules' => fn ($modules) => $modules->orderBy('sort_order')->with([
-                'materials' => fn ($materials) => $materials->orderBy('sort_order')->with([
-                    'contents' => fn ($contents) => $contents->orderBy('sort_order'),
+            'modules' => fn ($modules) => $modules
+                ->where('status', 'published')
+                ->orderBy('sort_order')
+                ->with([
+                    'materials' => fn ($materials) => $materials
+                        ->where('status', 'published')
+                        ->orderBy('sort_order')
+                        ->with([
+                            'contents' => fn ($contents) => $contents
+                                ->where('status', 'published')
+                                ->orderBy('sort_order'),
+                        ]),
                 ]),
-            ]),
         ]);
 
-        $allMaterialIds = $course->modules->flatMap(fn ($m) => $m->materials->pluck('id'));
-        $totalMaterials = $allMaterialIds->count();
-
         $allContentIds = $course->modules
-            ->flatMap(fn ($m) => $m->materials->flatMap(fn ($material) => $material->contents->pluck('id')));
+            ->flatMap(fn ($module) => $module->materials->flatMap(fn ($material) => $material->contents->pluck('id')));
+
+        $totalContents = $allContentIds->count();
+
         $contentProgress = \App\Models\MaterialContentProgress::where('user_id', $user->id)
             ->whereIn('material_content_id', $allContentIds)
             ->where('is_completed', true)
             ->pluck('is_completed', 'material_content_id');
 
-        $completedMaterials = 0;
-        foreach ($course->modules as $module) {
-            foreach ($module->materials as $material) {
-                $materialContentIds = $material->contents->pluck('id');
-                $allContentsDone = $materialContentIds->isNotEmpty()
-                    && $materialContentIds->every(fn ($contentId) => (bool) ($contentProgress[$contentId] ?? false));
-
-                if ($allContentsDone) {
-                    $completedMaterials++;
-                }
-            }
-        }
-
-        $progressPercent = $totalMaterials > 0 ? (int) round(($completedMaterials / $totalMaterials) * 100) : 0;
-        $completedCount = $completedMaterials;
+        $completedCount = $contentProgress->count();
+        $progressPercent = $totalContents > 0 ? (int) round(($completedCount / $totalContents) * 100) : 0;
     }
 
     /** @var \App\Services\CommentService $commentService */
     $commentService = app(\App\Services\CommentService::class);
     $comments = $commentService->getCourseComments($course);
+
+    // Checkout data powers the "Buy Course" modal, so students can pay
+    // without leaving the course page.
+    $paymentMethods = [];
+    $paymentGateway = null;
+
+    if ($user?->role === 'student' && $course->isPaid()) {
+        $paymentMethods = app(PaymentService::class)->availableMethods();
+        $settings = app(PaymentSettings::class)->current();
+
+        $paymentGateway = [
+            'name' => $settings->gateway,
+            'midtrans_enabled' => filled(config('services.payment.midtrans.server_key')),
+            'is_production' => (bool) config('services.payment.midtrans.is_production', false),
+        ];
+    }
 
     return Inertia::render('course/[slug]/page', [
         'course' => $course
@@ -126,11 +160,14 @@ Route::get('/course/{course:slug}', function (Course $course) {
         'canReview' => $canReview,
         'progressPercent' => $progressPercent,
         'completedCount' => $completedCount,
-        'totalMaterials' => $totalMaterials,
+        'totalContents' => $totalContents,
+        'refundPolicy' => $refundPolicy,
         'reviews' => $reviewData['reviews'],
         'ratingStats' => $reviewData['rating_stats'],
         'userReview' => $userReview,
         'comments' => $comments,
+        'paymentMethods' => $paymentMethods,
+        'paymentGateway' => $paymentGateway,
     ]);
 })->name('course.show');
 
@@ -146,15 +183,29 @@ Route::post('/course/{course:slug}/enroll', [EnrollmentController::class, 'store
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthControllers::class, 'show'])->name('login');
-    Route::post('/login', [AuthControllers::class, 'store']);
+    Route::post('/login', [AuthControllers::class, 'store'])->middleware('throttle:6,1');
 
     Route::get('/register', [AuthControllers::class, 'showRegister']);
-    Route::post('/register', [AuthControllers::class, 'register']);
+    Route::post('/register', [AuthControllers::class, 'register'])->middleware('throttle:6,1');
 });
 
 Route::post('/logout', [AuthControllers::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
+
+/*
+|--------------------------------------------------------------------------
+| AUTH — PASSWORD RESET & EMAIL VERIFICATION
+|--------------------------------------------------------------------------
+*/
+Route::get('/forgot-password', [AuthControllers::class, 'showForgotPassword'])->name('auth.forgot-password');
+Route::post('/forgot-password', [AuthControllers::class, 'forgotPassword'])->middleware('throttle:6,1');
+
+Route::get('/reset-password/{token}', [AuthControllers::class, 'showResetPassword'])->name('auth.reset-password');
+Route::post('/reset-password', [AuthControllers::class, 'resetPassword']);
+
+Route::get('/verify-email/{id}/{hash}', [AuthControllers::class, 'verifyEmail'])->name('auth.verify-email');
+Route::post('/email/resend', [AuthControllers::class, 'resendVerificationEmail'])->middleware('auth');
 
 Route::middleware(['auth', 'role'])->group(function () {
 
@@ -291,6 +342,28 @@ Route::middleware(['auth', 'role'])->group(function () {
                     '/modules/{module}/materials/{material}/contents/{content}/quiz-questions/{quizQuestion}',
                     [QuizController::class, 'destroy']
                 )->name('contents.quiz.destroy');
+
+                /*
+                |--------------------------------------------------------------------------
+                | COURSE RESOURCES (unlocked after all materials are completed)
+                |--------------------------------------------------------------------------
+                */
+                Route::post('/resources', [CourseResourceController::class, 'store'])
+                    ->name('resources.store');
+
+                Route::put('/resources/{resource}', [CourseResourceController::class, 'update'])
+                    ->name('resources.update');
+
+                Route::delete('/resources/{resource}', [CourseResourceController::class, 'destroy'])
+                    ->name('resources.destroy');
+
+                /*
+                |--------------------------------------------------------------------------
+                | STUDENT EXPORT
+                |--------------------------------------------------------------------------
+                */
+                Route::get('/students/export', CourseStudentsExportController::class)
+                    ->name('students.export');
             });
     };
 
@@ -305,6 +378,17 @@ Route::middleware(['auth', 'role'])->group(function () {
         ->group(function () use ($registerCourseStructureRoutes) {
 
             Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
+
+            Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+            Route::get('/orders/export', [ExportController::class, 'orders'])->name('orders.export');
+            Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+            Route::put('/orders/{order}/pay', [OrderController::class, 'markPaid'])->name('orders.pay');
+            Route::post('/orders/{order}/refund', [OrderController::class, 'refund'])->name('orders.refund');
+
+            Route::get('/payouts', [PayoutController::class, 'index'])->name('payouts.index');
+            Route::get('/payouts/export', [PayoutController::class, 'exportCsv'])->name('payouts.export');
+            Route::put('/payouts/batch', [PayoutController::class, 'markBatchPaid'])->name('payouts.batch.pay');
+            Route::put('/payouts/{payout}/pay', [PayoutController::class, 'markPaid'])->name('payouts.pay');
 
             Route::get('/landing', [LandingController::class, 'show'])->name('landing');
 
@@ -362,11 +446,18 @@ Route::middleware(['auth', 'role'])->group(function () {
             Route::delete('/tags/{tag}', [TagController::class, 'destroy'])
                 ->name('tags.destroy');
 
+            Route::get('/users/export', [ExportController::class, 'users'])->name('users.export');
+
             Route::resource('users', UserController::class)
                 ->except(['create', 'edit', 'delete']);
 
             Route::get('/profile', [UserController::class, 'profile'])
                 ->name('admin.profile');
+
+            Route::get('/quiz-attempts', [QuizGradingController::class, 'index'])
+                ->name('quiz-attempts.index');
+            Route::put('/quiz-attempts/{attempt}/grade', [QuizGradingController::class, 'grade'])
+                ->name('quiz-attempts.grade');
 
             Route::get('/settings/general', [GeneralSettingsController::class, 'edit'])
                 ->name('settings.general');
@@ -376,6 +467,15 @@ Route::middleware(['auth', 'role'])->group(function () {
 
             Route::put('/settings/identity', [GeneralSettingsController::class, 'updateIdentity'])
                 ->name('settings.identity.update');
+
+            Route::get('/settings/landing', fn () => redirect()->route('admin.settings.landing.edit', 'hero'))
+                ->name('settings.landing');
+
+            Route::get('/settings/landing/{section}', [LandingSettingsController::class, 'edit'])
+                ->name('settings.landing.edit');
+
+            Route::put('/settings/landing/{section}', [LandingSettingsController::class, 'update'])
+                ->name('settings.landing.update');
 
             Route::post('/settings/logo', [GeneralSettingsController::class, 'updateLogo'])
                 ->name('settings.logo.update');
@@ -404,6 +504,12 @@ Route::middleware(['auth', 'role'])->group(function () {
             Route::put('/settings/ai', [GeneralSettingsController::class, 'updateAi'])
                 ->middleware('throttle:ai-settings-update')
                 ->name('settings.ai.update');
+
+            Route::get('/settings/payment', [GeneralSettingsController::class, 'editPayment'])
+                ->name('settings.payment');
+
+            Route::put('/settings/payment', [GeneralSettingsController::class, 'updatePayment'])
+                ->name('settings.payment.update');
         });
 
     /*
@@ -445,6 +551,11 @@ Route::middleware(['auth', 'role'])->group(function () {
             Route::put('/courses/{course:slug}/certificate-template', [CertificateTemplateController::class, 'update'])
                 ->name('courses.certificate-template.update');
 
+            Route::get('/quiz-attempts', [QuizGradingController::class, 'index'])
+                ->name('quiz-attempts.index');
+            Route::put('/quiz-attempts/{attempt}/grade', [QuizGradingController::class, 'grade'])
+                ->name('quiz-attempts.grade');
+
             Route::get('/profile', [InstructorProfileController::class, 'edit'])->name('profile');
             Route::put('/profile', [InstructorProfileController::class, 'update'])->name('profile.update');
 
@@ -452,6 +563,7 @@ Route::middleware(['auth', 'role'])->group(function () {
             Route::get('/settings/general', [InstructorSettingsController::class, 'edit'])->name('settings.general');
             Route::get('/settings/profile', fn () => redirect()->route('instructor.profile'))->name('settings.profile');
             Route::put('/settings/whatsapp', [InstructorSettingsController::class, 'updateWhatsApp'])->name('settings.whatsapp.update');
+            Route::put('/settings/payout', [InstructorSettingsController::class, 'updatePayout'])->name('settings.payout.update');
             Route::post('/settings/whatsapp/test', [InstructorSettingsController::class, 'testWhatsApp'])
                 ->middleware('throttle:5,1')
                 ->name('settings.whatsapp.test');
@@ -470,6 +582,11 @@ Route::middleware(['auth', 'role'])->group(function () {
         ->group(function () {
 
             Route::get('/dashboard', [DashboardController::class, 'student'])->name('dashboard');
+
+            Route::get('/profile', [StudentProfileController::class, 'edit'])->name('profile');
+            Route::put('/profile', [StudentProfileController::class, 'update'])->name('profile.update');
+            Route::get('/settings', [StudentProfileController::class, 'settings'])->name('settings');
+            Route::put('/settings/whatsapp', [StudentProfileController::class, 'updateWhatsApp'])->name('settings.whatsapp.update');
 
             Route::get('/courses', function () {
                 $courses = Course::query()
@@ -490,6 +607,13 @@ Route::middleware(['auth', 'role'])->group(function () {
             Route::post('/courses/{course:slug}/progress', [EnrollmentController::class, 'markProgress'])
                 ->name('courses.progress.store');
 
+            Route::get('/courses/{course:slug}/checkout', [CheckoutController::class, 'index'])->name('course.checkout');
+            Route::post('/courses/{course:slug}/checkout', [CheckoutController::class, 'store']);
+
+            Route::get('/courses/{course:slug}/resources/{resource}', CourseResourceDownloadController::class)
+                ->name('courses.resources.download');
+
+            Route::get('/orders/{order:order_number}', [PaymentController::class, 'show'])->name('payment.show');
             Route::post('/courses/{course:slug}/contents/{content}/complete', [EnrollmentController::class, 'markContentProgress'])
                 ->name('courses.contents.complete');
 
@@ -558,8 +682,12 @@ Route::middleware(['auth', 'role:admin'])
                     'comment' => $r->comment,
                     'is_approved' => $r->is_approved,
                     'created_at' => $r->created_at,
-                    'user' => ['id' => $r->user->id, 'name' => $r->user->name],
-                    'course' => ['id' => $r->course->id, 'title' => $r->course->title, 'slug' => $r->course->slug],
+                    'user' => ['id' => $r->user?->id, 'name' => $r->user?->name ?? 'Deleted user'],
+                    'course' => [
+                        'id' => $r->course?->id,
+                        'title' => $r->course?->title ?? 'Deleted course',
+                        'slug' => $r->course?->slug,
+                    ],
                 ]),
             ]);
         })->name('reviews.index');
@@ -583,8 +711,12 @@ Route::middleware(['auth', 'role:admin'])
                     'parent_id' => $c->parent_id,
                     'is_approved' => $c->is_approved,
                     'created_at' => $c->created_at,
-                    'user' => ['id' => $c->user->id, 'name' => $c->user->name],
-                    'course' => ['id' => $c->course->id, 'title' => $c->course->title, 'slug' => $c->course->slug],
+                    'user' => ['id' => $c->user?->id, 'name' => $c->user?->name ?? 'Deleted user'],
+                    'course' => [
+                        'id' => $c->course?->id,
+                        'title' => $c->course?->title ?? 'Deleted course',
+                        'slug' => $c->course?->slug,
+                    ],
                 ]),
             ]);
         })->name('comments.index');
@@ -601,6 +733,14 @@ Route::middleware(['auth', 'role:admin'])
 
 /*
 |--------------------------------------------------------------------------
+| Payment webhooks (unauthenticated, signature verified)
+|--------------------------------------------------------------------------
+*/
+Route::post('/payments/midtrans/webhook', [PaymentWebhookController::class, 'midtrans'])
+    ->name('payment.webhook.midtrans');
+
+/*
+|--------------------------------------------------------------------------
 | AI Chat
 |--------------------------------------------------------------------------
 */
@@ -614,3 +754,11 @@ Route::middleware(['auth', 'role:student,instructor'])->group(function () {
         ->name('ai.chat.storeMessage')
         ->middleware('throttle:10,1');
 });
+
+/*
+|--------------------------------------------------------------------------
+| LEGAL PAGES
+|--------------------------------------------------------------------------
+*/
+Route::get('/terms', [LegalController::class, 'terms'])->name('legal.terms');
+Route::get('/privacy', [LegalController::class, 'privacy'])->name('legal.privacy');

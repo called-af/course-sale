@@ -22,10 +22,10 @@ class Review extends Model
     protected function casts(): array
     {
         return [
-            'id'          => 'integer',
-            'user_id'     => 'integer',
-            'course_id'   => 'integer',
-            'rating'      => 'integer',
+            'id' => 'integer',
+            'user_id' => 'integer',
+            'course_id' => 'integer',
+            'rating' => 'integer',
             'is_approved' => 'boolean',
             'approved_at' => 'datetime',
         ];
@@ -38,6 +38,6 @@ class Review extends Model
 
     public function course(): BelongsTo
     {
-        return $this->belongsTo(Course::class);
+        return $this->belongsTo(Course::class)->withTrashed();
     }
 }

@@ -25,12 +25,18 @@ class RoleController extends Controller
             abort(403);
         }
 
+        // A role is chosen once, at onboarding. Existing students/instructors
+        // must not be able to self-promote (e.g. student -> instructor).
+        if ($user->role !== null && $user->role !== $validated['role']) {
+            abort(403, 'Your account role has already been set. Contact an administrator if it needs to change.');
+        }
+
         $user->update([
             'role' => $validated['role'],
         ]);
 
         return match ($validated['role']) {
-            'student'    => redirect()->route('student.dashboard'),
+            'student' => redirect()->route('student.dashboard'),
             'instructor' => redirect()->route('instructor.dashboard'),
         };
     }

@@ -8,49 +8,38 @@ use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
+    public const DEFAULT_PASSWORD = 'password';
+
     public function run(): void
     {
-        User::create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-            'avatar' => null,
-        ]);
+        $seedPassword = env('SEEDER_PASSWORD');
 
-        User::create([
-            'name' => 'Budi Santoso',
-            'email' => 'budi@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'instructor',
-            'avatar' => null,
-        ]);
+        if (app()->environment('production') && blank($seedPassword)) {
+            $this->command?->warn('SEEDER_PASSWORD is not set. Skipping user seeding for production.');
 
-        User::create([
-            'name' => 'Rina Wijaya',
-            'email' => 'rina@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'instructor',
-            'avatar' => null,
-        ]);
+            return;
+        }
 
-        User::create([
-            'name' => 'Dika Pratama',
-            'email' => 'dika@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'instructor',
-            'avatar' => null,
-        ]);
+        $seedPassword = filled($seedPassword) ? (string) $seedPassword : self::DEFAULT_PASSWORD;
 
-        User::create([
-            'name' => 'Student',
-            'email' => 'student@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'student',
-            'avatar' => null,
-        ]);
+        $users = [
+            ['name' => 'Admin', 'email' => 'admin@example.com', 'role' => 'admin'],
+            ['name' => 'Budi Santoso', 'email' => 'budi@example.com', 'role' => 'instructor'],
+            ['name' => 'Rina Wijaya', 'email' => 'rina@example.com', 'role' => 'instructor'],
+            ['name' => 'Dika Pratama', 'email' => 'dika@example.com', 'role' => 'instructor'],
+            ['name' => 'Student', 'email' => 'student@example.com', 'role' => 'student'],
+        ];
+
+        foreach ($users as $user) {
+            User::query()->updateOrCreate(
+                ['email' => $user['email']],
+                [
+                    'name' => $user['name'],
+                    'password' => Hash::make($seedPassword),
+                    'role' => $user['role'],
+                    'avatar' => null,
+                ],
+            );
+        }
     }
 }

@@ -1,43 +1,47 @@
+import { usePage, Link, router } from '@inertiajs/react';
+import { Eye, PlayCircle } from 'lucide-react';
+import { useState } from 'react';
 import Badge from '@/components/atoms/Badge';
 import Button from '@/components/atoms/Button';
-import Title from '@/components/atoms/Title';
 import Label from '@/components/atoms/Label';
+import Title from '@/components/atoms/Title';
 import ConfirmationDelete from '@/components/molecules/ConfirmationDelete';
 
-import { useState } from 'react';
-import { Course } from '@/types';
 import { useCourse } from '@/hooks/useCourse';
-import { usePage, Link, router } from '@inertiajs/react';
-import { Eye } from 'lucide-react';
+import { formatCoursePrice } from '@/lib/currency';
+import type { Course } from '@/types';
+import type { SharedPageProps } from '@/types/shared';
 
 interface CourseCardProps {
     course: Course;
+    /** Show owner-only management controls (preview, delete) and owner links. */
+    manageable?: boolean;
+    /** Marks the course as already enrolled by the viewer. */
+    enrolled?: boolean;
 }
 
-export default function CourseCard({ course }: CourseCardProps) {
+export default function CourseCard({ course, manageable = true, enrolled = false }: CourseCardProps) {
     const { destroy } = useCourse();
     const [openDelete, setOpenDelete] = useState(false);
 
-    const { auth } = usePage().props as any;
+    const { auth } = usePage<SharedPageProps>().props;
     const user = auth?.user;
 
-    const creatorId = typeof course.creator === 'object' ? (course.creator as any)?.id : ((course as any).creator_id ?? course.creator);
+    const creatorId = typeof course.creator === 'object' ? course.creator?.id : course.creator_id;
     const isCourseOwner =
-        user && (user.role === 'admin' || (user.role === 'instructor' && (creatorId === user.id || (course as any).creator_id === user.id)));
+        manageable && user && (user.role === 'admin' || (user.role === 'instructor' && (creatorId === user.id || course.creator_id === user.id)));
 
     const rolePrefix = user?.role ?? 'admin';
     // All non-owner cards (including students in My Learning) go to
     // the course detail page (/course/slug) first. Enrolled students continue via Resume.
     // The owning instructor still goes to their management page.
-    const courseHref = isCourseOwner
-        ? `/${rolePrefix}/courses/${course.slug}`
-        : `/course/${course.slug}`;
+    const courseHref = isCourseOwner ? `/${rolePrefix}/courses/${course.slug}` : `/course/${course.slug}`;
 
     return (
         <>
             <div
                 onClick={() => router.visit(courseHref)}
-                className="group cursor-pointer border border-neutral-100 bg-white transition-shadow duration-200 hover:shadow-md dark:border-slate-800 dark:bg-[#1e1f24] dark:hover:shadow-slate-900/50"
+                className="group flex h-full cursor-pointer flex-col border border-neutral-100 bg-white transition-shadow duration-200 hover:shadow-md dark:border-slate-800 dark:bg-[#1e1f24] dark:hover:shadow-slate-900/50"
             >
                 {/* Thumbnail — clean, no overlay */}
                 <div className="aspect-video w-full overflow-hidden bg-neutral-100 dark:bg-[#141416]">
@@ -49,7 +53,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                 </div>
 
                 {/* Content */}
-                <div className="space-y-3 p-4">
+                <div className="flex flex-1 flex-col gap-3 p-4">
                     {/* Title */}
                     <Title as="h2" className="line-clamp-2 text-sm leading-snug font-semibold text-neutral-800 dark:text-slate-100">
                         {course.title}
@@ -64,15 +68,25 @@ export default function CourseCard({ course }: CourseCardProps) {
                     {/* Meta row */}
                     <div className="flex flex-wrap items-center gap-2 pt-1">
                         {course.level && <Badge>{course.level}</Badge>}
-                        <Badge variant={course.type === 'free' ? 'info' : 'warning'}>
-                            {course.type === 'free' ? 'FREE' : `Rp ${course.price?.toLocaleString('id-ID')}`}
+                        <Badge variant={enrolled ? 'success' : course.type === 'free' ? 'info' : 'warning'}>
+                            {enrolled ? 'Enrolled' : formatCoursePrice(course.type, course.price)}
                         </Badge>
                         <Badge variant={course.status === 'published' ? 'success' : 'default'}>{course.status}</Badge>
                     </div>
 
+                    {!isCourseOwner && enrolled && (
+                        <Link
+                            href={`/student/courses/${course.slug}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex w-full items-center justify-center gap-1.5 bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-purple-700"
+                        >
+                            <PlayCircle className="h-3.5 w-3.5" /> Continue Learning
+                        </Link>
+                    )}
+
                     {isCourseOwner && (
                         <div className="mt-1 space-y-2 border-t border-neutral-100 pt-3 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-neutral-400 dark:text-slate-500">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs text-neutral-400 dark:text-slate-500">
                                 <span>Categories</span>
                                 <span className="truncate text-right font-medium text-neutral-700 dark:text-slate-200">
                                     {course.categories?.map((category) => category.name).join(', ') || '—'}
@@ -103,13 +117,15 @@ export default function CourseCard({ course }: CourseCardProps) {
                 </div>
             </div>
 
-            <ConfirmationDelete
-                open={openDelete}
-                onClose={() => setOpenDelete(false)}
-                onConfirm={() => destroy(course.slug)}
-                title="Delete Course"
-                message={`Are you sure you want to delete "${course.title}"? This action will permanently remove the course, including its modules, materials, and lesson content.`}
-            />
+            {manageable && (
+                <ConfirmationDelete
+                    open={openDelete}
+                    onClose={() => setOpenDelete(false)}
+                    onConfirm={() => destroy(course.slug)}
+                    title="Delete Course"
+                    message={`Are you sure you want to delete "${course.title}"? This action will permanently remove the course, including its modules, materials, and lesson content.`}
+                />
+            )}
         </>
     );
 }

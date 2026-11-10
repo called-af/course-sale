@@ -11,6 +11,9 @@ return new class extends Migration
         Schema::create('appearance_settings', function (Blueprint $table) {
             $table->id();
             $table->string('palette', 24)->default('purple');
+            $table->string('logo_path')->nullable();
+            $table->string('app_name')->nullable();
+            $table->string('contact_email')->nullable();
             $table->timestamps();
         });
     }

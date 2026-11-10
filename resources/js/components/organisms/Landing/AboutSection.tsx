@@ -1,56 +1,193 @@
-import Title from "@/components/atoms/Title"
-import Badge from "@/components/atoms/Badge"
-import { useBranding } from "@/hooks/useBranding"
+import { Link } from '@inertiajs/react';
+import { ArrowUpRight, Check } from 'lucide-react';
+import { motion, useInView, useReducedMotion } from 'motion/react';
+import { useEffect, useRef, useState } from 'react';
 
-const stats = [
-  { value: "2019", label: "Founded" },
-  { value: "50K+", label: "Active Learners" },
-  { value: "200+", label: "Courses Available" },
-  { value: "98%", label: "Satisfaction Rate" },
-]
+import Title from '@/components/atoms/Title';
+import MarqueeLine from '@/components/molecules/MarqueeLine';
+import { useBranding } from '@/hooks/useBranding';
+import { useLanding } from '@/hooks/useLanding';
+import { withBrand } from '@/types';
+
+const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
+
+const SCRAMBLE_INTERVAL = 70;
+const SCRAMBLE_TICKS = 14;
+
+/** Cycles through random numbers before settling on the real value. */
+function AnimatedStat({ value }: { value: string }) {
+    const ref = useRef<HTMLSpanElement>(null);
+    const reduceMotion = useReducedMotion();
+    const inView = useInView(ref, { once: true, amount: 0.6 });
+    const [display, setDisplay] = useState(value);
+
+    useEffect(() => {
+        if (!inView) return;
+
+        if (reduceMotion) {
+            setDisplay(value);
+            return;
+        }
+
+        const match = value.match(/^(\d+)(.*)$/);
+
+        if (!match) {
+            setDisplay(value);
+            return;
+        }
+
+        const [, digits, suffix] = match;
+        const length = digits.length;
+        const min = length === 1 ? 0 : 10 ** (length - 1);
+        const max = 10 ** length - 1;
+
+        const scramble = () => String(Math.floor(Math.random() * (max - min + 1)) + min) + suffix;
+
+        let tick = 0;
+        setDisplay(scramble());
+
+        const interval = window.setInterval(() => {
+            tick += 1;
+
+            if (tick >= SCRAMBLE_TICKS) {
+                window.clearInterval(interval);
+                setDisplay(value);
+                return;
+            }
+
+            setDisplay(scramble());
+        }, SCRAMBLE_INTERVAL);
+
+        return () => window.clearInterval(interval);
+    }, [inView, reduceMotion, value]);
+
+    return (
+        <span ref={ref} className="tabular-nums">
+            {display}
+        </span>
+    );
+}
 
 export default function AboutSection() {
-  const { name } = useBranding()
+    const { name } = useBranding();
+    const { about } = useLanding();
+    const reduceMotion = useReducedMotion();
 
-  return (
-    <section className="bg-[#141416] text-white dark:bg-[#FAFAF8] dark:text-gray-900" id="about">
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-16 lg:py-24 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+    const stats = about.stats;
+    const highlights = about.highlights;
 
-        <div className="flex flex-col gap-6">
-          <Badge variant="purple" dot>
-            About Us
-          </Badge>
+    return (
+        <section id="about" className="relative overflow-hidden bg-[#141416] text-white dark:bg-[#FAFAF8] dark:text-gray-900">
+            {/* Top scroll line — full width */}
+            <MarqueeLine text={name} className="py-2 sm:py-3" />
 
-          <Title as="h2" className="text-white dark:text-gray-900 leading-tight" style={{ fontSize: "clamp(2rem,4vw,3rem)" }}>
-            We're here to transform the way people learn
-          </Title>
+            <div className="relative mx-auto mt-6 mb-6 max-w-7xl sm:mt-10 sm:mb-10">
+                <div className="grid items-center gap-12 px-6 pt-14 pb-14 sm:px-10 sm:pt-16 sm:pb-16 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16 lg:px-14 lg:pt-20 lg:pb-20">
+                    {/* Story */}
+                    <motion.div
+                        initial={reduceMotion ? false : { opacity: 0, x: -32 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true, amount: 0.3 }}
+                        transition={{ duration: 0.7, ease: EASE }}
+                        className="flex flex-col gap-7"
+                    >
+                        <div className="flex flex-col gap-5">
+                            <Title
+                                as="h2"
+                                className="max-w-xl leading-[1.12] font-semibold tracking-[-0.02em] text-white dark:text-gray-900"
+                                style={{ fontSize: 'clamp(2rem,4vw,3rem)' }}
+                            >
+                                {about.title_lead}
+                                <span className="text-purple-400 dark:text-purple-600">{about.title_highlight}</span>
+                                {about.title_tail}
+                            </Title>
 
-          <p className="text-gray-400 dark:text-gray-500 text-lg leading-relaxed">
-            {name} was born from the belief that quality education should be accessible to everyone,
-            everywhere. We bring together the best instructors, industry-relevant curriculum,
-            and a community that supports each other.
-          </p>
+                            <p className="max-w-xl text-[15px] leading-relaxed text-white/45 dark:text-gray-500">
+                                {withBrand(about.paragraph_1, name)}
+                            </p>
 
-          <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
-            Since 2019, we've helped tens of thousands of learners develop their digital skills
-            and land their dream jobs — from local startups to Fortune 500 companies.
-          </p>
-        </div>
+                            <p className="max-w-xl text-[15px] leading-relaxed text-white/35 dark:text-gray-400">
+                                {withBrand(about.paragraph_2, name)}
+                            </p>
+                        </div>
 
-        <div className="grid grid-cols-2 gap-px bg-gray-700 dark:bg-gray-200">
-          {stats.map((s) => (
-            <div key={s.label} className="bg-[#141416] dark:bg-[#FAFAF8] p-6 lg:p-10 flex flex-col gap-2">
-              <span className="text-3xl lg:text-4xl font-bold text-white dark:text-gray-900" style={{ fontFamily: "Georgia, serif" }}>
-                {s.value}
-              </span>
-              <span className="text-sm text-slate-400 dark:text-gray-500 uppercase tracking-widest">
-                {s.label}
-              </span>
+                        <ul className="flex flex-col gap-3">
+                            {highlights.map((item, index) => (
+                                <motion.li
+                                    key={item}
+                                    initial={reduceMotion ? false : { opacity: 0, x: -16 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    viewport={{ once: true, amount: 0.8 }}
+                                    transition={{ duration: 0.45, delay: 0.25 + index * 0.1, ease: EASE }}
+                                    className="flex items-center gap-3 text-[13px] text-white/55 dark:text-gray-600"
+                                >
+                                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-purple-400/20 bg-purple-400/10">
+                                        <Check size={11} className="text-purple-300 dark:text-purple-600" />
+                                    </span>
+                                    {item}
+                                </motion.li>
+                            ))}
+                        </ul>
+                    </motion.div>
+
+                    {/* Numbers */}
+                    <motion.div
+                        initial={reduceMotion ? false : { opacity: 0, x: 32 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true, amount: 0.3 }}
+                        transition={{ duration: 0.7, delay: 0.1, ease: EASE }}
+                        className="relative border border-white/[0.08] bg-white/[0.02] dark:border-gray-200 dark:bg-white"
+                    >
+                        <div className="flex items-center justify-between border-b border-white/[0.06] px-6 py-4 sm:px-8 dark:border-gray-200">
+                            <span className="text-[11px] font-medium tracking-[0.18em] text-white/40 uppercase dark:text-gray-500">
+                                {about.eyebrow}
+                            </span>
+                            <span className="inline-flex items-center gap-2 text-[11px] text-white/40 dark:text-gray-500">
+                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-purple-400 dark:bg-purple-500" />
+                                {about.since_label}
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-2">
+                            {stats.map((stat, index) => (
+                                <motion.div
+                                    key={stat.label}
+                                    initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true, amount: 0.5 }}
+                                    transition={{ duration: 0.45, delay: 0.2 + index * 0.08, ease: EASE }}
+                                    className={[
+                                        'flex flex-col gap-2 px-6 py-8 sm:px-8 sm:py-10',
+                                        index % 2 === 1 ? 'border-l border-white/[0.06] dark:border-gray-200' : '',
+                                        index >= 2 ? 'border-t border-white/[0.06] dark:border-gray-200' : '',
+                                    ].join(' ')}
+                                >
+                                    <span
+                                        className="text-3xl font-semibold tracking-tight text-white lg:text-4xl dark:text-gray-900"
+                                        style={{ fontFamily: 'Georgia, serif' }}
+                                    >
+                                        <AnimatedStat value={stat.value} />
+                                    </span>
+                                    <span className="text-[11px] tracking-[0.18em] text-white/35 uppercase dark:text-gray-500">{stat.label}</span>
+                                </motion.div>
+                            ))}
+                        </div>
+
+                        <div className="border-t border-white/[0.06] px-6 py-5 sm:px-8 dark:border-gray-200">
+                            <Link
+                                href={about.cta_href}
+                                className="group inline-flex items-center gap-2 text-[13px] font-medium text-white/55 transition-colors hover:text-white dark:text-gray-600 dark:hover:text-gray-900"
+                            >
+                                {about.cta_label}
+                                <ArrowUpRight size={14} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                            </Link>
+                        </div>
+                    </motion.div>
+                </div>
             </div>
-          ))}
-        </div>
 
-      </div>
-    </section>
-  )
+            {/* Bottom scroll line — full width */}
+            <MarqueeLine text={name} reverse className="py-2 sm:py-3" />
+        </section>
+    );
 }

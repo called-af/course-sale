@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('base_url')->nullable();
             $table->string('model', 100)->nullable();
             $table->text('api_key')->nullable();
+            $table->string('provider', 50)->default('nvidia');
             $table->timestamps();
         });
     }

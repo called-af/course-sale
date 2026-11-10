@@ -16,7 +16,7 @@ class ChatMessage extends Model
         'content',
         'tool_name',
         'tool_call_id',
-        'metadata'
+        'metadata',
     ];
 
     protected $casts = [

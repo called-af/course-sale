@@ -3,7 +3,6 @@
 namespace App\Services\AI\Tool;
 
 use App\Models\Enrollment;
-use App\Models\MaterialProgress;
 use Illuminate\Support\Facades\DB;
 
 class UserProgressTool
@@ -21,14 +20,14 @@ class UserProgressTool
             'description' => 'Retrieve the current user\'s course progress, completed courses, and active courses.',
             'parameters' => [
                 'type' => 'object',
-                'properties' => []
-            ]
+                'properties' => [],
+            ],
         ];
     }
 
     public function execute(array $arguments): array
     {
-        if (!$this->userId) {
+        if (! $this->userId) {
             return ['error' => 'User context not available'];
         }
 
@@ -41,7 +40,7 @@ class UserProgressTool
 
         foreach ($enrollments as $enrollment) {
             $course = $enrollment->course;
-            if (!$course) {
+            if (! $course) {
                 continue;
             }
 

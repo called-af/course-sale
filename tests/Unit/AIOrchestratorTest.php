@@ -2,7 +2,7 @@
 
 use App\Models\User;
 use App\Services\AI\AIOrchestrator;
-use App\Services\AI\NvidiaService;
+use App\Services\AI\AiService;
 use App\Services\AI\Tool\CourseComparisonTool;
 use App\Services\AI\Tool\CourseDetailTool;
 use App\Services\AI\Tool\CourseSearchTool;
@@ -24,7 +24,7 @@ class TestableAIOrchestrator extends AIOrchestrator
 
 it('only exposes read-only course information and instructor tools', function () {
     $orchestrator = new TestableAIOrchestrator(
-        Mockery::mock(NvidiaService::class),
+        Mockery::mock(AiService::class),
         new CourseSearchTool,
         new CourseDetailTool,
         new RecommendationTool,
@@ -50,7 +50,7 @@ it('filters instructor tools for student users', function () {
     $student = new User(['role' => 'student']);
 
     $orchestrator = new TestableAIOrchestrator(
-        Mockery::mock(NvidiaService::class),
+        Mockery::mock(AiService::class),
         new CourseSearchTool,
         new CourseDetailTool,
         new RecommendationTool,
@@ -76,7 +76,7 @@ it('exposes instructor tools for instructor users', function () {
     $instructor = new User(['role' => 'instructor']);
 
     $orchestrator = new TestableAIOrchestrator(
-        Mockery::mock(NvidiaService::class),
+        Mockery::mock(AiService::class),
         new CourseSearchTool,
         new CourseDetailTool,
         new RecommendationTool,
@@ -93,7 +93,7 @@ it('exposes instructor tools for instructor users', function () {
 
 it('rejects tools that can perform actions outside course information', function () {
     $orchestrator = new TestableAIOrchestrator(
-        Mockery::mock(NvidiaService::class),
+        Mockery::mock(AiService::class),
         new CourseSearchTool,
         new CourseDetailTool,
         new RecommendationTool,

@@ -28,6 +28,7 @@ return new class extends Migration
             $table->timestamp('approved_at')->nullable();
             $table->decimal('rating_avg', 3, 2)->default(0);
             $table->integer('rating_count')->default(0);
+            $table->json('certificate_template')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

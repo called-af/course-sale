@@ -1,5 +1,5 @@
-import Navbar from '../organisms/Landing/Navbar';
 import Footer from '../organisms/Landing/Footer';
+import Navbar from '../organisms/Landing/Navbar';
 
 export default function WelcomeLayout({
     children,
@@ -10,7 +10,7 @@ export default function WelcomeLayout({
     withCta?: boolean;
 }) {
     return (
-        <div className="flex h-screen w-full flex-col bg-white dark:bg-[#141416]">
+        <div className="flex min-h-screen w-full flex-col bg-gray-100 dark:bg-[#141416]">
             <Navbar />
             <main className="">{children}</main>
             <Footer withCta={withCta} />

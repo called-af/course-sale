@@ -16,6 +16,7 @@ class ModuleFactory extends Factory
             'course_id' => Course::factory(),
             'title' => fake()->sentence(4),
             'sort_order' => fake()->numberBetween(-10000, 10000),
+            'status' => 'published',
         ];
     }
 }

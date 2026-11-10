@@ -19,7 +19,11 @@ return new class extends Migration
             $table->foreignId('course_id')->constrained();
             $table->integer('rating');
             $table->text('comment')->nullable();
+            $table->boolean('is_approved')->default(true);
+            $table->timestamp('approved_at')->nullable();
             $table->timestamps();
+
+            $table->unique(['user_id', 'course_id']);
         });
 
         Schema::enableForeignKeyConstraints();

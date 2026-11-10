@@ -17,10 +17,13 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
-    $middleware->alias([
-        'role' => \App\Http\Middleware\RoleMiddleware::class,
-        'role.selected' => \App\Http\Middleware\EnsureRoleSelected::class,
-    ]);
+        $middleware->validateCsrfTokens(except: [
+            'payments/midtrans/webhook',
+        ]);
+        $middleware->alias([
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'role.selected' => \App\Http\Middleware\EnsureRoleSelected::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

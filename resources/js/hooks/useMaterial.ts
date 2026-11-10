@@ -1,6 +1,6 @@
-import { useState } from 'react';
 import { router } from '@inertiajs/react';
-import { Material } from '@/types';
+import { useState } from 'react';
+import type { Material } from '@/types';
 
 export function useMaterials(courseSlug: string, moduleId: number, materials: Material[], routePrefix: 'admin' | 'instructor') {
     const [open, setOpen] = useState(false);

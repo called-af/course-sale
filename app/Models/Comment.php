@@ -22,10 +22,10 @@ class Comment extends Model
     protected function casts(): array
     {
         return [
-            'id'          => 'integer',
-            'user_id'     => 'integer',
-            'course_id'   => 'integer',
-            'parent_id'   => 'integer',
+            'id' => 'integer',
+            'user_id' => 'integer',
+            'course_id' => 'integer',
+            'parent_id' => 'integer',
             'is_approved' => 'boolean',
         ];
     }
@@ -37,7 +37,7 @@ class Comment extends Model
 
     public function course(): BelongsTo
     {
-        return $this->belongsTo(Course::class);
+        return $this->belongsTo(Course::class)->withTrashed();
     }
 
     public function parent(): BelongsTo

@@ -7,7 +7,7 @@ use App\Models\User;
 
 class AdminReviewNotificationService
 {
-    public function for(User|null $user): array
+    public function for(?User $user): array
     {
         if ($user?->role !== 'admin') {
             return ['count' => 0, 'courses' => []];

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
 
 export type QuestionType = 'multiple_choice' | 'essay';
 
@@ -20,6 +20,24 @@ export interface QuizQuestion {
     quiz_options: QuizOption[];
 }
 
+export interface ServerQuizOption {
+    id?: number;
+    option_text?: string | null;
+    is_correct?: boolean | number;
+}
+
+export interface ServerQuizQuestion {
+    id?: number;
+    _key?: string;
+    question?: string | null;
+    type?: QuestionType;
+    image?: string | null;
+    sort_order?: number;
+    quiz_options?: ServerQuizOption[];
+}
+
+type QuizPayloadValue = string | number | File | undefined | QuizPayloadValue[] | { [key: string]: QuizPayloadValue };
+
 function makeKey() {
     return Math.random().toString(36).slice(2);
 }
@@ -39,7 +57,7 @@ function makeEmptyQuestion(index: number): QuizQuestion {
     };
 }
 
-function normalizeFromServer(q: any): QuizQuestion {
+function normalizeFromServer(q: ServerQuizQuestion): QuizQuestion {
     return {
         id: q.id,
         _key: q._key || makeKey(),
@@ -48,7 +66,7 @@ function normalizeFromServer(q: any): QuizQuestion {
         image: q.image ? (q.image.startsWith('/') || q.image.startsWith('http') ? q.image : `/storage/${q.image}`) : null,
         imageFile: null,
         sort_order: q.sort_order,
-        quiz_options: (q.quiz_options ?? []).map((opt: any) => ({
+        quiz_options: (q.quiz_options ?? []).map((opt) => ({
             id: opt.id,
             option_text: opt.option_text ?? '',
             is_correct: Boolean(opt.is_correct),
@@ -62,7 +80,7 @@ export function useQuiz(
     materialId: number,
     contentId: number,
     routePrefix: 'admin' | 'instructor',
-    initialQuestions: any[] = [],
+    initialQuestions: ServerQuizQuestion[] = [],
 ) {
     const [questions, setQuestions] = useState<QuizQuestion[]>(() =>
         initialQuestions.length > 0 ? initialQuestions.map(normalizeFromServer) : [makeEmptyQuestion(0)],
@@ -157,7 +175,7 @@ export function useQuiz(
         const hasExisting = questions.some((q) => q.id !== undefined);
         const hasFiles = questions.some((q) => q.imageFile instanceof File);
 
-        const payload: Record<string, any> = {
+        const payload: Record<string, QuizPayloadValue> = {
             material_content_id: contentId,
             questions: questions.map((q, i) => ({
                 ...(q.id ? { id: q.id } : {}),
@@ -183,8 +201,8 @@ export function useQuiz(
             preserveScroll: true,
             onStart: () => setProcessing(true),
             onFinish: () => setProcessing(false),
-                onError: (errs: any) => {
-                const messages = Object.values(errs as Record<string, string>).join(', ');
+            onError: (errs: Record<string, string>) => {
+                const messages = Object.values(errs).join(', ');
                 setErrors(messages || 'Failed to save quiz questions.');
             },
         };

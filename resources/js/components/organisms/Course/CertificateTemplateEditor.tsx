@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { Award, CheckCircle, Info, Palette, RotateCcw, Save, Shield } from 'lucide-react';
+import { Award, Info, Palette, RotateCcw, Save, Shield } from 'lucide-react';
 import { useState } from 'react';
 import { useBranding } from '@/hooks/useBranding';
 
@@ -17,6 +17,11 @@ interface Props {
     courseSlug: string;
     rolePrefix: 'admin' | 'instructor';
     initialTemplate: CertificateTemplate;
+    studentName?: string;
+    courseTitle?: string;
+    instructorName?: string;
+    issuedAt?: string;
+    certificateNumber?: string;
 }
 
 const DEFAULTS: CertificateTemplate = {
@@ -35,17 +40,26 @@ const BG_OPTIONS: { value: CertificateTemplate['bg_style']; label: string; desc:
     { value: 'gradient', label: 'Gradient', desc: 'Gradient with primary color accent' },
 ];
 
-export default function CertificateTemplateEditor({ courseSlug, rolePrefix, initialTemplate }: Props) {
+export default function CertificateTemplateEditor({
+    courseSlug,
+    rolePrefix,
+    initialTemplate,
+    studentName = 'Budi Santoso',
+    courseTitle = 'Product Design Mastery',
+    instructorName = 'Your Name',
+    issuedAt = '01 Jan 2026',
+    certificateNumber = 'KRSIO-XXXXXX',
+}: Props) {
     const [template, setTemplate] = useState<CertificateTemplate>({ ...DEFAULTS, ...initialTemplate });
     const [saving, setSaving] = useState(false);
 
     const set = <K extends keyof CertificateTemplate>(key: K, value: CertificateTemplate[K]) => setTemplate((prev) => ({ ...prev, [key]: value }));
 
-    const reset = () => setTemplate({ ...DEFAULTS });
+    const reset = () => setTemplate({ ...initialTemplate });
 
     const save = () => {
         const url = `/${rolePrefix}/courses/${courseSlug}/certificate-template`;
-        router.put(url, template as any, {
+        router.put(url, template as unknown as Record<string, string | boolean>, {
             onStart: () => setSaving(true),
             onFinish: () => setSaving(false),
             preserveScroll: true,
@@ -221,7 +235,14 @@ export default function CertificateTemplateEditor({ courseSlug, rolePrefix, init
                         <p className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Live Preview</p>
                         <span className="text-[10px] text-slate-400">— how the certificate will look</span>
                     </div>
-                    <CertificatePreviewCard template={template} />
+                    <CertificatePreviewCard
+                        template={template}
+                        studentName={studentName}
+                        courseTitle={courseTitle}
+                        instructorName={instructorName}
+                        issuedAt={issuedAt}
+                        certificateNumber={certificateNumber}
+                    />
                     <p className="text-center text-[10px] text-slate-400">
                         This is an approximate preview. The actual PDF may differ slightly in font rendering.
                     </p>
@@ -232,7 +253,21 @@ export default function CertificateTemplateEditor({ courseSlug, rolePrefix, init
 }
 
 /* ── LIVE PREVIEW CARD ──────────────────────────────────────────────────── */
-function CertificatePreviewCard({ template }: { template: CertificateTemplate }) {
+function CertificatePreviewCard({
+    template,
+    studentName = 'Budi Santoso',
+    courseTitle = 'Product Design Mastery',
+    instructorName = 'Your Name',
+    issuedAt = '01 Jan 2026',
+    certificateNumber = 'KRSIO-XXXXXX',
+}: {
+    template: CertificateTemplate;
+    studentName?: string;
+    courseTitle?: string;
+    instructorName?: string;
+    issuedAt?: string;
+    certificateNumber?: string;
+}) {
     const { name: brandName, domain } = useBranding();
     const sealName = brandName.toUpperCase();
     const sealHalf = Math.ceil(sealName.length / 2);
@@ -298,22 +333,22 @@ function CertificatePreviewCard({ template }: { template: CertificateTemplate })
                     This certifies that
                 </p>
                 <p className="text-xl leading-tight font-bold" style={{ color: textPrimary }}>
-                    Student Name
+                    {studentName}
                 </p>
                 <div className="my-2 h-px w-28" style={{ background: `linear-gradient(90deg, transparent, ${accent_color}80, transparent)` }} />
                 <p className="mb-1.5 text-[6px] tracking-[1.5px] uppercase" style={{ color: textMuted }}>
                     has successfully completed
                 </p>
                 <p className="max-w-[55%] text-[11px] leading-snug font-bold" style={{ color: accent_color }}>
-                    Your Course Title
+                    {courseTitle}
                 </p>
 
                 {/* Footer row */}
                 <div className="mt-3 flex w-full max-w-xs justify-center divide-x text-center">
                     {[
-                        ['Issued On', '01 Jan 2026'],
-                        ['Certificate No.', 'KRSIO-XXXXXX'],
-                        ['Instructor', 'Your Name'],
+                        ['Issued On', issuedAt],
+                        ['Certificate No.', certificateNumber],
+                        ['Instructor', instructorName],
                     ].map(([label, value], i) => (
                         <div key={i} className="flex-1 px-3">
                             <p className="mb-0.5 text-[5px] tracking-widest uppercase" style={{ color: textMuted }}>

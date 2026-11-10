@@ -63,6 +63,11 @@ class Course extends Model
         return $this->hasMany(Module::class);
     }
 
+    public function resources(): HasMany
+    {
+        return $this->hasMany(CourseResource::class)->orderBy('sort_order');
+    }
+
     public function categories()
     {
         return $this->belongsToMany(
@@ -94,13 +99,34 @@ class Course extends Model
 
     public function canBePublished(): bool
     {
-        return
-            filled($this->title) &&
-            filled($this->description) &&
-            filled($this->level) &&
-            filled($this->thumbnail) &&
-            $this->modules()->exists() &&
-            $this->categories()->exists();
+        if (
+            blank($this->title) ||
+            blank($this->description) ||
+            blank($this->level) ||
+            blank($this->thumbnail) ||
+            ! $this->categories()->exists()
+        ) {
+            return false;
+        }
+
+        // A course needs at least one lesson that students can actually open:
+        // a published module containing a published material with published content.
+        return $this->modules()
+            ->where('status', 'published')
+            ->whereHas('materials', fn ($materials) => $materials
+                ->where('status', 'published')
+                ->whereHas('contents', fn ($contents) => $contents->where('status', 'published')))
+            ->exists();
+    }
+
+    /**
+     * Modules that are safe to expose to enrolled students.
+     */
+    public function publishedModules(): HasMany
+    {
+        return $this->modules()
+            ->where('status', 'published')
+            ->orderBy('sort_order');
     }
 
     public function isPublished(): bool
@@ -164,7 +190,7 @@ class Course extends Model
                 return asset($this->thumbnail);
             }
 
-            return asset('storage/' . $this->thumbnail);
+            return asset('storage/'.$this->thumbnail);
         }
 
         return asset('assets/landscape.jpeg');

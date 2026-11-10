@@ -3,19 +3,19 @@
 namespace App\Http\Controllers\Course;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Course\MoveCourseResourceRequest;
 use App\Http\Requests\Module\StoreModuleRequest;
 use App\Http\Requests\Module\UpdateModuleRequest;
-use App\Http\Requests\Course\MoveCourseResourceRequest;
 use App\Models\Course;
 use App\Models\Module;
-use App\Services\ModuleService;
 use App\Services\CourseStructureService;
+use App\Services\ModuleService;
 
 class ModuleController extends Controller
 {
     public function __construct(
-    protected ModuleService $moduleService,
-    protected CourseStructureService $structureService,
+        protected ModuleService $moduleService,
+        protected CourseStructureService $structureService,
     ) {}
 
     public function store(StoreModuleRequest $request, Course $course)
@@ -42,7 +42,11 @@ class ModuleController extends Controller
     {
         $this->structureService->ensureModuleBelongsToCourse($course, $module);
 
-        $this->moduleService->update($module, $request->validated());
+        try {
+            $this->moduleService->update($module, $request->validated());
+        } catch (\DomainException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
 
         return back()->with('success', 'Module updated');
     }

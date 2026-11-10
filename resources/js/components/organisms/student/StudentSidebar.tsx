@@ -60,10 +60,7 @@ export default function StudentSidebar({
             </DashboardPanel>
 
             <DashboardPanel title="Weekly Activity" icon={<CalendarDays size={16} />}>
-                <WeeklyActivityChart
-                    days={weeklyActivity}
-                    caption="Learning regularly every day helps you understand the material better."
-                />
+                <WeeklyActivityChart days={weeklyActivity} caption="Learning regularly every day helps you understand the material better." />
 
                 {quizzesCompleted > 0 && averageQuizScore !== null && (
                     <div className="mt-4 flex items-center justify-between border border-indigo-100 bg-indigo-50/60 p-3 text-xs dark:border-indigo-900/50 dark:bg-indigo-950/40">

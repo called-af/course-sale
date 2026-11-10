@@ -1,11 +1,11 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { useState } from 'react';
 import { CheckCircle2, Star, Trash2, XCircle } from 'lucide-react';
-import AdminLayout from '@/components/templates/AdminLayout';
-import PageHeader from '@/components/molecules/PageHeader';
-import Button from '@/components/atoms/Button';
+import { useState } from 'react';
 import Badge from '@/components/atoms/Badge';
+import Button from '@/components/atoms/Button';
+import PageHeader from '@/components/molecules/PageHeader';
 import StarRating from '@/components/molecules/StarRating';
+import AdminLayout from '@/components/templates/AdminLayout';
 
 interface ReviewItem {
     id: number;
@@ -14,7 +14,7 @@ interface ReviewItem {
     is_approved: boolean;
     created_at: string;
     user: { id: number; name: string };
-    course: { id: number; title: string; slug: string };
+    course: { id: number | null; title: string; slug: string | null };
 }
 
 interface Props {
@@ -39,18 +39,26 @@ export default function AdminReviewsPage({ reviews }: Props) {
 
     const approve = (id: number) => {
         setProcessingId(id);
-        router.put(`/admin/reviews/${id}/approve`, {}, {
-            preserveScroll: true,
-            onFinish: () => setProcessingId(null),
-        });
+        router.put(
+            `/admin/reviews/${id}/approve`,
+            {},
+            {
+                preserveScroll: true,
+                onFinish: () => setProcessingId(null),
+            },
+        );
     };
 
     const reject = (id: number) => {
         setProcessingId(id);
-        router.put(`/admin/reviews/${id}/reject`, {}, {
-            preserveScroll: true,
-            onFinish: () => setProcessingId(null),
-        });
+        router.put(
+            `/admin/reviews/${id}/reject`,
+            {},
+            {
+                preserveScroll: true,
+                onFinish: () => setProcessingId(null),
+            },
+        );
     };
 
     const destroy = (id: number) => {
@@ -73,7 +81,7 @@ export default function AdminReviewsPage({ reviews }: Props) {
                 />
 
                 {/* Stats */}
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <StatCard label="Total Reviews" value={reviews.length} />
                     <StatCard label="Approved" value={reviews.filter((r) => r.is_approved).length} color="emerald" />
                     <StatCard label="Pending" value={pending} color={pending > 0 ? 'amber' : 'slate'} />
@@ -86,10 +94,10 @@ export default function AdminReviewsPage({ reviews }: Props) {
                             key={f}
                             type="button"
                             onClick={() => setFilter(f)}
-                            className={`px-4 py-2.5 text-sm font-semibold capitalize transition-colors border-b-2 ${
+                            className={`border-b-2 px-4 py-2.5 text-sm font-semibold capitalize transition-colors ${
                                 filter === f
                                     ? 'border-purple-600 text-purple-700 dark:text-purple-400'
-                                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                    : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                             }`}
                         >
                             {f}
@@ -109,30 +117,50 @@ export default function AdminReviewsPage({ reviews }: Props) {
                         <p className="text-sm">No reviews found.</p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1f24] shadow-sm">
+                    <div className="overflow-x-auto border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
                         <table className="w-full text-sm">
-                            <thead className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#1e1f24]">
+                            <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-[#1e1f24]">
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Student</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Course</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Rating</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Comment</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Status</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Date</th>
-                                    <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Actions</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                        Student
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                        Course
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                        Rating
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                        Comment
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                        Status
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                        Date
+                                    </th>
+                                    <th className="px-4 py-3 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                        Actions
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {filtered.map((review) => (
-                                    <tr key={review.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                    <tr key={review.id} className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800">
                                         <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-200">{review.user.name}</td>
                                         <td className="px-4 py-3">
-                                            <Link
-                                                href={`/admin/courses/${review.course.slug}`}
-                                                className="font-medium text-purple-600 dark:text-purple-400 hover:underline line-clamp-1"
-                                            >
-                                                {review.course.title}
-                                            </Link>
+                                            {review.course.slug ? (
+                                                <Link
+                                                    href={`/admin/courses/${review.course.slug}`}
+                                                    className="line-clamp-1 font-medium text-purple-600 hover:underline dark:text-purple-400"
+                                                >
+                                                    {review.course.title}
+                                                </Link>
+                                            ) : (
+                                                <span className="line-clamp-1 font-medium text-slate-500 dark:text-slate-400">
+                                                    {review.course.title}
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-1.5">
@@ -140,8 +168,10 @@ export default function AdminReviewsPage({ reviews }: Props) {
                                                 <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{review.rating}</span>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3 max-w-xs">
-                                            <p className="line-clamp-2 text-slate-600 dark:text-slate-300">{review.comment || <span className="text-slate-400 dark:text-slate-500 italic">No comment</span>}</p>
+                                        <td className="max-w-xs px-4 py-3">
+                                            <p className="line-clamp-2 text-slate-600 dark:text-slate-300">
+                                                {review.comment || <span className="text-slate-400 italic dark:text-slate-500">No comment</span>}
+                                            </p>
                                         </td>
                                         <td className="px-4 py-3">
                                             {review.is_approved ? (
@@ -150,7 +180,7 @@ export default function AdminReviewsPage({ reviews }: Props) {
                                                 <Badge variant="warning">Pending</Badge>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3 text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                                        <td className="px-4 py-3 text-xs whitespace-nowrap text-slate-400 dark:text-slate-500">
                                             {formatDate(review.created_at)}
                                         </td>
                                         <td className="px-4 py-3">
@@ -208,8 +238,8 @@ function StatCard({ label, value, color = 'slate' }: { label: string; value: num
         amber: 'text-amber-600 dark:text-amber-400',
     };
     return (
-        <div className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-5 shadow-sm">
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">{label}</p>
+        <div className="border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
+            <p className="text-xs font-medium tracking-wide text-slate-500 uppercase dark:text-slate-400">{label}</p>
             <p className={`mt-2 text-3xl font-extrabold tabular-nums ${colorMap[color] ?? colorMap.slate}`}>{value}</p>
         </div>
     );

@@ -22,6 +22,9 @@ class QuizAttempt extends Model
         'finished_at',
         'time_spent',
         'score',
+        'needs_review',
+        'reviewed_by',
+        'reviewed_at',
         'status',
     ];
 
@@ -39,6 +42,8 @@ class QuizAttempt extends Model
             'started_at' => 'timestamp',
             'finished_at' => 'timestamp',
             'score' => 'decimal:2',
+            'needs_review' => 'boolean',
+            'reviewed_at' => 'timestamp',
         ];
     }
 
@@ -55,5 +60,10 @@ class QuizAttempt extends Model
     public function materialContent(): BelongsTo
     {
         return $this->belongsTo(MaterialContent::class);
+    }
+
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by')->withTrashed();
     }
 }

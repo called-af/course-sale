@@ -11,14 +11,51 @@ class AiSettings
         return AiSetting::current()->enabled;
     }
 
+    public function provider(): string
+    {
+        return (string) (AiSetting::current()->provider ?: 'nvidia');
+    }
+
     public function baseUrl(): ?string
     {
-        return AiSetting::current()->base_url;
+        $configured = AiSetting::current()->base_url;
+        $provider = $this->provider();
+
+        if (filled($configured) && $provider === 'openai') {
+            return (string) $configured;
+        }
+
+        if (filled($configured) && $provider === 'nvidia') {
+            return (string) $configured;
+        }
+
+        return $this->defaultBaseUrl();
+    }
+
+    public function defaultBaseUrl(): ?string
+    {
+        // Both providers use OpenAI-compatible chat completions endpoints.
+        return $this->provider() === 'openai'
+            ? (string) config('services.ai.openai.base_url', 'https://api.openai.com/v1')
+            : (string) config('services.ai.nvidia.base_url', 'https://integrate.api.nvidia.com/v1');
     }
 
     public function model(): ?string
     {
-        return AiSetting::current()->model;
+        $configured = AiSetting::current()->model;
+
+        if (filled($configured)) {
+            return (string) $configured;
+        }
+
+        return $this->defaultModel();
+    }
+
+    public function defaultModel(): ?string
+    {
+        return $this->provider() === 'openai'
+            ? (string) config('services.ai.openai.model', 'gpt-4o-mini')
+            : (string) config('services.ai.nvidia.model', 'nvidia/llama-3.1-nemotron-70b-instruct');
     }
 
     public function apiKey(): ?string
@@ -33,9 +70,7 @@ class AiSettings
 
     public function isConfigured(): bool
     {
-        return ! empty($this->baseUrl())
-            && ! empty($this->model())
-            && $this->hasApiKey();
+        return ! empty($this->baseUrl()) && ! empty($this->model()) && $this->hasApiKey();
     }
 
     public function setEnabled(bool $enabled): bool
@@ -58,7 +93,12 @@ class AiSettings
         $previousBaseUrl = $setting->base_url;
         $previousModel = $setting->model;
         $previousApiKey = $setting->api_key;
+        $previousProvider = $setting->provider;
         $baseUrlChanged = isset($attributes['base_url']) && $attributes['base_url'] !== $previousBaseUrl;
+
+        if (array_key_exists('provider', $attributes) && $attributes['provider'] !== null) {
+            $setting->provider = (string) $attributes['provider'];
+        }
 
         if ($baseUrlChanged && empty($attributes['api_key'] ?? null)) {
             throw new \RuntimeException('API key wajib diisi ulang saat Base URL berubah.');
@@ -82,6 +122,7 @@ class AiSettings
             $setting->base_url = $previousBaseUrl;
             $setting->model = $previousModel;
             $setting->api_key = $previousApiKey;
+            $setting->provider = $previousProvider;
             $setting->save();
 
             throw new \RuntimeException('Konfigurasi AI tidak lengkap.');
@@ -96,8 +137,9 @@ class AiSettings
 
         return [
             'enabled' => (bool) $setting->enabled,
-            'base_url' => $setting->base_url,
-            'model' => $setting->model,
+            'provider' => $setting->provider ?: 'nvidia',
+            'base_url' => $this->baseUrl(),
+            'model' => $this->model(),
             'has_api_key' => ! empty($apiKey),
             'api_key_hint' => $lastFour ? "••••••••{$lastFour}" : null,
             'is_configured' => $this->isConfigured(),

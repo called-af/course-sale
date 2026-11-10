@@ -1,6 +1,6 @@
 import { Award, LayoutGrid, Star, Users, Wallet } from 'lucide-react';
 import KpiStrip from '@/components/molecules/KpiStrip';
-import { formatRupiah } from '@/lib/dashboard';
+import { formatRupiah } from '@/lib/currency';
 
 interface InstructorKpiStripProps {
     courseCount: number;

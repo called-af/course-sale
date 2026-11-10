@@ -7,7 +7,7 @@ use App\Models\User;
 
 class InstructorApprovalNotificationService
 {
-    public function for(User|null $user): array
+    public function for(?User $user): array
     {
         if ($user?->role !== 'instructor') {
             return ['count' => 0, 'courses' => []];

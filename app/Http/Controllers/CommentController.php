@@ -32,16 +32,16 @@ class CommentController extends Controller
             return response()->json([
                 'success' => true,
                 'comment' => [
-                    'id'         => $comment->id,
-                    'body'       => $comment->body,
-                    'parent_id'  => $comment->parent_id,
+                    'id' => $comment->id,
+                    'body' => $comment->body,
+                    'parent_id' => $comment->parent_id,
                     'created_at' => $comment->created_at,
                     'updated_at' => $comment->updated_at,
-                    'replies'    => [],
-                    'user'       => [
-                        'id'         => $comment->user->id,
-                        'name'       => $comment->user->name,
-                        'avatar_url' => $comment->user->avatar_url ?? null,
+                    'replies' => [],
+                    'user' => [
+                        'id' => $comment->user?->id,
+                        'name' => $comment->user?->name ?? 'Deleted user',
+                        'avatar_url' => $comment->user?->avatar_url ?? null,
                     ],
                 ],
             ]);
@@ -66,8 +66,8 @@ class CommentController extends Controller
             return response()->json([
                 'success' => true,
                 'comment' => [
-                    'id'         => $updated->id,
-                    'body'       => $updated->body,
+                    'id' => $updated->id,
+                    'body' => $updated->body,
                     'updated_at' => $updated->updated_at,
                 ],
             ]);

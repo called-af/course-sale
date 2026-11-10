@@ -16,11 +16,7 @@ export default function Dashboard() {
         <>
             <Head title="Dashboard" />
 
-            {isInstructor ? (
-                <InstructorDashboardTemplate {...props} />
-            ) : (
-                <StudentDashboardTemplate {...props} />
-            )}
+            {isInstructor ? <InstructorDashboardTemplate {...props} /> : <StudentDashboardTemplate {...props} />}
 
             {aiEnabled && <FloatingAIChat />}
         </>

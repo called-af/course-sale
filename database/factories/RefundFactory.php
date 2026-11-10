@@ -16,7 +16,7 @@ class RefundFactory extends Factory
             'payment_id' => Payment::factory(),
             'amount' => fake()->randomFloat(2, 0, 99999999.99),
             'reason' => fake()->text(),
-            'status' => fake()->randomElement(["pending","success","failed"]),
+            'status' => fake()->randomElement(['pending', 'success', 'failed']),
             'refunded_at' => fake()->dateTime(),
         ];
     }

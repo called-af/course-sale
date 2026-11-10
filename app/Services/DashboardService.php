@@ -2,13 +2,14 @@
 
 namespace App\Services;
 
-use App\Models\Certificate;
 use App\Models\AppearanceSetting;
+use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\MaterialContent;
 use App\Models\MaterialProgress;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\QuizAttempt;
 use App\Models\Review;
 use App\Models\User;
@@ -38,19 +39,32 @@ class DashboardService
     {
         $enrollments = Enrollment::where('user_id', $user->id)
             ->where('status', 'active')
+            ->whereHas('course', fn ($query) => $query
+                ->withoutTrashed()
+                ->where('status', 'published'))
             ->with([
                 'course' => fn ($query) => $query->with([
                     'creator:id,name',
                     'categories:id,name',
-                    'modules' => fn ($moduleQuery) => $moduleQuery->orderBy('sort_order')->with([
-                        'materials' => fn ($materialQuery) => $materialQuery->orderBy('sort_order')->with([
-                            'contents' => fn ($contentQuery) => $contentQuery->orderBy('sort_order'),
+                    'modules' => fn ($moduleQuery) => $moduleQuery
+                        ->where('status', 'published')
+                        ->orderBy('sort_order')
+                        ->with([
+                            'materials' => fn ($materialQuery) => $materialQuery
+                                ->where('status', 'published')
+                                ->orderBy('sort_order')
+                                ->with([
+                                    'contents' => fn ($contentQuery) => $contentQuery
+                                        ->where('status', 'published')
+                                        ->orderBy('sort_order'),
+                                ]),
                         ]),
-                    ]),
                 ]),
             ])
             ->latest()
-            ->get();
+            ->get()
+            ->filter(fn ($enrollment) => $enrollment->course !== null)
+            ->values();
 
         $userCompletedMaterials = MaterialProgress::where('user_id', $user->id)
             ->where('is_completed', true)
@@ -121,10 +135,11 @@ class DashboardService
 
         // Calculate certificates
         $recentCertificates = Certificate::where('user_id', $user->id)
-            ->with(['course:id,title,slug,thumbnail', 'course.creator:id,name'])
+            ->with(['course' => fn ($query) => $query->withTrashed()->select('id', 'creator_id', 'title', 'slug', 'thumbnail'), 'course.creator:id,name'])
             ->latest('issued_at')
             ->take(3)
             ->get()
+            ->filter(fn ($cert) => $cert->course !== null)
             ->map(fn ($cert) => [
                 'id' => $cert->id,
                 'certificate_number' => $cert->certificate_number,
@@ -194,8 +209,35 @@ class DashboardService
         $totalCompleted = $enrolledCourses->filter(fn ($item) => $item['course']['progress_percent'] === 100)->count();
         $overallProgress = $enrolledCourses->count() ? (int) round($enrolledCourses->avg(fn ($item) => $item['course']['progress_percent'])) : 0;
 
+        // Transaction history for the student dashboard.
+        $orders = Order::where('user_id', $user->id)
+            ->with(['items' => fn ($query) => $query->with('course:id,title,slug')])
+            ->latest('created_at')
+            ->take(10)
+            ->get()
+            ->map(fn (Order $order) => [
+                'id' => $order->id,
+                'order_number' => $order->order_number,
+                'total_price' => (float) $order->total_price,
+                'status' => $order->status,
+                'currency' => $order->currency,
+                'created_at' => $order->created_at?->toDateTimeString(),
+                'paid_at' => $order->paid_at?->toDateTimeString(),
+                'items' => $order->items->map(fn (OrderItem $item) => [
+                    'id' => $item->id,
+                    'course_id' => $item->course_id,
+                    'course_title' => $item->course_title,
+                    'course_price' => (float) $item->course_price,
+                    'course' => $item->course
+                        ? ['id' => $item->course->id, 'title' => $item->course->title, 'slug' => $item->course->slug]
+                        : null,
+                ]),
+            ])
+            ->values();
+
         return [
             'enrolledCourses' => $enrolledCourses->values(),
+            'orders' => $orders,
             'continueLearningCourse' => $continueLearningCourse,
             'totalCompleted' => $totalCompleted,
             'overallProgress' => $overallProgress,
@@ -277,7 +319,10 @@ class DashboardService
         return [
             'instructorCourses' => $courses,
             'totalStudents' => $totalStudents,
-            'totalEarnings' => $courses->sum(fn ($course) => $course->type === 'paid' ? ($course->price ?? 0) * $course->enrollments_count : 0),
+            'totalEarnings' => (float) OrderItem::query()
+                ->whereIn('course_id', $courseIds)
+                ->whereHas('order', fn ($query) => $query->where('status', 'paid'))
+                ->sum('course_price'),
             'averageRating' => round((float) $courses->avg('rating_avg'), 1),
             'recentEnrollments' => Enrollment::where('status', 'active')
                 ->whereHas('user', fn ($uq) => $uq->withoutTrashed())

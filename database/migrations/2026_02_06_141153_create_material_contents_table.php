@@ -15,10 +15,11 @@ return new class extends Migration
 
         Schema::create('material_contents', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('material_id')->constrained();
-            $table->enum('type', ["video","text","quiz","file","ppt"]);
+            $table->foreignId('material_id')->constrained()->cascadeOnDelete();
+            $table->enum('type', ['video', 'text', 'quiz', 'file', 'ppt']);
             $table->string('title');
             $table->text('content_url')->nullable();
+            $table->string('preview_url')->nullable();
             $table->json('content_text')->nullable();
             $table->integer('duration')->nullable();
             $table->enum('status', ['draft', 'published'])->default('draft');

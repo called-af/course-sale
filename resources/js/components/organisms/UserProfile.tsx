@@ -1,14 +1,15 @@
 import { useForm } from '@inertiajs/react';
-import { route } from 'ziggy-js';
 import { useState } from 'react';
+import { route } from 'ziggy-js';
 
-import Button from '@/components/atoms/Button';
 import Badge from '@/components/atoms/Badge';
+import Button from '@/components/atoms/Button';
+import ChooseFile from '@/components/molecules/ChooseFile';
 import InputField from '@/components/molecules/InputField';
 import SelectField from '@/components/molecules/SelectField';
-import ChooseFile from '@/components/molecules/ChooseFile';
 import CourseGrid from '@/components/organisms/Course/CourseGrid';
 
+import type { Course } from '@/types';
 import type { User } from '@/types/user';
 
 interface Props {
@@ -45,7 +46,7 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
 
     const isInstructorOrAdmin = user.role === 'instructor' || user.role === 'admin';
     const isStudent = user.role === 'student';
-    const allCourses = (user.created_courses ?? []) as any[];
+    const allCourses = (user.created_courses ?? []) as unknown as Course[];
     const enrolledCourses = user.enrollments ?? [];
     const filteredCourses = allCourses.filter((c) => c.title.toLowerCase().includes(search.toLowerCase()));
 
@@ -54,7 +55,7 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
             {/* ===== Account Edit Form ===== */}
             <form onSubmit={handleSubmit} className="grid gap-8 md:grid-cols-3">
                 {/* Avatar */}
-                <div className="flex flex-col gap-4 border border-gray-300 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-6">
+                <div className="flex flex-col gap-4 border border-gray-300 bg-white p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="text-sm font-medium text-neutral-600 dark:text-slate-300">Avatar</div>
                     <div className="flex flex-1 flex-col gap-3">
                         <ChooseFile aspect="square" value={preview ?? user.avatar_url ?? null} onChange={(file) => handleAvatarChange(file)} />
@@ -64,7 +65,7 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
 
                 {/* Info & Security */}
                 <div className="space-y-6 md:col-span-2">
-                    <div className="space-y-4 border border-gray-300 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-6">
+                    <div className="space-y-4 border border-gray-300 bg-white p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
                         <div className="text-sm font-medium text-neutral-600 dark:text-slate-300">Account Information</div>
                         <InputField label="Name" value={data.name} onChange={(e) => setData('name', e.target.value)} error={errors.name} />
                         <InputField label="Email" value={data.email} onChange={(e) => setData('email', e.target.value)} error={errors.email} />
@@ -86,7 +87,7 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
                             <div>
                                 <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200">Role</label>
                                 <div className="flex items-center gap-2">
-                                    <Badge variant="purple" className="capitalize text-xs font-semibold px-2.5 py-1">
+                                    <Badge variant="purple" className="px-2.5 py-1 text-xs font-semibold capitalize">
                                         {data.role}
                                     </Badge>
                                     <span className="text-xs text-neutral-400 dark:text-slate-500">(Role akun ditetapkan sebagai {data.role})</span>
@@ -95,7 +96,7 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
                         )}
                     </div>
 
-                    <div className="space-y-4 border border-gray-300 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-6">
+                    <div className="space-y-4 border border-gray-300 bg-white p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
                         <div className="text-sm font-medium text-neutral-600 dark:text-slate-300">Security</div>
                         <InputField
                             label="New Password"
@@ -116,8 +117,8 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
 
             {/* ===== Course List — instructor / admin only ===== */}
             {isInstructorOrAdmin && (
-                <div className="space-y-6 border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-6 shadow-sm sm:p-8">
-                    <div className="flex flex-col justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4 sm:flex-row sm:items-center">
+                <div className="space-y-6 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
+                    <div className="flex flex-col justify-between gap-4 border-b border-slate-100 pb-4 sm:flex-row sm:items-center dark:border-slate-800">
                         <div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">All Courses ({filteredCourses.length})</h3>
                             <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Filter or search through courses by this instructor.</p>
@@ -133,16 +134,16 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
 
             {/* ===== Enrolled Courses — student only ===== */}
             {isStudent && (
-                <div className="space-y-6 border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-6 shadow-sm sm:p-8">
-                    <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div className="space-y-6 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
+                    <div className="border-b border-slate-100 pb-4 dark:border-slate-800">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Enrolled Courses ({enrolledCourses.length})</h3>
                         <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Courses this student has enrolled in.</p>
                     </div>
 
                     {enrolledCourses.length ? (
-                        <div className="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200 dark:border-slate-700">
+                        <div className="divide-y divide-slate-100 border border-slate-200 dark:divide-slate-800 dark:border-slate-700">
                             {enrolledCourses.map((enrollment) => (
-                                <div key={enrollment.id} className="flex items-center gap-4 bg-white dark:bg-[#1e1f24] p-4">
+                                <div key={enrollment.id} className="flex items-center gap-4 bg-white p-4 dark:bg-[#1e1f24]">
                                     <div className="aspect-video w-16 shrink-0 overflow-hidden bg-slate-100 dark:bg-slate-700">
                                         {enrollment.course?.thumbnail_url ? (
                                             <img
@@ -151,7 +152,9 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
                                                 className="h-full w-full object-cover"
                                             />
                                         ) : (
-                                            <span className="flex h-full w-full items-center justify-center text-[10px] text-slate-400 dark:text-slate-500">COURSE</span>
+                                            <span className="flex h-full w-full items-center justify-center text-[10px] text-slate-400 dark:text-slate-500">
+                                                COURSE
+                                            </span>
                                         )}
                                     </div>
 
@@ -172,7 +175,7 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
                             ))}
                         </div>
                     ) : (
-                        <div className="border border-dashed border-slate-200 dark:border-slate-700 py-10 text-center text-sm text-slate-400 dark:text-slate-500">
+                        <div className="border border-dashed border-slate-200 py-10 text-center text-sm text-slate-400 dark:border-slate-700 dark:text-slate-500">
                             This student has not enrolled in any courses yet.
                         </div>
                     )}

@@ -16,19 +16,19 @@ class CourseComparisonTool
                     'course_ids' => [
                         'type' => 'array',
                         'items' => [
-                            'type' => 'integer'
+                            'type' => 'integer',
                         ],
-                        'description' => 'Array of course IDs to compare'
-                    ]
+                        'description' => 'Array of course IDs to compare',
+                    ],
                 ],
-                'required' => ['course_ids']
-            ]
+                'required' => ['course_ids'],
+            ],
         ];
     }
 
     public function execute(array $arguments): array
     {
-        if (empty($arguments['course_ids']) || !is_array($arguments['course_ids'])) {
+        if (empty($arguments['course_ids']) || ! is_array($arguments['course_ids'])) {
             return ['error' => 'course_ids array is required'];
         }
 

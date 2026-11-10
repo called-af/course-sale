@@ -189,10 +189,10 @@ class RecommendationAnalyticsService
             File::makeDirectory($outputDir, 0755, true);
         }
 
-        $eventsFile = $outputDir . DIRECTORY_SEPARATOR . 'events.csv';
-        $interactionsFile = $outputDir . DIRECTORY_SEPARATOR . 'user_item_matrix.csv';
-        $coursesFile = $outputDir . DIRECTORY_SEPARATOR . 'courses.csv';
-        $summaryFile = $outputDir . DIRECTORY_SEPARATOR . 'dataset_summary.json';
+        $eventsFile = $outputDir.DIRECTORY_SEPARATOR.'events.csv';
+        $interactionsFile = $outputDir.DIRECTORY_SEPARATOR.'user_item_matrix.csv';
+        $coursesFile = $outputDir.DIRECTORY_SEPARATOR.'courses.csv';
+        $summaryFile = $outputDir.DIRECTORY_SEPARATOR.'dataset_summary.json';
 
         // 1. Export Raw Events
         $eventsCount = $this->exportRawEvents($eventsFile);

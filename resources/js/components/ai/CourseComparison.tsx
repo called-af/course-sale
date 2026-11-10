@@ -1,5 +1,6 @@
 import { Layers3, Star } from 'lucide-react';
 import type { ComparisonCourse } from '@/components/ai/types';
+import { formatCoursePrice, formatRupiah } from '@/lib/currency';
 
 interface CourseComparisonProps {
     comparisonData: ComparisonCourse[];
@@ -40,9 +41,9 @@ export default function CourseComparison({ comparisonData }: CourseComparisonPro
                             {comparisonData.map((course) => (
                                 <td key={course.id} className="px-3 py-3 font-semibold text-slate-700 dark:text-slate-200">
                                     {course.type === 'free'
-                                        ? 'Gratis'
+                                        ? formatCoursePrice(course.type, course.price)
                                         : course.type === 'paid' && course.price !== null && course.price !== undefined
-                                          ? `Rp ${Number(course.price).toLocaleString('id-ID')}`
+                                          ? formatRupiah(course.price)
                                           : 'Harga belum tersedia'}
                                 </td>
                             ))}

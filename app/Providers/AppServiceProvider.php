@@ -16,6 +16,8 @@ use App\Policies\ModulePolicy;
 use App\Policies\UserPolicy;
 use App\Services\CourseStructureService;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
@@ -54,6 +56,19 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('ai-settings-update', function (Request $request) {
             return Limit::perMinute(5)->by($request->user()?->id ?: $request->ip());
         });
+
+        // Laravel's built-in notifications expect the conventional
+        // `password.reset` / `verification.verify` route names. This app uses
+        // its own names, so point the notifications at the real routes.
+        ResetPassword::createUrlUsing(fn ($notifiable, string $token) => route('auth.reset-password', [
+            'token' => $token,
+            'email' => $notifiable->getEmailForPasswordReset(),
+        ]));
+
+        VerifyEmail::createUrlUsing(fn ($notifiable) => route('auth.verify-email', [
+            'id' => $notifiable->getKey(),
+            'hash' => sha1($notifiable->getEmailForVerification()),
+        ]));
     }
 
     protected function configureDefaults(): void

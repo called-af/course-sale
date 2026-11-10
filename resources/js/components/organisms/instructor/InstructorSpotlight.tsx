@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { ArrowRight, BookOpen, Plus, Star, TrendingUp, Users, Wallet } from 'lucide-react';
 import WeeklyPulse from '@/components/molecules/WeeklyPulse';
-import { formatRupiah } from '@/lib/dashboard';
+import { formatCoursePrice } from '@/lib/currency';
 import type { InstructorCourse } from '@/types/dashboard';
 
 interface InstructorSpotlightProps {
@@ -43,7 +43,7 @@ export default function InstructorSpotlight({
                                 </span>
                             </div>
                             <h2 className="mt-2 line-clamp-2 text-lg font-bold">{topCourse.title}</h2>
-                            <p className="mt-1 text-xs capitalize text-slate-400">
+                            <p className="mt-1 text-xs text-slate-400 capitalize">
                                 {topCourse.level ?? 'All level'} · {topCourse.type === 'free' ? 'Free course' : 'Paid course'}
                             </p>
                             <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-slate-300">
@@ -57,9 +57,7 @@ export default function InstructorSpotlight({
                                 </span>
                                 <span className="inline-flex items-center gap-1 text-emerald-300">
                                     <Wallet size={12} />
-                                    {topCourse.type === 'paid'
-                                        ? formatRupiah((topCourse.price ?? 0) * (topCourse.enrollments_count ?? 0))
-                                        : 'Free'}
+                                    {formatCoursePrice(topCourse.type, (topCourse.price ?? 0) * (topCourse.enrollments_count ?? 0))}
                                 </span>
                             </div>
                         </div>

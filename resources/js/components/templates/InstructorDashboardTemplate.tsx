@@ -27,10 +27,7 @@ export default function InstructorDashboardTemplate({
     const user = auth?.user;
 
     const paidCourses = useMemo(() => instructorCourses.filter((course) => course.type === 'paid').length, [instructorCourses]);
-    const weeklyEnrollments = useMemo(
-        () => enrollmentTrend.reduce((total, day) => total + (day.count ?? 0), 0),
-        [enrollmentTrend],
-    );
+    const weeklyEnrollments = useMemo(() => enrollmentTrend.reduce((total, day) => total + (day.count ?? 0), 0), [enrollmentTrend]);
 
     return (
         <div className="space-y-8">

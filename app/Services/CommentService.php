@@ -57,10 +57,10 @@ class CommentService
         }
 
         $comment = Comment::create([
-            'user_id'   => $userId,
+            'user_id' => $userId,
             'course_id' => $course->id,
             'parent_id' => $parentId,
-            'body'      => $body,
+            'body' => $body,
         ]);
 
         return $comment->load('user:id,name,avatar');
@@ -129,15 +129,15 @@ class CommentService
     private function formatComment(Comment $comment, bool $withReplies = false): array
     {
         $data = [
-            'id'         => $comment->id,
-            'body'       => $comment->body,
-            'parent_id'  => $comment->parent_id,
+            'id' => $comment->id,
+            'body' => $comment->body,
+            'parent_id' => $comment->parent_id,
             'created_at' => $comment->created_at,
             'updated_at' => $comment->updated_at,
-            'user'       => [
-                'id'         => $comment->user->id,
-                'name'       => $comment->user->name,
-                'avatar_url' => $comment->user->avatar_url ?? null,
+            'user' => [
+                'id' => $comment->user?->id,
+                'name' => $comment->user?->name ?? 'Deleted user',
+                'avatar_url' => $comment->user?->avatar_url,
             ],
         ];
 

@@ -2,14 +2,12 @@ import { createInertiaApp } from '@inertiajs/react';
 import createServer from '@inertiajs/react/server';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { renderToString } from 'react-dom/server';
-import 'react-toastify/dist/ReactToastify.css'
+import 'react-toastify/dist/ReactToastify.css';
 
 const fallbackAppName = import.meta.env.VITE_APP_NAME || 'KursusIO';
 
 createServer((page) => {
-    const appName =
-        (page.props.appearance as { name?: string } | undefined)?.name ||
-        fallbackAppName;
+    const appName = (page.props.appearance as { name?: string } | undefined)?.name || fallbackAppName;
 
     return createInertiaApp({
         page,

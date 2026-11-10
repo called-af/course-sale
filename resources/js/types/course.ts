@@ -1,43 +1,47 @@
-import { Module } from "@/types/modules"
+import type { CourseResource } from '@/types/course-resource';
+import type { Module } from '@/types/modules';
 
 export interface CertificateTemplateData {
-  primary_color?: string
-  accent_color?: string
-  bg_style?: 'dark' | 'light' | 'gradient'
-  show_signature?: boolean
-  signature_name?: string
-  custom_title?: string
-  footer_note?: string
+    primary_color?: string;
+    accent_color?: string;
+    bg_style?: 'dark' | 'light' | 'gradient';
+    show_signature?: boolean;
+    signature_name?: string;
+    custom_title?: string;
+    footer_note?: string;
 }
 
 export interface Course {
-  id: number
-  slug: string
-  title: string
-  description: string | null
-  thumbnail_url: string
-  level: string | null
-  type: string
-  status: string
-  price?: number | null
+    id: number;
+    slug: string;
+    title: string;
+    description: string | null;
+    thumbnail_url: string;
+    level: string | null;
+    type: string;
+    status: string;
+    price?: number | null;
 
-  creator_id?: number
-  creator?: {
-    name: string
-  }
+    creator_id?: number;
+    creator?: {
+        id?: number;
+        name: string;
+    };
 
-  modules: Module[]
+    modules: Module[];
 
-  categories: {
-    id: number
-    name: string
-  }[]
+    categories: {
+        id: number;
+        name: string;
+    }[];
 
-  tags?: {
-    id: number
-    name: string
-    slug?: string
-  }[]
+    tags?: {
+        id: number;
+        name: string;
+        slug?: string;
+    }[];
 
-  certificate_template?: CertificateTemplateData | null
+    resources?: CourseResource[];
+
+    certificate_template?: CertificateTemplateData | null;
 }

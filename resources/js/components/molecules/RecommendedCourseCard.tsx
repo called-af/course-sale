@@ -1,14 +1,16 @@
 import { Link } from '@inertiajs/react';
 import { Sparkles, Star } from 'lucide-react';
 import { useBranding } from '@/hooks/useBranding';
-import { formatRupiah } from '@/lib/dashboard';
+import { formatCoursePrice } from '@/lib/currency';
 import type { RecommendedCourse } from '@/types/dashboard';
 
 interface RecommendedCourseCardProps {
     course: RecommendedCourse;
+    /** Marks the course as already enrolled by the viewer. */
+    enrolled?: boolean;
 }
 
-export default function RecommendedCourseCard({ course }: RecommendedCourseCardProps) {
+export default function RecommendedCourseCard({ course, enrolled = false }: RecommendedCourseCardProps) {
     const { name: appName } = useBranding();
 
     return (
@@ -57,7 +59,7 @@ export default function RecommendedCourseCard({ course }: RecommendedCourseCardP
 
             <div className="flex items-center justify-between border-t border-slate-100 p-3.5 pt-2.5 text-xs font-bold dark:border-slate-800">
                 <span className={course.type === 'free' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}>
-                    {course.type === 'free' ? 'FREE' : formatRupiah(course.price ?? 0)}
+                    {enrolled ? 'Continue Learning' : formatCoursePrice(course.type, course.price)}
                 </span>
                 {Boolean(course.rating_avg && course.rating_avg > 0) && (
                     <span className="flex items-center gap-0.5 text-[11px] text-amber-600 dark:text-amber-400">

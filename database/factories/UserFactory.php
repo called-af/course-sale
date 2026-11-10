@@ -15,7 +15,7 @@ class UserFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->safeEmail(),
             'password' => fake()->password(),
-            'role' => fake()->randomElement(["student","instructor","admin"]),
+            'role' => fake()->randomElement(['student', 'instructor', 'admin']),
             'avatar' => fake()->word(),
         ];
     }

@@ -49,7 +49,7 @@ class Material extends Model
 
     public function canBePublished(): bool
     {
-        return $this->contents()->exists();
+        return $this->contents()->where('status', 'published')->exists();
     }
 
     public function module(): BelongsTo

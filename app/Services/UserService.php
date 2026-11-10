@@ -5,8 +5,8 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class UserService
 {
@@ -50,6 +50,7 @@ class UserService
                 ->with('categories:id,name')->latest(),
         ])];
     }
+
     public function create(array $data): User
     {
         return DB::transaction(function () use ($data) {

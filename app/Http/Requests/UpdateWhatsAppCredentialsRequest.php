@@ -45,6 +45,11 @@ class UpdateWhatsAppCredentialsRequest extends FormRequest
                 'min:8',
                 Rule::requiredIf($baseUrlChanged || ! $hasExistingKey),
             ],
+            'provider' => [
+                'nullable',
+                'string',
+                Rule::in(['infobip', 'meta']),
+            ],
             'current_password' => [
                 'required',
                 'string',

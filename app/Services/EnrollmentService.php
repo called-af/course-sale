@@ -28,17 +28,33 @@ class EnrollmentService
             abort(404);
         }
 
-        if (Enrollment::where('user_id', $user->id)->where('course_id', $course->id)->exists()) {
+        $existing = Enrollment::where('user_id', $user->id)
+            ->where('course_id', $course->id)
+            ->first();
+
+        if ($existing?->status === 'active') {
             return 'already_enrolled';
         }
 
+        // Revoked/expired paid enrollments must go through checkout again.
         if ($course->isPaid()) {
             return 'payment_required';
         }
 
         $enrollment = null;
-        DB::transaction(function () use ($user, $course, &$enrollment) {
-            $enrollment = Enrollment::create(['user_id' => $user->id, 'course_id' => $course->id, 'status' => 'active', 'enrolled_at' => now()]);
+        DB::transaction(function () use ($user, $course, $existing, &$enrollment) {
+            if ($existing) {
+                $existing->update(['status' => 'active', 'enrolled_at' => now()]);
+                $enrollment = $existing->refresh();
+            } else {
+                $enrollment = Enrollment::create([
+                    'user_id' => $user->id,
+                    'course_id' => $course->id,
+                    'status' => 'active',
+                    'enrolled_at' => now(),
+                ]);
+            }
+
             if (is_null($user->role)) {
                 $user->update(['role' => 'student']);
             }
@@ -53,7 +69,7 @@ class EnrollmentService
         return 'enrolled';
     }
 
-    protected function dispatchWhatsAppNotification(Enrollment $enrollment, Course $course, User $student): void
+    public function dispatchWhatsAppNotification(Enrollment $enrollment, Course $course, User $student): void
     {
         try {
             $course->loadMissing('creator');
@@ -77,11 +93,20 @@ class EnrollmentService
 
     public function learningData(User $user, Course $course, ?int $materialId = null, ?int $contentId = null): array
     {
-        $course->load(['modules' => fn ($query) => $query->orderBy('sort_order')->with([
-            'materials' => fn ($materialQuery) => $materialQuery->orderBy('sort_order')->with([
-                'contents' => fn ($contentQuery) => $contentQuery->orderBy('sort_order')->with(['quizQuestions.quizOptions']),
-            ]),
-        ])]);
+        $course->load(['modules' => fn ($query) => $query
+            ->where('status', 'published')
+            ->orderBy('sort_order')
+            ->with([
+                'materials' => fn ($materialQuery) => $materialQuery
+                    ->where('status', 'published')
+                    ->orderBy('sort_order')
+                    ->with([
+                        'contents' => fn ($contentQuery) => $contentQuery
+                            ->where('status', 'published')
+                            ->orderBy('sort_order')
+                            ->with(['quizQuestions.quizOptions']),
+                    ]),
+            ])]);
         $course->loadMissing(['creator:id,name', 'categories:id,name']);
         $course->append('thumbnail_url');
 
@@ -128,6 +153,26 @@ class EnrollmentService
             ->where('type', 'quiz')
             ->values();
 
+        $resourcesUnlocked = $this->isCompleted($user, $course);
+
+        $resources = $resourcesUnlocked
+            ? \App\Models\CourseResource::query()
+                ->where('course_id', $course->id)
+                ->where('status', 'published')
+                ->orderBy('sort_order')
+                ->get()
+                ->map(fn ($resource) => [
+                    'id' => $resource->id,
+                    'title' => $resource->title,
+                    'description' => $resource->description,
+                    'download_url' => route('student.courses.resources.download', [
+                        'course' => $course->slug,
+                        'resource' => $resource->id,
+                    ]),
+                ])
+                ->all()
+            : [];
+
         return [
             'course' => $course,
             'currentMaterial' => $currentMaterial,
@@ -136,7 +181,94 @@ class EnrollmentService
             'contentProgress' => $contentProgress,
             'quizStates' => app(QuizService::class)->statesFor($user, $quizContents),
             'certificate' => Certificate::where('user_id', $user->id)->where('course_id', $course->id)->select('id', 'certificate_number')->first(),
+            'resources' => $resources,
+            'resourcesUnlocked' => $resourcesUnlocked,
+            'refundPolicy' => $this->refundPolicy($user, $course),
             ...$this->progressMeta($course, $progress),
+        ];
+    }
+
+    /**
+     * Refund eligibility for a paid course. A student may only request a refund
+     * within the configured window and while lesson progress is still low.
+     *
+     * @return array{
+     *     applies: bool,
+     *     window_days: int,
+     *     max_progress_percent: int,
+     *     enrolled_at: string|null,
+     *     deadline: string|null,
+     *     days_left: int|null,
+     *     progress_percent: int,
+     *     expired: bool,
+     *     over_progress: bool,
+     *     eligible: bool
+     * }
+     */
+    public function refundPolicy(User $user, Course $course): array
+    {
+        $windowDays = max(0, (int) config('services.payment.refund_window_days', 7));
+        $maxProgressPercent = max(0, min(100, (int) config('services.payment.refund_max_progress_percent', 25)));
+
+        $enrollment = Enrollment::query()
+            ->where('user_id', $user->id)
+            ->where('course_id', $course->id)
+            ->first();
+
+        // `enrolled_at` uses the legacy `timestamp` cast, which returns an
+        // integer on this app, so normalise it before doing date math.
+        $enrolledAt = $enrollment?->enrolled_at;
+
+        if (is_numeric($enrolledAt)) {
+            $enrolledAt = \Illuminate\Support\Carbon::createFromTimestamp((int) $enrolledAt);
+        } elseif ($enrolledAt instanceof \DateTimeInterface) {
+            $enrolledAt = \Illuminate\Support\Carbon::instance($enrolledAt);
+        }
+
+        $deadline = $enrolledAt?->copy()->addDays($windowDays);
+
+        $contentsQuery = fn () => MaterialContent::query()
+            ->where('status', 'published')
+            ->whereHas('material', fn ($material) => $material
+                ->where('status', 'published')
+                ->whereHas('module', fn ($module) => $module
+                    ->where('course_id', $course->id)
+                    ->where('status', 'published')));
+
+        $totalContents = $contentsQuery()->count();
+
+        $completedContents = MaterialContentProgress::query()
+            ->where('user_id', $user->id)
+            ->where('is_completed', true)
+            ->whereHas('content', fn ($content) => $content
+                ->where('status', 'published')
+                ->whereHas('material', fn ($material) => $material
+                    ->where('status', 'published')
+                    ->whereHas('module', fn ($module) => $module
+                        ->where('course_id', $course->id)
+                        ->where('status', 'published'))))
+            ->count();
+
+        $progressRatio = $totalContents > 0 ? ($completedContents / $totalContents) * 100 : 0.0;
+        $progressPercent = (int) round($progressRatio);
+        $overProgress = $progressRatio > $maxProgressPercent;
+        $expired = $deadline !== null && now()->greaterThan($deadline);
+
+        $applies = $course->isPaid() && $enrollment !== null;
+
+        return [
+            'applies' => $applies,
+            'window_days' => $windowDays,
+            'max_progress_percent' => $maxProgressPercent,
+            'enrolled_at' => $enrolledAt?->toIso8601String(),
+            'deadline' => $deadline?->toIso8601String(),
+            'days_left' => $deadline
+                ? max(0, (int) ceil(($deadline->getTimestamp() - now()->getTimestamp()) / 86400))
+                : null,
+            'progress_percent' => $progressPercent,
+            'expired' => $expired,
+            'over_progress' => $overProgress,
+            'eligible' => $applies && ! $expired && ! $overProgress,
         ];
     }
 
@@ -145,7 +277,10 @@ class EnrollmentService
      */
     public function progressMeta(Course $course, array $progress): array
     {
-        $materials = $course->modules->flatMap(fn ($module) => $module->materials);
+        $materials = $course->modules
+            ->where('status', 'published')
+            ->flatMap(fn ($module) => $module->materials->where('status', 'published'))
+            ->values();
         $total = $materials->count();
         $completed = $materials->filter(fn ($material) => ! empty($progress[$material->id]))->count();
         $percent = $total > 0 ? (int) round(($completed / $total) * 100) : 0;
@@ -159,15 +294,19 @@ class EnrollmentService
             'canReview' => $total > 0 && $completed === $total,
             'resume' => $resumeMaterial ? [
                 'material_id' => $resumeMaterial->id,
-                'content_id' => $resumeMaterial->contents->first()?->id,
+                'content_id' => $resumeMaterial->contents->where('status', 'published')->first()?->id,
             ] : null,
         ];
     }
 
     public function isCompleted(User $user, Course $course): bool
     {
-        $materialIds = $course->modules()->with('materials:id,module_id')->get()
-            ->flatMap(fn ($module) => $module->materials->pluck('id'));
+        $materialIds = Material::where('status', 'published')
+            ->whereHas('module', fn ($query) => $query
+                ->where('course_id', $course->id)
+                ->where('status', 'published'))
+            ->whereHas('contents', fn ($query) => $query->where('status', 'published'))
+            ->pluck('id');
 
         if ($materialIds->isEmpty()) {
             return false;
@@ -186,6 +325,15 @@ class EnrollmentService
         $content->loadMissing('material.module');
 
         if ($content->material?->module?->course_id !== $course->id) {
+            abort(404);
+        }
+
+        // Draft/unpublished lessons must never be reachable from the student player.
+        if (
+            $content->status !== 'published'
+            || $content->material?->status !== 'published'
+            || $content->material?->module?->status !== 'published'
+        ) {
             abort(404);
         }
 
@@ -208,35 +356,53 @@ class EnrollmentService
         return true;
     }
 
-    public function canCompleteMaterial(User $user, Material $material): bool
+    /**
+     * Activate (or re-activate) an enrollment. Used by the checkout flow when
+     * a paid order is confirmed.
+     */
+    public function activate(User $user, Course $course): Enrollment
     {
-        $material->loadMissing('contents');
+        $existing = Enrollment::where('user_id', $user->id)
+            ->where('course_id', $course->id)
+            ->first();
 
-        if ($material->contents->isEmpty()) {
-            return false;
+        if ($existing && $existing->status === 'active') {
+            return $existing;
         }
 
-        $completedContentIds = MaterialContentProgress::where('user_id', $user->id)
-            ->whereIn('material_content_id', $material->contents->pluck('id'))
-            ->where('is_completed', true)
-            ->pluck('material_content_id')
-            ->all();
+        if ($existing) {
+            $existing->update([
+                'status' => 'active',
+                'enrolled_at' => now(),
+            ]);
 
-        return $material->contents->every(
-            fn (MaterialContent $content) => in_array($content->id, $completedContentIds, true)
-        );
+            return $existing;
+        }
+
+        return Enrollment::create([
+            'user_id' => $user->id,
+            'course_id' => $course->id,
+            'status' => 'active',
+            'enrolled_at' => now(),
+        ]);
     }
 
-    public function markProgress(User $user, Course $course, int $materialId): bool
+    /**
+     * Revoke learning access after a refund.
+     */
+    public function revoke(Enrollment $enrollment): void
+    {
+        $enrollment->update(['status' => 'revoked']);
+    }
+
+    public function markProgress(User $user, Course $course, int $materialId): void
     {
         $material = Material::whereKey($materialId)
-            ->whereHas('module', fn ($query) => $query->where('course_id', $course->id))
-            ->with('contents')
+            ->where('status', 'published')
+            ->whereHas('module', fn ($query) => $query
+                ->where('course_id', $course->id)
+                ->where('status', 'published'))
             ->firstOrFail();
-
-        if (! $this->canCompleteMaterial($user, $material)) {
-            return false;
-        }
 
         MaterialProgress::updateOrCreate(
             ['user_id' => $user->id, 'material_id' => $material->id],
@@ -247,7 +413,5 @@ class EnrollmentService
 
         // Auto-generate certificate when course is 100% complete
         app(CertificateService::class)->generateIfCompleted($user, $course);
-
-        return true;
     }
 }

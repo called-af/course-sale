@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { Award, Compass, Sparkles } from 'lucide-react';
-import { getGreeting } from '@/lib/dashboard';
 import { useBranding } from '@/hooks/useBranding';
+import { getGreeting } from '@/lib/dashboard';
 
 interface StudentHeroProps {
     userName: string;

@@ -34,16 +34,16 @@ class ReviewController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Your review has been submitted. Thank you!',
-                'review'  => [
-                    'id'          => $review->id,
-                    'rating'      => $review->rating,
-                    'comment'     => $review->comment,
+                'review' => [
+                    'id' => $review->id,
+                    'rating' => $review->rating,
+                    'comment' => $review->comment,
                     'is_approved' => $review->is_approved,
-                    'created_at'  => $review->created_at,
-                    'user'        => [
-                        'id'         => $review->user->id,
-                        'name'       => $review->user->name,
-                        'avatar_url' => $review->user->avatar_url ?? null,
+                    'created_at' => $review->created_at,
+                    'user' => [
+                        'id' => $review->user?->id,
+                        'name' => $review->user?->name ?? 'Deleted user',
+                        'avatar_url' => $review->user?->avatar_url ?? null,
                     ],
                 ],
                 // Kirim ulang rating stats yang sudah diupdate
@@ -64,8 +64,8 @@ class ReviewController extends Controller
             $this->reviewService->destroy($review, $request->user()->id);
 
             return response()->json([
-                'success'      => true,
-                'message'      => 'Your review has been removed.',
+                'success' => true,
+                'message' => 'Your review has been removed.',
                 'rating_stats' => $this->reviewService->getRatingStats($course),
             ]);
         } catch (\DomainException $e) {

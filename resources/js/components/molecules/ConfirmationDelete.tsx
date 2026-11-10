@@ -1,51 +1,41 @@
-import Modal from "@/components/atoms/Modal"
-import Button from "@/components/atoms/Button"
+import Button from '@/components/atoms/Button';
+import Modal from '@/components/atoms/Modal';
 
 interface ConfirmationDeleteProps {
-  open: boolean
-  onClose: () => void
-  onConfirm: () => void
-  isLoading?: boolean
-  title?: string
-  message?: string
+    open: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    isLoading?: boolean;
+    title?: string;
+    message?: string;
 }
 
 export default function ConfirmationDelete({
-  open,
-  onClose,
-  onConfirm,
-  isLoading = false,
-  title = "Delete Confirmation",
-  message = "Are you sure you want to delete this item?",
+    open,
+    onClose,
+    onConfirm,
+    isLoading = false,
+    title = 'Delete Confirmation',
+    message = 'Are you sure you want to delete this item?',
 }: ConfirmationDeleteProps) {
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={title}
-      footer={
-        <>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={isLoading}
-          >
-            Cancel
-          </Button>
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            title={title}
+            footer={
+                <>
+                    <Button variant="outline" onClick={onClose} disabled={isLoading}>
+                        Cancel
+                    </Button>
 
-          <Button
-            variant="danger"
-            onClick={onConfirm}
-            isLoading={isLoading}
-          >
-            Delete
-          </Button>
-        </>
-      }
-    >
-      <p className="text-sm text-gray-600 dark:text-slate-300">
-        {message}
-      </p>
-    </Modal>
-  )
+                    <Button variant="danger" onClick={onConfirm} isLoading={isLoading}>
+                        Delete
+                    </Button>
+                </>
+            }
+        >
+            <p className="text-sm text-gray-600 dark:text-slate-300">{message}</p>
+        </Modal>
+    );
 }

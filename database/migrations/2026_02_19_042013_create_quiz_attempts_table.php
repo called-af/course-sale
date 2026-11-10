@@ -16,12 +16,15 @@ return new class extends Migration
         Schema::create('quiz_attempts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained();
-            $table->foreignId('material_content_id')->constrained();
+            $table->foreignId('material_content_id')->constrained()->cascadeOnDelete();
             $table->timestamp('started_at');
             $table->timestamp('finished_at')->nullable();
             $table->integer('time_spent')->nullable();
             $table->decimal('score', 5, 2)->nullable();
-            $table->enum('status', ["in_progress","completed","expired"]);
+            $table->boolean('needs_review')->default(false);
+            $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('reviewed_at')->nullable();
+            $table->enum('status', ['in_progress', 'completed', 'expired']);
             $table->index('user_id');
             $table->index('material_content_id');
             $table->timestamps();

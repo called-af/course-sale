@@ -1,9 +1,10 @@
 <?php
 
 namespace App\Http\Requests\User;
-use Illuminate\Validation\Rule;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateUserRequest extends FormRequest
 {
@@ -22,16 +23,29 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        // Admin routes bind {user}; the self-service profile routes do not.
+        $routeUser = $this->route('user');
+        $targetUserId = $routeUser instanceof User
+            ? $routeUser->getKey()
+            : $this->user()?->getKey();
+
+        $rules = [
             'name' => ['sometimes', 'string', 'max:255'],
             'email' => [
                 'sometimes',
                 'email',
-                Rule::unique('users')->ignore($this->user),
+                Rule::unique('users')->ignore($targetUserId),
             ],
             'password' => ['nullable', 'min:8'],
-            'role' => ['sometimes', 'in:student,instructor,admin'],
             'avatar' => ['nullable', 'image', 'max:2048'],
         ];
+
+        // Only admins may change a role. Without this check a student could
+        // escalate their own privileges through the profile endpoint.
+        if ($this->user()?->role === 'admin') {
+            $rules['role'] = ['sometimes', 'in:student,instructor,admin'];
+        }
+
+        return $rules;
     }
 }

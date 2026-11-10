@@ -41,7 +41,7 @@ class StoreQuizQuestionRequest extends FormRequest
             foreach ($questions as $index => $q) {
                 if (($q['type'] ?? '') === 'multiple_choice') {
                     $options = $q['options'] ?? [];
-                    if (!is_array($options) || count($options) < 2) {
+                    if (! is_array($options) || count($options) < 2) {
                         $validator->errors()->add(
                             "questions.{$index}.options",
                             'Multiple choice questions must have at least 2 answer options.'
@@ -50,10 +50,10 @@ class StoreQuizQuestionRequest extends FormRequest
                         $hasEmpty = false;
                         $hasCorrect = false;
                         foreach ($options as $opt) {
-                            if (!isset($opt['option_text']) || trim((string) $opt['option_text']) === '') {
+                            if (! isset($opt['option_text']) || trim((string) $opt['option_text']) === '') {
                                 $hasEmpty = true;
                             }
-                            if (!empty($opt['is_correct'])) {
+                            if (! empty($opt['is_correct'])) {
                                 $hasCorrect = true;
                             }
                         }
@@ -63,7 +63,7 @@ class StoreQuizQuestionRequest extends FormRequest
                                 'All multiple choice options must have answer text.'
                             );
                         }
-                        if (!$hasCorrect) {
+                        if (! $hasCorrect) {
                             $validator->errors()->add(
                                 "questions.{$index}.options",
                                 'Multiple choice questions must have at least 1 correct answer.'

@@ -30,7 +30,9 @@ class EnrollmentController extends Controller
 
         return match ($result) {
             'already_enrolled' => redirect()->route('student.courses.show', $course->slug)->with('info', 'You are already enrolled in this course.'),
-            'payment_required' => back()->with('info', 'Purchases will be available soon!'),
+            'payment_required' => redirect()
+                ->route('student.course.checkout', $course->slug)
+                ->with('info', 'Please complete the payment to access this course.'),
             default => redirect()->route('student.courses.show', $course->slug)->with('success', 'Congratulations! You have successfully enrolled in the course.'),
         };
     }
@@ -59,18 +61,11 @@ class EnrollmentController extends Controller
      */
     public function markProgress(MarkProgressRequest $request, Course $course): RedirectResponse
     {
-        $completed = $this->enrollmentService->markProgress(
+        $this->enrollmentService->markProgress(
             $request->user(),
             $course,
             $request->integer('material_id')
         );
-
-        if (! $completed) {
-            return back()->with(
-                'error',
-                'Finish every lesson inside this material first. Read text to the bottom, watch videos to the end, and answer all quiz questions.'
-            );
-        }
 
         return back()->with('success', 'Material marked as complete.');
     }

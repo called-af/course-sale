@@ -3,9 +3,8 @@
 namespace App\Services;
 
 use App\Models\Course;
-use App\Models\Review;
 use App\Models\Enrollment;
-use Illuminate\Support\Facades\DB;
+use App\Models\Review;
 
 class ReviewService
 {
@@ -21,14 +20,14 @@ class ReviewService
             ->get()
             ->map(function (Review $review) {
                 return [
-                    'id'           => $review->id,
-                    'rating'       => $review->rating,
-                    'comment'      => $review->comment,
-                    'created_at'   => $review->created_at,
-                    'user'         => [
-                        'id'         => $review->user->id,
-                        'name'       => $review->user->name,
-                        'avatar_url' => $review->user->avatar_url ?? null,
+                    'id' => $review->id,
+                    'rating' => $review->rating,
+                    'comment' => $review->comment,
+                    'created_at' => $review->created_at,
+                    'user' => [
+                        'id' => $review->user?->id,
+                        'name' => $review->user?->name ?? 'Deleted user',
+                        'avatar_url' => $review->user?->avatar_url,
                     ],
                 ];
             });
@@ -36,7 +35,7 @@ class ReviewService
         $ratingStats = $this->getRatingStats($course);
 
         return [
-            'reviews'      => $reviews,
+            'reviews' => $reviews,
             'rating_stats' => $ratingStats,
         ];
     }
@@ -59,15 +58,15 @@ class ReviewService
         for ($i = 5; $i >= 1; $i--) {
             $count = $counts[$i] ?? 0;
             $distribution[] = [
-                'star'       => $i,
-                'count'      => $count,
+                'star' => $i,
+                'count' => $count,
                 'percentage' => $total > 0 ? round(($count / $total) * 100) : 0,
             ];
         }
 
         return [
-            'average'      => $total > 0 ? round(array_sum(array_map(fn ($r, $c) => $r * $c, array_keys($counts), $counts)) / $total, 1) : 0,
-            'total'        => $total,
+            'average' => $total > 0 ? round(array_sum(array_map(fn ($r, $c) => $r * $c, array_keys($counts), $counts)) / $total, 1) : 0,
+            'total' => $total,
             'distribution' => $distribution,
         ];
     }
@@ -96,7 +95,7 @@ class ReviewService
         $review = Review::updateOrCreate(
             ['user_id' => $userId, 'course_id' => $course->id],
             [
-                'rating'  => $rating,
+                'rating' => $rating,
                 'comment' => $comment,
             ]
         );
@@ -148,23 +147,30 @@ class ReviewService
      * Recalculate rating_avg and rating_count on the courses table.
      * Public so it can be called from controllers.
      */
-    public function recalculateCourseRatingPublic(Course $course): void
+    public function recalculateCourseRatingPublic(?Course $course): void
     {
         $this->recalculateCourseRating($course);
     }
 
     /**
      * Recalculate rating_avg and rating_count on the courses table.
+     *
+     * The course may be soft-deleted while its reviews still exist, in which
+     * case there is nothing to recalculate.
      */
-    private function recalculateCourseRating(Course $course): void
+    private function recalculateCourseRating(?Course $course): void
     {
+        if (! $course) {
+            return;
+        }
+
         $stats = Review::where('course_id', $course->id)
             ->where('is_approved', true)
             ->selectRaw('AVG(rating) as avg_rating, COUNT(*) as total')
             ->first();
 
         $course->update([
-            'rating_avg'   => $stats->avg_rating ? round($stats->avg_rating, 2) : 0,
+            'rating_avg' => $stats->avg_rating ? round($stats->avg_rating, 2) : 0,
             'rating_count' => $stats->total ?? 0,
         ]);
     }

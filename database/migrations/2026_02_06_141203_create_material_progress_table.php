@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('material_progress', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained();
-            $table->foreignId('material_id')->constrained();
+            $table->foreignId('material_id')->constrained()->cascadeOnDelete();
             $table->boolean('is_completed')->default(false);
             $table->timestamp('completed_at')->nullable();
             $table->unique(['user_id', 'material_id']);

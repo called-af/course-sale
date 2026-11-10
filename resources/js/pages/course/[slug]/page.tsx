@@ -3,13 +3,17 @@ import { ArrowLeft, BookOpen, CheckCircle2, Clock3, Layers, Lock, MessageSquare,
 import { useState } from 'react';
 import Badge from '@/components/atoms/Badge';
 import Button from '@/components/atoms/Button';
-import WelcomeLayout from '@/components/templates/WelcomeLayout';
-import StarRating from '@/components/molecules/StarRating';
-import ReviewForm from '@/components/molecules/ReviewForm';
-import ReviewCard from '@/components/molecules/ReviewCard';
-import RatingSummary from '@/components/molecules/RatingSummary';
 import CommentThread from '@/components/molecules/CommentThread';
-import type { Course, Review, RatingStats, Comment } from '@/types';
+import RatingSummary from '@/components/molecules/RatingSummary';
+import RefundPolicyNotice from '@/components/molecules/RefundPolicyNotice';
+import ReviewCard from '@/components/molecules/ReviewCard';
+import ReviewForm from '@/components/molecules/ReviewForm';
+import StarRating from '@/components/molecules/StarRating';
+import CheckoutModal from '@/components/organisms/Payment/CheckoutModal';
+import WelcomeLayout from '@/components/templates/WelcomeLayout';
+import { formatCoursePrice } from '@/lib/currency';
+import type { Course, Review, RatingStats, Comment, PaymentGateway, PaymentMethod, RefundPolicy } from '@/types';
+import type { SharedPageProps } from '@/types/shared';
 
 interface CourseDetailPageProps {
     course: Course;
@@ -17,11 +21,14 @@ interface CourseDetailPageProps {
     canReview?: boolean;
     progressPercent?: number;
     completedCount?: number;
-    totalMaterials?: number;
+    totalContents?: number;
+    refundPolicy?: RefundPolicy | null;
     reviews: Review[];
     ratingStats: RatingStats;
     userReview?: Review | null;
     comments: Comment[];
+    paymentMethods?: PaymentMethod[];
+    paymentGateway?: PaymentGateway | null;
 }
 
 export default function CourseDetailPage({
@@ -30,15 +37,19 @@ export default function CourseDetailPage({
     canReview = false,
     progressPercent = 0,
     completedCount = 0,
-    totalMaterials = 0,
+    totalContents = 0,
+    refundPolicy = null,
     reviews: initialReviews,
     ratingStats: initialStats,
     userReview: initialUserReview,
     comments,
+    paymentMethods = [],
+    paymentGateway = null,
 }: CourseDetailPageProps) {
-    const { auth } = usePage().props as any;
+    const { auth } = usePage<SharedPageProps>().props;
     const user = auth?.user;
     const [processing, setProcessing] = useState(false);
+    const [checkoutOpen, setCheckoutOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'discussion' | 'ratings'>('discussion');
 
     const [reviews, setReviews] = useState<Review[]>(initialReviews);
@@ -46,12 +57,14 @@ export default function CourseDetailPage({
     const [userReview, setUserReview] = useState<Review | null>(initialUserReview ?? null);
 
     const enroll = () => {
+        if (course.type === 'paid') {
+            setCheckoutOpen(true);
+
+            return;
+        }
+
         setProcessing(true);
-        router.post(
-            `/course/${course.slug}/enroll`,
-            {},
-            { onFinish: () => setProcessing(false) },
-        );
+        router.post(`/course/${course.slug}/enroll`, {}, { onFinish: () => setProcessing(false) });
     };
 
     const handleReviewSuccess = (review: Review, stats: RatingStats) => {
@@ -78,11 +91,11 @@ export default function CourseDetailPage({
         <>
             <Head title={course.title} />
 
-            <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#1e1f24] pt-24 pb-20">
+            <div className="min-h-screen bg-gray-100 pt-24 pb-20 dark:bg-[#1e1f24]">
                 <div className="mx-auto max-w-7xl px-4 sm:px-8">
                     <Link
                         href="/course"
-                        className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400 transition hover:text-purple-700 dark:hover:text-purple-400"
+                        className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-purple-700 dark:text-slate-400 dark:hover:text-purple-400"
                     >
                         <ArrowLeft size={17} />
                         Back to courses
@@ -91,32 +104,36 @@ export default function CourseDetailPage({
                     <div className="grid gap-8 lg:grid-cols-3">
                         {/* Main content */}
                         <section className="space-y-7 lg:col-span-2">
-                            <div className="overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1f24] shadow-sm">
+                            <div className="overflow-hidden border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
                                 <img src={course.thumbnail_url} alt={course.title} className="aspect-video w-full object-cover" />
                             </div>
 
                             <div className="space-y-5">
                                 <div className="flex flex-wrap items-center gap-2">
                                     {course.categories?.map((category) => (
-                                        <Badge key={category.id} variant="purple">{category.name}</Badge>
+                                        <Badge key={category.id} variant="purple">
+                                            {category.name}
+                                        </Badge>
                                     ))}
                                     {course.level && <Badge>{course.level}</Badge>}
                                 </div>
 
                                 <div>
                                     <p className="mb-2 text-sm font-medium text-purple-700 dark:text-purple-400">Course</p>
-                                    <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">{course.title}</h1>
+                                    <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">{course.title}</h1>
 
                                     {ratingStats.total > 0 && (
                                         <div className="mt-3 flex items-center gap-2">
                                             <StarRating value={Math.round(ratingStats.average)} readonly size="sm" />
-                                            <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">{ratingStats.average.toFixed(1)}</span>
+                                            <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+                                                {ratingStats.average.toFixed(1)}
+                                            </span>
                                             <span className="text-sm text-slate-400 dark:text-slate-500">({ratingStats.total} reviews)</span>
                                         </div>
                                     )}
                                 </div>
 
-                                <div className="grid gap-4 border-y border-slate-200 dark:border-slate-700 py-5 sm:grid-cols-3">
+                                <div className="grid gap-4 border-y border-slate-200 py-5 sm:grid-cols-3 dark:border-slate-700">
                                     <CourseInfo icon={<UserRound size={18} />} label="Instructor" value={course.creator?.name || '—'} />
                                     <CourseInfo icon={<Layers size={18} />} label="Level" value={course.level || 'All levels'} />
                                     <CourseInfo icon={<Clock3 size={18} />} label="Access" value="Learn at your pace" />
@@ -132,10 +149,10 @@ export default function CourseDetailPage({
                         </section>
 
                         {/* Sidebar — becomes resume when already enrolled */}
-                        <aside className="h-fit border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-6 shadow-sm lg:sticky lg:top-24">
+                        <aside className="h-fit border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-24 dark:border-slate-700 dark:bg-[#1e1f24]">
                             {isEnrolled ? (
                                 <>
-                                    <p className="inline-flex items-center gap-1.5 border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                                    <p className="inline-flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-400">
                                         <CheckCircle2 size={14} /> Enrolled
                                     </p>
                                     <p className="mt-3 text-sm font-medium text-slate-500 dark:text-slate-400">Your progress</p>
@@ -144,8 +161,10 @@ export default function CourseDetailPage({
                                         <div className="h-full bg-purple-500 transition-all" style={{ width: `${progressPercent}%` }} />
                                     </div>
                                     <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                                        {completedCount} of {totalMaterials} materials completed
+                                        {completedCount} of {totalContents} lessons completed
                                     </p>
+
+                                    <RefundPolicyNotice policy={refundPolicy} variant="compact" className="mt-3" />
 
                                     <div className="my-5 border-t border-slate-100 dark:border-slate-700" />
 
@@ -154,7 +173,10 @@ export default function CourseDetailPage({
                                             {progressPercent === 100 ? 'Review Course' : completedCount > 0 ? 'Resume Learning' : 'Start Learning'}
                                         </Button>
                                     </Link>
-                                    <Link href="/student/courses" className="mt-2 block text-center text-xs font-medium text-purple-700 dark:text-purple-400 hover:underline">
+                                    <Link
+                                        href="/student/courses"
+                                        className="mt-2 block text-center text-xs font-medium text-purple-700 hover:underline dark:text-purple-400"
+                                    >
                                         Back to My Learning
                                     </Link>
                                 </>
@@ -162,7 +184,7 @@ export default function CourseDetailPage({
                                 <>
                                     <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Course access</p>
                                     <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
-                                        {course.type === 'free' ? 'Free' : `Rp ${Number(course.price ?? 0).toLocaleString('id-ID')}`}
+                                        {formatCoursePrice(course.type, course.price)}
                                     </p>
 
                                     {ratingStats.total > 0 && (
@@ -182,25 +204,29 @@ export default function CourseDetailPage({
                                         </Button>
                                     ) : !user ? (
                                         <Link href="/login" className="block">
-                                            <Button widthFull leftIcon={<BookOpen size={18} />}>Sign in to enroll</Button>
+                                            <Button widthFull leftIcon={<BookOpen size={18} />}>
+                                                Sign in to enroll
+                                            </Button>
                                         </Link>
                                     ) : null}
 
                                     <div className="mt-5 space-y-3 text-sm text-slate-600 dark:text-slate-300">
                                         <p className="flex items-center gap-2">
-                                            <CheckCircle2 size={17} className="text-emerald-600 dark:text-emerald-400" /> Full course access after enrollment
+                                            <CheckCircle2 size={17} className="text-emerald-600 dark:text-emerald-400" /> Full course access after
+                                            enrollment
                                         </p>
                                         <p className="flex items-center gap-2">
-                                            <CheckCircle2 size={17} className="text-emerald-600 dark:text-emerald-400" /> Learn anytime, at your own pace
+                                            <CheckCircle2 size={17} className="text-emerald-600 dark:text-emerald-400" /> Learn anytime, at your own
+                                            pace
                                         </p>
                                     </div>
                                 </>
                             )}
                         </aside>
                     </div>
-                    
+
                     {/* Discussion & Ratings — tabbed */}
-                    <section className="mt-8 border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1f24] shadow-sm">
+                    <section className="mt-8 border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
                         {/* Tab bar */}
                         <div className="flex border-b border-slate-200 dark:border-slate-700">
                             <button
@@ -208,17 +234,19 @@ export default function CourseDetailPage({
                                 className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold transition-colors ${
                                     activeTab === 'discussion'
                                         ? 'border-b-2 border-purple-600 text-purple-700 dark:text-purple-400'
-                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                        : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                                 }`}
                             >
                                 <MessageSquare size={16} />
                                 Discussion
                                 {comments.length > 0 && (
-                                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                                        activeTab === 'discussion'
-                                            ? 'bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300'
-                                            : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
-                                    }`}>
+                                    <span
+                                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                                            activeTab === 'discussion'
+                                                ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300'
+                                                : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
+                                        }`}
+                                    >
                                         {comments.length}
                                     </span>
                                 )}
@@ -228,17 +256,19 @@ export default function CourseDetailPage({
                                 className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold transition-colors ${
                                     activeTab === 'ratings'
                                         ? 'border-b-2 border-purple-600 text-purple-700 dark:text-purple-400'
-                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                        : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                                 }`}
                             >
                                 <Star size={16} />
                                 Ratings
                                 {ratingStats.total > 0 && (
-                                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                                        activeTab === 'ratings'
-                                            ? 'bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300'
-                                            : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
-                                    }`}>
+                                    <span
+                                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                                            activeTab === 'ratings'
+                                                ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300'
+                                                : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
+                                        }`}
+                                    >
                                         {ratingStats.total}
                                     </span>
                                 )}
@@ -248,18 +278,14 @@ export default function CourseDetailPage({
                         {/* Tab content */}
                         <div className="p-6">
                             {activeTab === 'discussion' && (
-                                <CommentThread
-                                    comments={comments}
-                                    courseSlug={course.slug}
-                                    currentUserId={isEnrolled ? user?.id : undefined}
-                                />
+                                <CommentThread comments={comments} courseSlug={course.slug} currentUserId={isEnrolled ? user?.id : undefined} />
                             )}
 
                             {activeTab === 'ratings' && (
                                 <div className="space-y-6">
                                     {ratingStats.total > 0 && <RatingSummary stats={ratingStats} />}
 
-                                    <div className="border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#1e1f24] p-5">
+                                    <div className="border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-[#1e1f24]">
                                         <h3 className="mb-4 text-sm font-bold text-slate-800 dark:text-slate-100">
                                             {userReview ? 'Your Review' : 'Write a Review'}
                                         </h3>
@@ -276,22 +302,27 @@ export default function CourseDetailPage({
                                                 <ReviewForm courseSlug={course.slug} onSuccess={handleReviewSuccess} />
                                             )
                                         ) : isEnrolled ? (
-                                            <div className="flex items-start gap-3 border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 p-4">
+                                            <div className="flex items-start gap-3 border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-950/30">
                                                 <Lock size={16} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
                                                 <div>
-                                                    <p className="text-sm font-semibold text-amber-900 dark:text-amber-300">Reviews unlock at 100% completion</p>
+                                                    <p className="text-sm font-semibold text-amber-900 dark:text-amber-300">
+                                                        Reviews unlock at 100% completion
+                                                    </p>
                                                     <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">
-                                                        Your progress is {progressPercent}% ({completedCount}/{totalMaterials} materials).
-                                                        Finish all materials to leave a rating. You can still read other students&apos; reviews below.
+                                                        Your progress is {progressPercent}% ({completedCount}/{totalContents} lessons). Finish all
+                                                        lessons to leave a rating. You can still read other students&apos; reviews below.
                                                     </p>
                                                 </div>
                                             </div>
                                         ) : !user ? (
-                                            <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-4 text-center text-sm text-slate-500 dark:text-slate-400">
-                                                <a href="/login" className="font-medium text-purple-600 dark:text-purple-400 hover:underline">Sign in</a> and enroll to leave a review after finishing 100% of the course.
+                                            <div className="border border-slate-100 bg-white p-4 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400">
+                                                <a href="/login" className="font-medium text-purple-600 hover:underline dark:text-purple-400">
+                                                    Sign in
+                                                </a>{' '}
+                                                and enroll to leave a review after finishing 100% of the course.
                                             </div>
                                         ) : (
-                                            <div className="border border-slate-100 dark:border-slate-700 bg-white dark:bg-[#1e1f24] p-4 text-center text-sm text-slate-500 dark:text-slate-400">
+                                            <div className="border border-slate-100 bg-white p-4 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400">
                                                 Enroll in this course to leave a review after finishing 100% of the course.
                                             </div>
                                         )}
@@ -301,7 +332,9 @@ export default function CourseDetailPage({
                                         <div className="space-y-3">
                                             <div className="flex items-center gap-2">
                                                 <MessageSquare size={15} className="text-slate-400 dark:text-slate-500" />
-                                                <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">All Reviews ({reviews.length})</h3>
+                                                <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                                                    All Reviews ({reviews.length})
+                                                </h3>
                                             </div>
                                             {reviews.map((review) => (
                                                 <ReviewCard
@@ -328,6 +361,14 @@ export default function CourseDetailPage({
                     </section>
                 </div>
             </div>
+
+            <CheckoutModal
+                open={checkoutOpen}
+                onClose={() => setCheckoutOpen(false)}
+                course={course}
+                paymentMethods={paymentMethods}
+                gateway={paymentGateway}
+            />
         </>
     );
 }

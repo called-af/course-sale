@@ -65,6 +65,29 @@ export interface ContinueLearningEnrollment {
     course: ContinueLearningCourse;
 }
 
+export interface StudentOrderItem {
+    id: number;
+    course_id?: number;
+    course_title?: string;
+    course_price?: number;
+    course?: {
+        id?: number;
+        title?: string;
+        slug?: string;
+    } | null;
+}
+
+export interface StudentOrder {
+    id: number;
+    order_number: string;
+    total_price?: number;
+    status?: string;
+    currency?: string;
+    created_at?: string | null;
+    paid_at?: string | null;
+    items?: StudentOrderItem[];
+}
+
 export interface CertificateItem {
     id: number;
     certificate_number: string;
@@ -185,6 +208,7 @@ export interface StudentDashboardProps extends DashboardBaseProps {
     quizzesCompleted?: number;
     recentActivities?: RecentActivityItem[];
     recommendedCourses?: RecommendedCourse[];
+    orders?: StudentOrder[];
 }
 
 export interface InstructorDashboardProps extends DashboardBaseProps {

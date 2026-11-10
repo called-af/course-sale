@@ -2,7 +2,7 @@ import { Link } from '@inertiajs/react';
 import { ArrowRight, BookOpen, Plus, Star } from 'lucide-react';
 import CourseStatusBadge from '@/components/atoms/CourseStatusBadge';
 import DashboardPanel from '@/components/molecules/DashboardPanel';
-import { formatRupiah } from '@/lib/dashboard';
+import { formatCoursePrice } from '@/lib/currency';
 import type { InstructorCourse } from '@/types/dashboard';
 
 interface CoursePerformanceTableProps {
@@ -39,8 +39,7 @@ export default function CoursePerformanceTable({ courses }: CoursePerformanceTab
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                             {courses.slice(0, 6).map((course) => {
-                                const courseEarnings =
-                                    course.type === 'paid' ? (course.price ?? 0) * (course.enrollments_count ?? 0) : 0;
+                                const courseEarnings = course.type === 'paid' ? (course.price ?? 0) * (course.enrollments_count ?? 0) : 0;
 
                                 return (
                                     <tr key={course.id} className="group transition hover:bg-purple-50/40 dark:hover:bg-purple-950/20">
@@ -57,9 +56,8 @@ export default function CoursePerformanceTable({ courses }: CoursePerformanceTab
                                                     <p className="line-clamp-1 font-bold text-slate-800 group-hover:text-purple-700 dark:text-slate-100 dark:group-hover:text-purple-400">
                                                         {course.title}
                                                     </p>
-                                                    <p className="mt-0.5 text-[10px] capitalize text-slate-400 dark:text-slate-500">
-                                                        {course.level ?? 'All level'} ·{' '}
-                                                        {course.type === 'free' ? 'Free' : formatRupiah(course.price ?? 0)}
+                                                    <p className="mt-0.5 text-[10px] text-slate-400 capitalize dark:text-slate-500">
+                                                        {course.level ?? 'All level'} · {formatCoursePrice(course.type, course.price)}
                                                     </p>
                                                 </div>
                                             </Link>
@@ -77,7 +75,7 @@ export default function CoursePerformanceTable({ courses }: CoursePerformanceTab
                                             </span>
                                         </td>
                                         <td className="px-5 py-3 text-right font-bold text-emerald-600 sm:px-6 dark:text-emerald-400">
-                                            {course.type === 'paid' ? formatRupiah(courseEarnings) : 'Free'}
+                                            {formatCoursePrice(course.type, courseEarnings)}
                                         </td>
                                     </tr>
                                 );

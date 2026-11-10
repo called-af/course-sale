@@ -1,15 +1,15 @@
-import { Material } from "./material"
+import type { Material } from './material';
 
 export interface Module {
-  id: number
-  course_id: number
-  title: string
-  sort_order: number
-  status: "draft" | "published"
+    id: number;
+    course_id: number;
+    title: string;
+    sort_order: number;
+    status: 'draft' | 'published';
 
-  course: {
-    slug: string
-  }
+    course: {
+        slug: string;
+    };
 
-  materials?: Material[]
+    materials?: Material[];
 }

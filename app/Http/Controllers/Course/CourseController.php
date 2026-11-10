@@ -41,9 +41,15 @@ class CourseController extends Controller
     /**
      * View single course
      */
-    public function show(Course $course): Response
+    public function show(Course $course): Response|RedirectResponse
     {
         $this->authorize('view', $course);
+
+        // Students should see the public course page (curriculum, reviews,
+        // discussion) instead of the admin/instructor management screen.
+        if (Auth::user()->role === 'student') {
+            return redirect()->route('course.show', ['course' => $course->slug]);
+        }
 
         $view = Auth::user()->role === 'instructor'
             ? 'student/course/[slug]/page'
@@ -63,12 +69,11 @@ class CourseController extends Controller
             ? 'student/course/preview/page'
             : 'admin/course/preview/page';
 
-        return Inertia::render($view, $this->courseService->previewData($course));
+        return Inertia::render($view, $this->courseService->previewData($course, Auth::user()));
     }
 
     /**
      * Store new course
-
      */
     public function store(
         StoreCourseRequest $request
@@ -115,15 +120,25 @@ class CourseController extends Controller
 
         try {
 
-            $this->courseService->update(
+            $updated = $this->courseService->update(
                 $course,
                 $request->validated()
             );
 
-            return back()->with(
-                'success',
-                'Course updated successfully.'
-            );
+            // A title change regenerates the slug, so redirect to the fresh
+            // URL instead of `back()` (which would point at the old slug).
+            $route = match (Auth::user()->role) {
+                'admin' => 'admin.courses.show',
+                'instructor' => 'instructor.courses.show',
+                default => 'course.show',
+            };
+
+            return redirect()
+                ->route($route, ['course' => $updated->slug])
+                ->with(
+                    'success',
+                    'Course updated successfully.'
+                );
 
         } catch (DomainException $e) {
 

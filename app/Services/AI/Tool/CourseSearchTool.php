@@ -15,23 +15,23 @@ class CourseSearchTool
                 'properties' => [
                     'query' => [
                         'type' => 'string',
-                        'description' => 'Search keyword (e.g. Laravel, React)'
+                        'description' => 'Search keyword (e.g. Laravel, React)',
                     ],
                     'category' => [
                         'type' => 'string',
-                        'description' => 'Category name to filter by'
+                        'description' => 'Category name to filter by',
                     ],
                     'level' => [
                         'type' => 'string',
                         'enum' => ['beginner', 'intermediate', 'advanced'],
-                        'description' => 'Difficulty level'
+                        'description' => 'Difficulty level',
                     ],
                     'max_price' => [
                         'type' => 'integer',
-                        'description' => 'Maximum price user is willing to pay'
-                    ]
-                ]
-            ]
+                        'description' => 'Maximum price user is willing to pay',
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -43,21 +43,21 @@ class CourseSearchTool
         $courses = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addMinutes(30), function () use ($arguments) {
             $query = Course::query()->where('status', 'published');
 
-            if (!empty($arguments['query'])) {
+            if (! empty($arguments['query'])) {
                 $searchTerm = $arguments['query'];
                 $query->where(function ($q) use ($searchTerm) {
-                    $q->where('title', 'like', '%' . $searchTerm . '%')
-                      ->orWhere('description', 'like', '%' . $searchTerm . '%');
+                    $q->where('title', 'like', '%'.$searchTerm.'%')
+                        ->orWhere('description', 'like', '%'.$searchTerm.'%');
                 });
             }
 
-            if (!empty($arguments['category'])) {
-                $query->whereHas('categories', function($q) use ($arguments) {
-                    $q->where('name', 'like', '%' . $arguments['category'] . '%');
+            if (! empty($arguments['category'])) {
+                $query->whereHas('categories', function ($q) use ($arguments) {
+                    $q->where('name', 'like', '%'.$arguments['category'].'%');
                 });
             }
 
-            if (!empty($arguments['level'])) {
+            if (! empty($arguments['level'])) {
                 $query->where('level', $arguments['level']);
             }
 

@@ -40,6 +40,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Cache Store
+    |--------------------------------------------------------------------------
+    |
+    | Leave empty to use the application's default cache store. Set to "redis"
+    | only when the phpredis extension (or predis) is installed.
+    |
+    */
+
+    'cache_store' => env('RECOMMENDATION_CACHE_STORE'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Python Microservice Configuration
     |--------------------------------------------------------------------------
     |
