@@ -75,18 +75,16 @@ export default function CourseCard({ course, manageable = true, enrolled = false
                     </div>
 
                     {!isCourseOwner && enrolled && (
-                        <Link
-                            href={`/student/courses/${course.slug}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex w-full items-center justify-center gap-1.5 bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-purple-700"
-                        >
-                            <PlayCircle className="h-3.5 w-3.5" /> Continue Learning
+                        <Link href={`/student/courses/${course.slug}`} onClick={(e) => e.stopPropagation()}>
+                            <Button size="sm" widthFull leftIcon={<PlayCircle className="h-3.5 w-3.5" />} className="!rounded-none">
+                                Continue Learning
+                            </Button>
                         </Link>
                     )}
 
                     {isCourseOwner && (
                         <div className="mt-1 space-y-2 border-t border-neutral-100 pt-3 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs text-neutral-400 dark:text-slate-500">
+                            <div className="grid grid-cols-1 gap-x-4 gap-y-1 text-xs text-neutral-400 sm:grid-cols-2 dark:text-slate-500">
                                 <span>Categories</span>
                                 <span className="truncate text-right font-medium text-neutral-700 dark:text-slate-200">
                                     {course.categories?.map((category) => category.name).join(', ') || '—'}
@@ -94,16 +92,23 @@ export default function CourseCard({ course, manageable = true, enrolled = false
                             </div>
 
                             <div className="grid grid-cols-2 gap-2 pt-1">
-                                <Link
-                                    href={`/${rolePrefix}/courses/${course.slug}/preview`}
-                                    className="inline-flex items-center justify-center gap-1 border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 transition-colors hover:bg-purple-100 dark:border-purple-900/50 dark:bg-purple-950/40 dark:text-purple-300 dark:hover:bg-purple-950/60"
-                                >
-                                    <Eye className="h-3.5 w-3.5" /> Preview
+                                <Link href={`/${rolePrefix}/courses/${course.slug}/preview`}>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        widthFull
+                                        leftIcon={<Eye className="h-3.5 w-3.5" />}
+                                        className="!rounded-none !border-purple-200 !bg-purple-50 !text-purple-700 hover:!bg-purple-100 dark:!border-purple-900/50 dark:!bg-purple-950/40 dark:!text-purple-300 dark:hover:!bg-purple-950/60"
+                                    >
+                                        Preview
+                                    </Button>
                                 </Link>
 
                                 <Button
                                     variant="danger"
-                                    className="w-full !rounded-none py-1.5 text-xs"
+                                    size="sm"
+                                    widthFull
+                                    className="!rounded-none"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setOpenDelete(true);

@@ -93,12 +93,15 @@ export default function CourseDetailPage({
 
             <div className="min-h-screen bg-gray-100 pt-24 pb-20 dark:bg-[#1e1f24]">
                 <div className="mx-auto max-w-7xl px-4 sm:px-8">
-                    <Link
-                        href="/course"
-                        className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-purple-700 dark:text-slate-400 dark:hover:text-purple-400"
-                    >
-                        <ArrowLeft size={17} />
-                        Back to courses
+                    <Link href="/course" className="mb-6 inline-block">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            leftIcon={<ArrowLeft size={17} />}
+                            className="!rounded-none !text-slate-500 hover:!text-purple-700 dark:!text-slate-400 dark:hover:!text-purple-400"
+                        >
+                            Back to courses
+                        </Button>
                     </Link>
 
                     <div className="grid gap-8 lg:grid-cols-3">
@@ -173,11 +176,10 @@ export default function CourseDetailPage({
                                             {progressPercent === 100 ? 'Review Course' : completedCount > 0 ? 'Resume Learning' : 'Start Learning'}
                                         </Button>
                                     </Link>
-                                    <Link
-                                        href="/student/courses"
-                                        className="mt-2 block text-center text-xs font-medium text-purple-700 hover:underline dark:text-purple-400"
-                                    >
-                                        Back to My Learning
+                                    <Link href="/student/courses" className="mt-2 block text-center">
+                                        <Button variant="ghost" size="sm" className="!rounded-none !text-purple-700 dark:!text-purple-400">
+                                            Back to My Learning
+                                        </Button>
                                     </Link>
                                 </>
                             ) : (

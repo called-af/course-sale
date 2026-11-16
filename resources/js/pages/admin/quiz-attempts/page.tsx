@@ -119,7 +119,7 @@ export default function QuizAttemptsPage({ attempts, courses, stats, filters, se
             <Head title="Quiz Submissions" />
 
             <div className="space-y-6">
-                <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 p-6 text-white shadow-xl sm:p-8">
+                <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 p-4 text-white shadow-xl sm:p-8">
                     <div className="relative z-10">
                         <p className="mb-1 text-sm font-medium text-purple-300">Manual Grading</p>
                         <h1 className="text-2xl font-bold sm:text-3xl">Quiz Submissions</h1>
@@ -339,13 +339,15 @@ function AttemptDetail({ attempt, gradeUrl, onGraded }: { attempt: Attempt; grad
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-purple-100 text-sm font-bold text-purple-700 dark:bg-purple-950/60 dark:text-purple-300">
                         {initials(attempt.user?.name)}
                     </span>
-                    <div>
+                    <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                             <Badge variant="purple">Attempt #{attempt.id}</Badge>
                             {course && <Badge>{course.title}</Badge>}
                         </div>
-                        <h2 className="mt-2 text-base font-bold text-slate-900 dark:text-white">{attempt.user?.name ?? 'Deleted student'}</h2>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">{attempt.user?.email}</p>
+                        <h2 className="mt-2 text-base font-bold break-words text-slate-900 dark:text-white">
+                            {attempt.user?.name ?? 'Deleted student'}
+                        </h2>
+                        <p className="text-xs break-all text-slate-500 dark:text-slate-400">{attempt.user?.email}</p>
                         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                             {module?.title} · {attempt.material_content?.title ?? 'Quiz'} · submitted{' '}
                             {attempt.finished_at ? new Date(attempt.finished_at).toLocaleString('id-ID') : '—'}
@@ -473,7 +475,13 @@ function AttemptDetail({ attempt, gradeUrl, onGraded }: { attempt: Attempt; grad
                             {gradedCount}/{essayAnswers.length} graded
                         </span>
                     </div>
-                    <Button onClick={submit} isLoading={form.processing} disabled={!allGraded} leftIcon={<ClipboardCheck size={16} />}>
+                    <Button
+                        onClick={submit}
+                        isLoading={form.processing}
+                        disabled={!allGraded}
+                        leftIcon={<ClipboardCheck size={16} />}
+                        className="w-full justify-center sm:w-auto"
+                    >
                         Save grade &amp; next
                     </Button>
                 </div>

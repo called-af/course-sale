@@ -44,11 +44,11 @@ const TYPE_META: Record<string, { label: string; icon: typeof Video; cls: string
    with a horizontal branch at each item. */
 function TreeNode({ isLast, children }: { isLast: boolean; children: React.ReactNode }) {
     return (
-        <div className="relative pl-6">
+        <div className="relative pl-4 sm:pl-6">
             {/* Vertical line: full height for non-last, half for last */}
             <div className={`absolute top-0 left-[7px] border-l-2 border-neutral-200 dark:border-slate-700 ${isLast ? 'h-[22px]' : 'bottom-0'}`} />
             {/* Horizontal branch */}
-            <div className="absolute top-[21px] left-[7px] w-[17px] border-t-2 border-neutral-200 dark:border-slate-700" />
+            <div className="absolute top-[21px] left-[7px] w-[9px] border-t-2 border-neutral-200 sm:w-[17px] dark:border-slate-700" />
             {children}
         </div>
     );
@@ -82,15 +82,17 @@ function ContentsSection({ courseSlug, moduleId, materialId, contents, editId, r
         <div>
             {/* Inline Edit */}
             {crud.editing && (
-                <div className="m-3 space-y-3 border border-violet-200/60 bg-violet-50/20 p-4">
-                    <div className="flex items-center justify-between">
+                <div className="m-2 space-y-3 border border-violet-200/60 bg-violet-50/20 p-3 sm:m-3 sm:p-4">
+                    <div className="flex items-center justify-between gap-2">
                         <span className="text-[10px] font-semibold tracking-wider text-violet-500 uppercase">Edit Content</span>
-                        <button
+                        <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => history.back()}
-                            className="p-1 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600"
-                        >
-                            <X className="h-3.5 w-3.5" />
-                        </button>
+                            leftIcon={<X className="h-3.5 w-3.5" />}
+                            aria-label="Close editor"
+                            className="!h-7 !w-7 shrink-0 !rounded-none !p-0"
+                        />
                     </div>
                     <InputField label="Title" value={crud.title} onChange={(e) => crud.setTitle(e.target.value)} />
                     <div className="space-y-1">
@@ -154,12 +156,15 @@ function ContentsSection({ courseSlug, moduleId, materialId, contents, editId, r
                         {crud.sortedContents.length}
                     </span>
                 </div>
-                <button
+                <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={crud.openCreate}
-                    className="flex items-center gap-1 text-sm font-medium text-purple-500 transition-colors hover:text-purple-700"
+                    leftIcon={<Plus className="h-4 w-4" />}
+                    className="!rounded-none !px-2 !text-purple-500 hover:!text-purple-700"
                 >
-                    <Plus className="h-4 w-4" /> Add
-                </button>
+                    Add
+                </Button>
             </div>
 
             {/* Content rows */}
@@ -180,18 +185,22 @@ function ContentsSection({ courseSlug, moduleId, materialId, contents, editId, r
                         <TreeNode key={item.id} isLast={isLast}>
                             <div className="group flex items-center gap-2 py-1.5 pr-2 transition-colors hover:bg-slate-100/80 dark:hover:bg-slate-700/60">
                                 <Icon className={`h-4 w-4 shrink-0 ${meta.cls}`} />
-                                <span className="flex-1 truncate text-[13px] text-neutral-700 dark:text-slate-200">{item.title}</span>
+                                <span className="min-w-0 flex-1 text-[13px] leading-snug break-words text-neutral-700 dark:text-slate-200">
+                                    {item.title}
+                                </span>
                                 <span className="hidden shrink-0 text-[9px] font-medium tracking-wide text-neutral-400 uppercase sm:inline">
                                     {meta.label}
                                 </span>
                                 <StatusDot status={item.status} />
-                                <div className="flex items-center gap-px opacity-0 transition-opacity group-hover:opacity-100 max-sm:opacity-100">
-                                    <IconBtn onClick={() => crud.moveContent(item, 'up')} disabled={isFirst} title="Move up">
-                                        <ArrowUp className="h-3 w-3" />
-                                    </IconBtn>
-                                    <IconBtn onClick={() => crud.moveContent(item, 'down')} disabled={isLast} title="Move down">
-                                        <ArrowDown className="h-3 w-3" />
-                                    </IconBtn>
+                                <div className="flex shrink-0 items-center gap-px opacity-0 transition-opacity group-hover:opacity-100 max-sm:opacity-100">
+                                    <div className="hidden items-center gap-px sm:flex">
+                                        <IconBtn onClick={() => crud.moveContent(item, 'up')} disabled={isFirst} title="Move up">
+                                            <ArrowUp className="h-3 w-3" />
+                                        </IconBtn>
+                                        <IconBtn onClick={() => crud.moveContent(item, 'down')} disabled={isLast} title="Move down">
+                                            <ArrowDown className="h-3 w-3" />
+                                        </IconBtn>
+                                    </div>
                                     <IconBtn onClick={() => crud.editPage(item.id)} title="Edit">
                                         <Pencil className="h-3 w-3" />
                                     </IconBtn>
@@ -269,12 +278,15 @@ function MaterialsSection({ courseSlug, moduleId, materials, routePrefix }: Mate
                         {crud.sortedMaterials.length}
                     </span>
                 </div>
-                <button
+                <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={crud.openCreate}
-                    className="flex items-center gap-1 text-sm font-medium text-purple-500 transition-colors hover:text-purple-700"
+                    leftIcon={<Plus className="h-4 w-4" />}
+                    className="!rounded-none !px-2 !text-purple-500 hover:!text-purple-700"
                 >
-                    <Plus className="h-4 w-4" /> Add
-                </button>
+                    Add
+                </Button>
             </div>
 
             {/* Material rows */}
@@ -302,18 +314,22 @@ function MaterialsSection({ courseSlug, moduleId, materials, routePrefix }: Mate
                                 <div className={`shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}>
                                     <ChevronRight className={`h-3.5 w-3.5 ${isOpen ? 'text-blue-500' : 'text-neutral-300'}`} />
                                 </div>
-                                <span className="flex-1 truncate text-sm font-medium text-neutral-700 dark:text-slate-200">{material.title}</span>
+                                <span className="min-w-0 flex-1 text-sm leading-snug font-medium break-words text-neutral-700 dark:text-slate-200">
+                                    {material.title}
+                                </span>
                                 <StatusDot status={material.status} />
                                 <div
-                                    className="flex items-center gap-px opacity-0 transition-opacity group-hover:opacity-100 max-sm:opacity-100"
+                                    className="flex shrink-0 items-center gap-px opacity-0 transition-opacity group-hover:opacity-100 max-sm:opacity-100"
                                     onClick={(e) => e.stopPropagation()}
                                 >
-                                    <IconBtn onClick={() => crud.moveMaterial(material, 'up')} disabled={isFirst} title="Up">
-                                        <ArrowUp className="h-3 w-3" />
-                                    </IconBtn>
-                                    <IconBtn onClick={() => crud.moveMaterial(material, 'down')} disabled={isLast} title="Down">
-                                        <ArrowDown className="h-3 w-3" />
-                                    </IconBtn>
+                                    <div className="hidden items-center gap-px sm:flex">
+                                        <IconBtn onClick={() => crud.moveMaterial(material, 'up')} disabled={isFirst} title="Up">
+                                            <ArrowUp className="h-3 w-3" />
+                                        </IconBtn>
+                                        <IconBtn onClick={() => crud.moveMaterial(material, 'down')} disabled={isLast} title="Down">
+                                            <ArrowDown className="h-3 w-3" />
+                                        </IconBtn>
+                                    </div>
                                     <IconBtn onClick={() => crud.openEdit(material)} title="Edit">
                                         <Pencil className="h-3 w-3" />
                                     </IconBtn>
@@ -390,21 +406,26 @@ export default function CourseStructure({ course, modules, routePrefix }: Course
 
     return (
         <>
-            <div className="space-y-6 overflow-hidden border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
+            <div className="space-y-6 overflow-hidden border border-slate-200/80 bg-white p-4 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
                 {/* Header */}
                 <div className="flex flex-col justify-between gap-4 border-b border-slate-100 pb-4 sm:flex-row sm:items-center dark:border-slate-700">
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center bg-purple-700 shadow-xs">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-purple-700 shadow-xs">
                             <Layers className="h-5 w-5 text-white" />
                         </div>
-                        <div>
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Structure &amp; Syllabus Course</h3>
+                        <div className="min-w-0">
+                            <h3 className="text-lg font-bold break-words text-slate-900 dark:text-white">Structure &amp; Syllabus Course</h3>
                             <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                                 Manage modules, materials, and learning content ({crud.sortedModules.length} Modules)
                             </p>
                         </div>
                     </div>
-                    <Button size="md" onClick={crud.openCreateModal} leftIcon={<Plus className="h-4 w-4" />} className="!rounded-none">
+                    <Button
+                        size="md"
+                        onClick={crud.openCreateModal}
+                        leftIcon={<Plus className="h-4 w-4" />}
+                        className="w-full !rounded-none sm:w-auto"
+                    >
                         Add New Module
                     </Button>
                 </div>
@@ -421,7 +442,7 @@ export default function CourseStructure({ course, modules, routePrefix }: Course
                         </p>
                     </div>
                 ) : (
-                    <div className="p-4">
+                    <div className="p-2 sm:p-4">
                         {crud.sortedModules.map((module, index) => {
                             const isFirst = index === 0;
                             const isLast = index === crud.sortedModules.length - 1;
@@ -442,12 +463,12 @@ export default function CourseStructure({ course, modules, routePrefix }: Course
                                         <span className="hidden w-4 shrink-0 text-right font-mono text-[10px] text-neutral-300 sm:block dark:text-slate-600">
                                             {String(index + 1).padStart(2, '0')}
                                         </span>
-                                        <span className="flex-1 truncate text-sm font-semibold text-neutral-800 dark:text-slate-100">
+                                        <span className="min-w-0 flex-1 text-sm leading-snug font-semibold break-words text-neutral-800 dark:text-slate-100">
                                             {module.title}
                                         </span>
                                         <StatusDot status={module.status} />
                                         <div
-                                            className="flex items-center gap-px opacity-0 transition-opacity group-hover:opacity-100 max-sm:opacity-100"
+                                            className="flex shrink-0 items-center gap-px opacity-0 transition-opacity group-hover:opacity-100 max-sm:opacity-100"
                                             onClick={(e) => e.stopPropagation()}
                                         >
                                             <div className="hidden gap-px sm:flex">
@@ -555,17 +576,19 @@ function IconBtn({
     danger?: boolean;
 }) {
     return (
-        <button
+        <Button
+            variant="ghost"
+            size="sm"
             onClick={onClick}
             disabled={disabled}
             title={title}
-            className={`flex h-7 w-7 shrink-0 items-center justify-center transition-colors ${
+            className={`!h-7 !w-7 !rounded-none !p-0 ${
                 danger
-                    ? 'text-neutral-400 hover:bg-red-50 hover:text-red-500 dark:text-slate-500 dark:hover:bg-red-950/30 dark:hover:text-red-400'
-                    : 'text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-slate-200'
-            } disabled:cursor-not-allowed disabled:opacity-20`}
+                    ? '!text-neutral-400 hover:!bg-red-50 hover:!text-red-500 dark:!text-slate-500 dark:hover:!bg-red-950/30 dark:hover:!text-red-400'
+                    : '!text-neutral-400 hover:!bg-neutral-100 hover:!text-neutral-600 dark:!text-slate-500 dark:hover:!bg-slate-700 dark:hover:!text-slate-200'
+            }`}
         >
             {children}
-        </button>
+        </Button>
     );
 }

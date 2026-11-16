@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { FileText, Play, Video } from 'lucide-react';
+import Button from '@/components/atoms/Button';
 import ProgressBar from '@/components/atoms/ProgressBar';
 import { useBranding } from '@/hooks/useBranding';
 import type { ContinueLearningCourse } from '@/types/dashboard';
@@ -63,12 +64,10 @@ export default function ContinueLearningBanner({ course }: ContinueLearningBanne
                 </div>
 
                 <div className="flex items-center gap-2 sm:shrink-0">
-                    <Link
-                        href={resumeUrl}
-                        className="inline-flex w-full items-center justify-center gap-2 bg-purple-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-purple-600/20 transition hover:bg-purple-700 active:scale-98 sm:w-auto"
-                    >
-                        <Play size={14} className="fill-white" />
-                        Continue Learning
+                    <Link href={resumeUrl} className="w-full sm:w-auto">
+                        <Button size="md" widthFull leftIcon={<Play size={14} className="fill-white" />} className="!rounded-none">
+                            Continue Learning
+                        </Button>
                     </Link>
                 </div>
             </div>

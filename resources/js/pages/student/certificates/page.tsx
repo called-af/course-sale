@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { Award, BookOpen, Calendar, Download, ExternalLink, Shield } from 'lucide-react';
+import Button from '@/components/atoms/Button';
 import UserLayout from '@/components/templates/UserLayout';
 
 interface CertificateCourse {
@@ -94,23 +95,16 @@ function CertificateCard({ cert }: { cert: CertificateItem }) {
                 {/* Actions */}
                 <div className="flex gap-2 pt-1">
                     {cert.has_pdf && (
-                        <a
-                            href={`/student/certificates/${cert.id}/download`}
-                            className="flex flex-1 items-center justify-center gap-1.5 border border-slate-200 bg-white py-2 text-xs font-medium text-slate-700 transition-colors hover:border-purple-300 hover:text-purple-700 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-200 dark:hover:border-purple-600 dark:hover:text-purple-400"
-                            download
-                        >
-                            <Download size={13} />
-                            Download PDF
+                        <a href={`/student/certificates/${cert.id}/download`} download className="flex-1">
+                            <Button variant="outline" size="sm" widthFull leftIcon={<Download size={13} />} className="!rounded-none">
+                                Download PDF
+                            </Button>
                         </a>
                     )}
-                    <a
-                        href={`/certificate/${cert.certificate_number}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex flex-1 items-center justify-center gap-1.5 border border-purple-200 bg-purple-50 py-2 text-xs font-medium text-purple-700 transition-colors hover:bg-purple-100 dark:border-purple-900/50 dark:bg-purple-950/40 dark:text-purple-300 dark:hover:bg-purple-950/60"
-                    >
-                        <ExternalLink size={13} />
-                        Verify
+                    <a href={`/certificate/${cert.certificate_number}`} target="_blank" rel="noopener noreferrer" className="flex-1">
+                        <Button size="sm" widthFull leftIcon={<ExternalLink size={13} />} className="!rounded-none">
+                            Verify
+                        </Button>
                     </a>
                 </div>
             </div>
@@ -128,12 +122,10 @@ function EmptyState() {
             <p className="mt-2 text-sm text-slate-400 dark:text-slate-500">
                 Complete all materials in a course to earn your certificate of completion.
             </p>
-            <Link
-                href="/student/courses"
-                className="mt-5 inline-flex items-center gap-2 bg-purple-700 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-purple-800"
-            >
-                <BookOpen size={15} />
-                Continue Learning
+            <Link href="/student/courses" className="mt-5 inline-block">
+                <Button leftIcon={<BookOpen size={15} />} className="!rounded-none">
+                    Continue Learning
+                </Button>
             </Link>
         </div>
     );

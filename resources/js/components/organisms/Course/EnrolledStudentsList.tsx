@@ -1,5 +1,6 @@
 import { Users, Search, Calendar, CheckCircle2, Clock, UserX, X, Download } from 'lucide-react';
 import React, { useState, useMemo } from 'react';
+import Button from '@/components/atoms/Button';
 import type { EnrolledStudent } from '@/types';
 
 interface EnrolledStudentsListProps {
@@ -78,48 +79,46 @@ export default function EnrolledStudentsList({ students = [], exportUrl }: Enrol
                 <div className="flex flex-wrap items-center gap-2">
                     {metrics.total > 0 && (
                         <div className="flex flex-wrap items-center gap-2 text-xs">
-                            <button
+                            <Button
                                 type="button"
+                                variant={statusFilter === 'all' ? 'primary' : 'outline'}
+                                size="sm"
                                 onClick={() => setStatusFilter('all')}
-                                className={`px-3 py-1.5 font-medium transition-colors ${
-                                    statusFilter === 'all'
-                                        ? 'bg-purple-600 text-white'
-                                        : 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-300'
-                                }`}
+                                className="!rounded-none"
                             >
                                 Semua ({metrics.total})
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type="button"
+                                variant={statusFilter === 'in_progress' ? 'primary' : 'outline'}
+                                size="sm"
                                 onClick={() => setStatusFilter('in_progress')}
-                                className={`px-3 py-1.5 font-medium transition-colors ${
-                                    statusFilter === 'in_progress'
-                                        ? 'bg-purple-600 text-white'
-                                        : 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-300'
-                                }`}
+                                className="!rounded-none"
                             >
                                 Sedang Belajar ({metrics.inProgress})
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type="button"
+                                variant={statusFilter === 'completed' ? 'primary' : 'outline'}
+                                size="sm"
                                 onClick={() => setStatusFilter('completed')}
-                                className={`px-3 py-1.5 font-medium transition-colors ${
-                                    statusFilter === 'completed'
-                                        ? 'bg-purple-600 text-white'
-                                        : 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-300'
-                                }`}
+                                className="!rounded-none"
                             >
                                 Selesai ({metrics.completed})
-                            </button>
+                            </Button>
                         </div>
                     )}
 
                     {exportUrl && (
-                        <a
-                            href={exportUrl}
-                            className="flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300"
-                        >
-                            <Download size={14} /> Export CSV
+                        <a href={exportUrl}>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                leftIcon={<Download size={14} />}
+                                className="!rounded-none !border-emerald-200 !bg-emerald-50 !text-emerald-700 hover:!bg-emerald-100 dark:!border-emerald-900/60 dark:!bg-emerald-950/30 dark:!text-emerald-300"
+                            >
+                                Export CSV
+                            </Button>
                         </a>
                     )}
                 </div>
@@ -199,128 +198,213 @@ export default function EnrolledStudentsList({ students = [], exportUrl }: Enrol
                     <p className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-400">
                         Tidak ada siswa yang cocok dengan pencarian "{searchQuery}"
                     </p>
-                    <button
+                    <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => {
                             setSearchQuery('');
                             setStatusFilter('all');
                         }}
-                        className="mt-3 text-xs font-semibold text-purple-600 hover:underline dark:text-purple-400"
+                        className="mt-3 !rounded-none"
                     >
                         Reset Filter
-                    </button>
+                    </Button>
                 </div>
             ) : (
-                <div className="overflow-x-auto border border-slate-200 dark:border-slate-700">
-                    <table className="w-full text-left text-sm">
-                        <thead className="border-b border-slate-200 bg-slate-50 text-xs font-bold tracking-wider text-slate-600 uppercase dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400">
-                            <tr>
-                                <th scope="col" className="px-5 py-3.5">
-                                    Siswa
-                                </th>
-                                <th scope="col" className="px-5 py-3.5">
-                                    Tanggal Mendaftar
-                                </th>
-                                <th scope="col" className="px-5 py-3.5">
-                                    Progress Belajar
-                                </th>
-                                <th scope="col" className="px-5 py-3.5 text-right">
-                                    Status
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60">
-                            {filteredStudents.map((student) => {
-                                const initials = student.name
-                                    ? student.name
-                                          .split(' ')
-                                          .map((n) => n[0])
-                                          .slice(0, 2)
-                                          .join('')
-                                          .toUpperCase()
-                                    : 'ST';
+                <>
+                    {/* Mobile: student cards */}
+                    <div className="space-y-3 md:hidden">
+                        {filteredStudents.map((student) => {
+                            const initials = student.name
+                                ? student.name
+                                      .split(' ')
+                                      .map((n) => n[0])
+                                      .slice(0, 2)
+                                      .join('')
+                                      .toUpperCase()
+                                : 'ST';
 
-                                return (
-                                    <tr key={student.id} className="transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-900/30">
-                                        {/* Student Info */}
-                                        <td className="px-5 py-4">
-                                            <div className="flex items-center gap-3">
-                                                {student.avatar_url ? (
-                                                    <img
-                                                        src={student.avatar_url}
-                                                        alt={student.name}
-                                                        className="h-10 w-10 border border-slate-200 object-cover dark:border-slate-700"
-                                                    />
-                                                ) : (
-                                                    <div className="flex h-10 w-10 items-center justify-center border border-purple-200 bg-purple-100 font-bold text-purple-700 dark:border-purple-800 dark:bg-purple-950 dark:text-purple-300">
-                                                        {initials}
+                            return (
+                                <div key={student.id} className="border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1e1f24]">
+                                    <div className="flex items-start gap-3">
+                                        {student.avatar_url ? (
+                                            <img
+                                                src={student.avatar_url}
+                                                alt={student.name}
+                                                className="h-10 w-10 shrink-0 border border-slate-200 object-cover dark:border-slate-700"
+                                            />
+                                        ) : (
+                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-purple-200 bg-purple-100 font-bold text-purple-700 dark:border-purple-800 dark:bg-purple-950 dark:text-purple-300">
+                                                {initials}
+                                            </div>
+                                        )}
+
+                                        <div className="min-w-0 flex-1">
+                                            <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{student.name}</p>
+                                            <p className="truncate text-xs text-slate-500 dark:text-slate-400">{student.email}</p>
+                                            <p className="mt-1 flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                                                <Calendar className="h-3 w-3 shrink-0" />
+                                                {formatDate(student.enrolled_at)}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-3 space-y-1.5">
+                                        <div className="flex items-center justify-between text-xs">
+                                            <span className="font-semibold text-slate-800 dark:text-slate-200">{student.progress_percent}%</span>
+                                            <span className="text-[11px] text-slate-400">
+                                                {student.completed_contents ?? 0} / {student.total_contents ?? 0} Contents
+                                            </span>
+                                        </div>
+                                        <div className="h-2 w-full overflow-hidden bg-slate-100 dark:bg-slate-700">
+                                            <div
+                                                className={`h-full transition-all duration-300 ${
+                                                    student.progress_percent === 100
+                                                        ? 'bg-emerald-500'
+                                                        : student.progress_percent > 0
+                                                          ? 'bg-purple-600'
+                                                          : 'bg-slate-300 dark:bg-slate-600'
+                                                }`}
+                                                style={{ width: `${student.progress_percent}%` }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-3 flex justify-end">
+                                        {student.progress_percent === 100 ? (
+                                            <span className="inline-flex items-center gap-1 border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                                <CheckCircle2 className="h-3 w-3" />
+                                                Selesai
+                                            </span>
+                                        ) : student.progress_percent > 0 ? (
+                                            <span className="inline-flex items-center gap-1 border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-600 dark:text-purple-400">
+                                                <Clock className="h-3 w-3" />
+                                                Aktif
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1 border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400">
+                                                Belum Mulai
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Desktop: table */}
+                    <div className="hidden overflow-x-auto border border-slate-200 md:block dark:border-slate-700">
+                        <table className="w-full min-w-[720px] text-left text-sm">
+                            <thead className="border-b border-slate-200 bg-slate-50 text-xs font-bold tracking-wider text-slate-600 uppercase dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400">
+                                <tr>
+                                    <th scope="col" className="px-5 py-3.5">
+                                        Siswa
+                                    </th>
+                                    <th scope="col" className="px-5 py-3.5">
+                                        Tanggal Mendaftar
+                                    </th>
+                                    <th scope="col" className="px-5 py-3.5">
+                                        Progress Belajar
+                                    </th>
+                                    <th scope="col" className="px-5 py-3.5 text-right">
+                                        Status
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60">
+                                {filteredStudents.map((student) => {
+                                    const initials = student.name
+                                        ? student.name
+                                              .split(' ')
+                                              .map((n) => n[0])
+                                              .slice(0, 2)
+                                              .join('')
+                                              .toUpperCase()
+                                        : 'ST';
+
+                                    return (
+                                        <tr key={student.id} className="transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-900/30">
+                                            {/* Student Info */}
+                                            <td className="px-5 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    {student.avatar_url ? (
+                                                        <img
+                                                            src={student.avatar_url}
+                                                            alt={student.name}
+                                                            className="h-10 w-10 border border-slate-200 object-cover dark:border-slate-700"
+                                                        />
+                                                    ) : (
+                                                        <div className="flex h-10 w-10 items-center justify-center border border-purple-200 bg-purple-100 font-bold text-purple-700 dark:border-purple-800 dark:bg-purple-950 dark:text-purple-300">
+                                                            {initials}
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <div className="font-semibold text-slate-900 dark:text-white">{student.name}</div>
+                                                        <div className="text-xs text-slate-500 dark:text-slate-400">{student.email}</div>
                                                     </div>
+                                                </div>
+                                            </td>
+
+                                            {/* Enrolled Date */}
+                                            <td className="px-5 py-4 text-xs whitespace-nowrap text-slate-600 dark:text-slate-300">
+                                                <div className="flex items-center gap-1.5">
+                                                    <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                                                    <span>{formatDate(student.enrolled_at)}</span>
+                                                </div>
+                                            </td>
+
+                                            {/* Progress */}
+                                            <td className="px-5 py-4">
+                                                <div className="w-full max-w-[200px] space-y-1.5">
+                                                    <div className="flex items-center justify-between text-xs">
+                                                        <span className="font-semibold text-slate-800 dark:text-slate-200">
+                                                            {student.progress_percent}%
+                                                        </span>
+                                                        <span className="text-[11px] text-slate-400">
+                                                            {student.completed_contents ?? 0} / {student.total_contents ?? 0} Contents
+                                                        </span>
+                                                    </div>
+                                                    <div className="h-2 w-full overflow-hidden bg-slate-100 dark:bg-slate-700">
+                                                        <div
+                                                            className={`h-full transition-all duration-300 ${
+                                                                student.progress_percent === 100
+                                                                    ? 'bg-emerald-500'
+                                                                    : student.progress_percent > 0
+                                                                      ? 'bg-purple-600'
+                                                                      : 'bg-slate-300 dark:bg-slate-600'
+                                                            }`}
+                                                            style={{ width: `${student.progress_percent}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            {/* Status */}
+                                            <td className="px-5 py-4 text-right whitespace-nowrap">
+                                                {student.progress_percent === 100 ? (
+                                                    <span className="inline-flex items-center gap-1 border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                                        <CheckCircle2 className="h-3 w-3" />
+                                                        Selesai
+                                                    </span>
+                                                ) : student.progress_percent > 0 ? (
+                                                    <span className="inline-flex items-center gap-1 border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-600 dark:text-purple-400">
+                                                        <Clock className="h-3 w-3" />
+                                                        Aktif
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400">
+                                                        Belum Mulai
+                                                    </span>
                                                 )}
-                                                <div>
-                                                    <div className="font-semibold text-slate-900 dark:text-white">{student.name}</div>
-                                                    <div className="text-xs text-slate-500 dark:text-slate-400">{student.email}</div>
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        {/* Enrolled Date */}
-                                        <td className="px-5 py-4 text-xs whitespace-nowrap text-slate-600 dark:text-slate-300">
-                                            <div className="flex items-center gap-1.5">
-                                                <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                                                <span>{formatDate(student.enrolled_at)}</span>
-                                            </div>
-                                        </td>
-
-                                        {/* Progress */}
-                                        <td className="px-5 py-4">
-                                            <div className="w-full max-w-[200px] space-y-1.5">
-                                                <div className="flex items-center justify-between text-xs">
-                                                    <span className="font-semibold text-slate-800 dark:text-slate-200">
-                                                        {student.progress_percent}%
-                                                    </span>
-                                                    <span className="text-[11px] text-slate-400">
-                                                        {student.completed_contents ?? 0} / {student.total_contents ?? 0} Contents
-                                                    </span>
-                                                </div>
-                                                <div className="h-2 w-full overflow-hidden bg-slate-100 dark:bg-slate-700">
-                                                    <div
-                                                        className={`h-full transition-all duration-300 ${
-                                                            student.progress_percent === 100
-                                                                ? 'bg-emerald-500'
-                                                                : student.progress_percent > 0
-                                                                  ? 'bg-purple-600'
-                                                                  : 'bg-slate-300 dark:bg-slate-600'
-                                                        }`}
-                                                        style={{ width: `${student.progress_percent}%` }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        {/* Status */}
-                                        <td className="px-5 py-4 text-right whitespace-nowrap">
-                                            {student.progress_percent === 100 ? (
-                                                <span className="inline-flex items-center gap-1 border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                                                    <CheckCircle2 className="h-3 w-3" />
-                                                    Selesai
-                                                </span>
-                                            ) : student.progress_percent > 0 ? (
-                                                <span className="inline-flex items-center gap-1 border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-600 dark:text-purple-400">
-                                                    <Clock className="h-3 w-3" />
-                                                    Aktif
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex items-center gap-1 border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400">
-                                                    Belum Mulai
-                                                </span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </>
             )}
         </div>
     );

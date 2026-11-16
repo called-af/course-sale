@@ -26,6 +26,7 @@ class StoreUserRequest extends FormRequest
             'email' => ['required', 'email', 'unique:users,email'],
             'password' => ['required', 'min:8'],
             'role' => ['required', 'in:student,instructor,admin'],
+            'bio' => ['nullable', 'string', 'max:1000'],
         ];
     }
 }

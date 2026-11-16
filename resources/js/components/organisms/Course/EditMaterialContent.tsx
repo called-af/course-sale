@@ -151,16 +151,16 @@ export default function EditMaterialContent({ courseSlug, moduleId, materialId, 
     return (
         <div className="space-y-6">
             {/* Card 1: Main Content Settings */}
-            <div className="space-y-6 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-700">
-                    <div>
-                        <h2 className="text-lg font-bold text-slate-900 dark:text-white">Main Content Settings</h2>
+            <div className="space-y-6 border border-slate-200/80 bg-white p-4 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
+                <div className="flex flex-col items-start justify-between gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center dark:border-slate-700">
+                    <div className="min-w-0">
+                        <h2 className="text-lg font-bold break-words text-slate-900 dark:text-white">Main Content Settings</h2>
                         <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                             Set the title, publication status, and content type for this lesson.
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-2">
                         <span
                             className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold tracking-wider uppercase ${
                                 form.status === 'published'
@@ -247,7 +247,7 @@ export default function EditMaterialContent({ courseSlug, moduleId, materialId, 
             </div>
 
             {/* Card 2: Content Specific Editor */}
-            <div className="space-y-6 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
+            <div className="space-y-6 border border-slate-200/80 bg-white p-4 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
                 {/* Media & Upload Source */}
                 {(form.type === 'video' || form.type === 'file' || form.type === 'ppt') && (
                     <div className="space-y-4">
@@ -317,39 +317,45 @@ export default function EditMaterialContent({ courseSlug, moduleId, materialId, 
 
                                 {form.file && (
                                     <div className="flex items-center justify-between border border-slate-200 bg-slate-50 px-3 py-2 text-xs dark:border-slate-700 dark:bg-[#1e1f24]">
-                                        <span className="truncate text-slate-600 dark:text-slate-300">Ready to upload: {form.file.name}</span>
-                                        <button
+                                        <span className="min-w-0 truncate text-slate-600 dark:text-slate-300">Ready to upload: {form.file.name}</span>
+                                        <Button
                                             type="button"
+                                            variant="ghost"
+                                            size="sm"
                                             onClick={() => form.setFile(null)}
-                                            className="inline-flex shrink-0 items-center gap-1 font-medium text-rose-600 hover:underline dark:text-rose-400"
+                                            leftIcon={<X className="h-3.5 w-3.5" />}
+                                            className="!rounded-none !text-rose-600 hover:!bg-rose-50 dark:!text-rose-400 dark:hover:!bg-rose-950/30"
                                         >
-                                            <X className="h-3.5 w-3.5" /> Remove
-                                        </button>
+                                            Remove
+                                        </Button>
                                     </div>
                                 )}
 
                                 {!form.file && form.contentUrl && (
                                     <div className="flex flex-wrap items-center justify-between gap-2 border border-slate-200 bg-slate-50 px-3 py-2 text-xs dark:border-slate-700 dark:bg-[#1e1f24]">
-                                        <span className="truncate text-slate-600 dark:text-slate-300">
+                                        <span className="min-w-0 truncate text-slate-600 dark:text-slate-300">
                                             Current file: {fileNameFromUrl(form.contentUrl)}
                                         </span>
-                                        <span className="flex shrink-0 items-center gap-3">
-                                            <a
-                                                href={form.contentUrl}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="inline-flex items-center gap-1 font-medium text-indigo-600 hover:underline dark:text-indigo-400"
-                                            >
-                                                <ExternalLink className="h-3.5 w-3.5" /> Open
+                                        <span className="flex shrink-0 items-center gap-1">
+                                            <a href={form.contentUrl} target="_blank" rel="noreferrer">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    leftIcon={<ExternalLink className="h-3.5 w-3.5" />}
+                                                    className="!rounded-none !text-indigo-600 hover:!bg-indigo-50 dark:!text-indigo-400 dark:hover:!bg-indigo-950/30"
+                                                >
+                                                    Open
+                                                </Button>
                                             </a>
-                                            <a
-                                                href={form.contentUrl}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                download
-                                                className="inline-flex items-center gap-1 font-medium text-emerald-600 hover:underline dark:text-emerald-400"
-                                            >
-                                                <Download className="h-3.5 w-3.5" /> Download
+                                            <a href={form.contentUrl} target="_blank" rel="noreferrer" download>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    leftIcon={<Download className="h-3.5 w-3.5" />}
+                                                    className="!rounded-none !text-emerald-600 hover:!bg-emerald-50 dark:!text-emerald-400 dark:hover:!bg-emerald-950/30"
+                                                >
+                                                    Download
+                                                </Button>
                                             </a>
                                         </span>
                                     </div>
@@ -373,15 +379,17 @@ export default function EditMaterialContent({ courseSlug, moduleId, materialId, 
                                 />
 
                                 {form.contentUrl && (
-                                    <div className="flex items-center justify-between border border-slate-200/80 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-[#1e1f24]">
-                                        <span className="max-w-md truncate text-slate-600 dark:text-slate-300">{form.contentUrl}</span>
-                                        <a
-                                            href={form.contentUrl}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="inline-flex items-center gap-1.5 bg-indigo-50 px-3 py-1 font-medium text-indigo-600 transition-colors hover:bg-indigo-100 dark:bg-indigo-950/60 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
-                                        >
-                                            Open Link <ExternalLink className="h-3.5 w-3.5" />
+                                    <div className="flex flex-wrap items-center justify-between gap-2 border border-slate-200/80 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-[#1e1f24]">
+                                        <span className="max-w-md min-w-0 break-all text-slate-600 dark:text-slate-300">{form.contentUrl}</span>
+                                        <a href={form.contentUrl} target="_blank" rel="noreferrer">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                rightIcon={<ExternalLink className="h-3.5 w-3.5" />}
+                                                className="!rounded-none !border-indigo-100 !bg-indigo-50 !text-indigo-600 hover:!bg-indigo-100 dark:!border-indigo-900 dark:!bg-indigo-950/60 dark:!text-indigo-300 dark:hover:!bg-indigo-900/60"
+                                            >
+                                                Open Link
+                                            </Button>
                                         </a>
                                     </div>
                                 )}
@@ -425,21 +433,19 @@ export default function EditMaterialContent({ courseSlug, moduleId, materialId, 
                         </div>
 
                         {/* Quick Duration Presets */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                             <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase dark:text-slate-500">Quick Presets:</span>
                             {[15, 30, 45, 60, 90].map((mins) => (
-                                <button
+                                <Button
                                     key={mins}
                                     type="button"
+                                    variant={form.duration === mins ? 'primary' : 'outline'}
+                                    size="sm"
                                     onClick={() => form.setDuration(mins)}
-                                    className={`border px-3 py-1 text-xs font-medium transition-all ${
-                                        form.duration === mins
-                                            ? 'border-rose-300 bg-rose-50 font-semibold text-rose-700 dark:border-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
-                                            : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-300 dark:hover:bg-slate-700'
-                                    }`}
+                                    className="!rounded-none"
                                 >
                                     {mins} min
-                                </button>
+                                </Button>
                             ))}
                         </div>
 
@@ -471,28 +477,26 @@ export default function EditMaterialContent({ courseSlug, moduleId, materialId, 
                             </div>
 
                             <div className="flex items-center gap-1 bg-slate-100 p-1 dark:bg-[#1e1f24]">
-                                <button
+                                <Button
                                     type="button"
+                                    variant={!splitView ? 'primary' : 'ghost'}
+                                    size="sm"
                                     onClick={() => setSplitView(false)}
-                                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all ${
-                                        !splitView
-                                            ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white'
-                                            : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-100'
-                                    }`}
+                                    leftIcon={<Edit3 className="h-3.5 w-3.5" />}
+                                    className="!rounded-none"
                                 >
-                                    <Edit3 className="h-3.5 w-3.5" /> Editor
-                                </button>
-                                <button
+                                    Editor
+                                </Button>
+                                <Button
                                     type="button"
+                                    variant={splitView ? 'primary' : 'ghost'}
+                                    size="sm"
                                     onClick={() => setSplitView(true)}
-                                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all ${
-                                        splitView
-                                            ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white'
-                                            : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-100'
-                                    }`}
+                                    leftIcon={<Layout className="h-3.5 w-3.5" />}
+                                    className="!rounded-none"
                                 >
-                                    <Layout className="h-3.5 w-3.5" /> Split View
-                                </button>
+                                    Split View
+                                </Button>
                             </div>
                         </div>
 
@@ -536,7 +540,7 @@ export default function EditMaterialContent({ courseSlug, moduleId, materialId, 
                 {/* Footer Action Bar */}
                 <div className="flex flex-col justify-between gap-4 border-t border-slate-100 pt-6 sm:flex-row sm:items-center dark:border-slate-700">
                     <div className="flex items-center gap-2">
-                        <Button onClick={form.update} size="md" leftIcon={<Save className="h-4 w-4" />} className="!rounded-none">
+                        <Button onClick={form.update} size="md" leftIcon={<Save className="h-4 w-4" />} className="w-full !rounded-none sm:w-auto">
                             Save Content Changes
                         </Button>
                     </div>

@@ -35,6 +35,7 @@ class UpdateInstructorProfileRequest extends FormRequest
             ],
             'password' => ['nullable', 'string', 'min:8'],
             'avatar' => ['nullable', 'image', 'max:2048'],
+            'bio' => ['nullable', 'string', 'max:1000'],
         ];
     }
 

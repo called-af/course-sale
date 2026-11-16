@@ -61,7 +61,7 @@ function OptionRow({
                 {String.fromCharCode(65 + index)}
             </span>
 
-            <div className="flex-1" onClick={(e) => e.stopPropagation()}>
+            <div className="min-w-0 flex-1" onClick={(e) => e.stopPropagation()}>
                 <input
                     type="text"
                     value={option.option_text}
@@ -74,23 +74,25 @@ function OptionRow({
             </div>
 
             {option.is_correct && (
-                <span className="flex-shrink-0 bg-emerald-100/80 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:bg-emerald-950/70 dark:text-emerald-300">
+                <span className="hidden flex-shrink-0 bg-emerald-100/80 px-2 py-0.5 text-[10px] font-bold text-emerald-600 sm:inline-flex dark:bg-emerald-950/70 dark:text-emerald-300">
                     ✓ Correct Answer
                 </span>
             )}
 
             {canRemove && (
-                <button
+                <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={(e) => {
                         e.stopPropagation();
                         onRemove(index);
                     }}
-                    className="flex-shrink-0 p-1.5 text-slate-300 opacity-0 transition-colors group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 dark:text-slate-500 dark:hover:bg-red-950/40"
+                    leftIcon={<Trash2 size={13} />}
                     title="Remove Option"
-                >
-                    <Trash2 size={13} />
-                </button>
+                    aria-label="Remove Option"
+                    className="!h-7 !w-7 flex-shrink-0 !rounded-none !p-0 !text-slate-400 opacity-0 group-hover:opacity-100 hover:!bg-red-50 hover:!text-red-500 dark:!text-slate-500 dark:hover:!bg-red-950/40"
+                />
             )}
         </div>
     );
@@ -118,15 +120,15 @@ function QuestionCard({
     return (
         <div className="overflow-hidden border border-slate-200/90 bg-white shadow-sm transition-all duration-200 hover:shadow-md dark:border-slate-700 dark:bg-[#1e1f24]">
             {/* Question header */}
-            <div className="flex items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/80 px-4 py-3 dark:border-slate-700 dark:bg-[#1e1f24]">
-                <div className="flex items-center gap-2.5">
+            <div className="flex flex-col items-start justify-between gap-2 border-b border-slate-100 bg-slate-50/80 px-4 py-3 sm:flex-row sm:items-center dark:border-slate-700 dark:bg-[#1e1f24]">
+                <div className="flex min-w-0 items-center gap-2.5">
                     <GripVertical size={16} className="shrink-0 cursor-grab text-slate-300 active:cursor-grabbing dark:text-slate-500" />
                     <span className="inline-flex items-center gap-1.5 border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-xs font-bold tracking-wider text-indigo-700 uppercase dark:border-indigo-900 dark:bg-indigo-950/50 dark:text-indigo-300">
                         Question #{String(index + 1).padStart(2, '0')}
                     </span>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto sm:justify-end">
                     {/* Tipe Selector Switch */}
                     <div className="flex items-center bg-slate-200/60 p-0.5 dark:bg-slate-700">
                         {(['multiple_choice', 'essay'] as const).map((t) => (
@@ -145,14 +147,16 @@ function QuestionCard({
                         ))}
                     </div>
 
-                    <button
+                    <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => onConfirmDelete(question)}
-                        className="p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:text-slate-500 dark:hover:bg-red-950/40"
+                        leftIcon={<Trash2 size={15} />}
                         title="Delete Question"
-                    >
-                        <Trash2 size={15} />
-                    </button>
+                        aria-label="Delete Question"
+                        className="!h-8 !w-8 !rounded-none !p-0 !text-rose-500 hover:!bg-rose-50 dark:hover:!bg-rose-950/40"
+                    />
                 </div>
             </div>
 
@@ -181,11 +185,11 @@ function QuestionCard({
                 {/* Multiple choice */}
                 {question.type === 'multiple_choice' && (
                     <div className="space-y-3 border-t border-slate-100 pt-2 dark:border-slate-700">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                             <span className="text-xs font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
                                 Answer Options (Click row to select the correct answer)
                             </span>
-                            <span className="text-xs text-slate-400 dark:text-slate-500">{question.quiz_options.length} options</span>
+                            <span className="shrink-0 text-xs text-slate-400 dark:text-slate-500">{question.quiz_options.length} options</span>
                         </div>
 
                         <div className="space-y-2">
@@ -204,14 +208,16 @@ function QuestionCard({
 
                         <div className="flex items-center justify-between pt-1">
                             {question.quiz_options.length < 6 && (
-                                <button
+                                <Button
                                     type="button"
+                                    variant="outline"
+                                    size="sm"
                                     onClick={() => onAddOption(question._key)}
-                                    className="inline-flex items-center gap-1.5 border border-indigo-100 bg-indigo-50/50 px-3 py-1.5 text-xs font-semibold text-indigo-600 transition-colors hover:bg-indigo-100/50 hover:text-indigo-800 dark:border-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-950/70 dark:hover:text-indigo-200"
+                                    leftIcon={<Plus size={13} />}
+                                    className="!rounded-none !border-indigo-100 !bg-indigo-50/50 !text-indigo-600 hover:!bg-indigo-100/50 hover:!text-indigo-800 dark:!border-indigo-900 dark:!bg-indigo-950/40 dark:!text-indigo-300 dark:hover:!bg-indigo-950/70"
                                 >
-                                    <Plus size={13} />
                                     Add Option
-                                </button>
+                                </Button>
                             )}
 
                             {!question.quiz_options.some((o) => o.is_correct) && (
@@ -253,13 +259,13 @@ export default function QuizBuilder({ courseSlug, moduleId, materialId, contentI
         <div className="space-y-5">
             {/* Question bank header */}
             <div className="flex flex-col justify-between gap-4 border border-slate-200/80 bg-slate-50 p-4 sm:flex-row sm:items-center dark:border-slate-700 dark:bg-[#1e1f24]">
-                <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center bg-rose-100 font-bold text-rose-600 dark:bg-rose-950/50 dark:text-rose-300">
+                <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-rose-100 font-bold text-rose-600 dark:bg-rose-950/50 dark:text-rose-300">
                         <HelpCircle size={20} />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                         <h3 className="text-sm font-bold text-slate-800 dark:text-white">Quiz Question Bank</h3>
-                        <div className="mt-0.5 flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
                             <span>
                                 Total: <strong className="text-slate-800 dark:text-slate-100">{quiz.questions.length} Questions</strong>
                             </span>
@@ -275,14 +281,9 @@ export default function QuizBuilder({ courseSlug, moduleId, materialId, contentI
                     </div>
                 </div>
 
-                <button
-                    type="button"
-                    onClick={quiz.addQuestion}
-                    className="inline-flex items-center justify-center gap-1.5 border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-semibold text-rose-700 shadow-xs transition-colors hover:bg-rose-100 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-300 dark:hover:bg-rose-950"
-                >
-                    <Plus size={14} />
+                <Button type="button" size="sm" onClick={quiz.addQuestion} leftIcon={<Plus size={14} />} className="w-full !rounded-none sm:w-auto">
                     Add New Question
-                </button>
+                </Button>
             </div>
 
             {quiz.errors && (
@@ -311,7 +312,7 @@ export default function QuizBuilder({ courseSlug, moduleId, materialId, contentI
 
             {/* Action Bar */}
             <div className="flex flex-col justify-between gap-4 border border-slate-200/80 bg-white p-4 shadow-xs sm:flex-row sm:items-center dark:border-slate-700 dark:bg-[#1e1f24]">
-                <Button onClick={quiz.save} disabled={quiz.processing} size="md" className="!rounded-none">
+                <Button onClick={quiz.save} disabled={quiz.processing} size="md" className="w-full !rounded-none sm:w-auto">
                     {quiz.processing ? 'Saving Questions...' : 'Save All Quiz Questions'}
                 </Button>
                 <span className="text-xs text-slate-400 dark:text-slate-500">Question changes must be saved manually.</span>

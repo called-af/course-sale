@@ -1,7 +1,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Laravel-12-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" />
-  <img src="https://img.shields.io/badge/Inertia.js-2.0-9553E9?style=for-the-badge&logo=inertia&logoColor=white" />
+  <img src="https://img.shields.io/badge/Inertia.js-2.0-9553E8?style=for-the-badge&logo=inertia&logoColor=white" />
   <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
   <img src="https://img.shields.io/badge/FastAPI-ML_Engine-009688?style=for-the-badge&logo=fastapi&logoColor=white" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
@@ -9,829 +9,259 @@
 
 # KursusIO — Course Sale Platform
 
-> Platform penjualan kursus online berbasis Laravel 12 + Inertia.js + React 19 dengan **AI-Powered Recommendation Engine** menggunakan Python ML Microservice.
+> Platform penjualan kursus online berbasis **Laravel 12 + Inertia.js + React 19** dengan **AI-Powered Recommendation Engine**, **AI Assistant**, dan **WhatsApp Integration**, serta pembayaran melalui **Midtrans**.
+
+Platform ini menjalankan proses belajar dari **pencarian kurikulum → pembelian → progress → quiz → sertifikat**, sambil menumbuhkan rekomendasi kursus secara personal.
 
 ---
 
 ## Daftar Isi
 
-- [Arsitektur Sistem](#-arsitektur-sistem)
-- [Tech Stack](#-tech-stack)
-- [Database Schema](#-database-schema)
-- [Role & Activity Diagram](#-role--activity-diagram)
-  - [Authentication (Semua Role)](#-authentication-semua-role)
-  - [Admin](#️-admin)
-  - [Instructor](#-instructor)
-  - [Student (User)](#-student-user)
-  - [AI Recommendation Engine](#-ai-recommendation-engine)
-- [API Routes Reference](#-api-routes-reference)
-- [Artisan Commands](#-artisan-commands)
-- [Instalasi & Setup](#-instalasi--setup)
-- [Struktur Folder](#-struktur-folder)
+- [Tentang Platform](#tentang-platform)
+- [Fitur Utama](#fitur-utama)
+    - [Pembelian, Order, Payment & Refund](#pembelian-order-payment--refund)
+    - [Kurikulum & Pembelajaran](#kurikulum--pembelajaran)
+    - [Sertifikat](#sertifikat)
+    - [Reviews & Comments](#reviews--comments)
+    - [AI Recommendation Engine](#ai-recommendation-engine)
+    - [AI Assistant](#ai-assistant)
+    - [WhatsApp Integration](#whatsapp-integration)
+    - [Manajemen Konten & Moderation](#manajemen-konten--moderation)
+    - [Landing Page & CMS](#landing-page--cms)
+    - [Akun, Profil & Manajemen User](#akun-profil--manajemen-user)
+    - [Dashboard & Analitik](#dashboard--analitik)
+- [Capability per Role](#capability-per-role)
+- [Tech Stack](#tech-stack)
+- [Arsitektur Sistem](#arsitektur-sistem)
+- [Database Schema](#database-schema)
+- [API Routes Reference](#api-routes-reference)
+- [Artisan Commands](#artisan-commands)
+- [Instalasi & Setup](#instalasi--setup)
+- [Struktur Folder](#struktur-folder)
+- [Dokumentasi](#dokumentasi)
+- [Status Implementasi & Known Limitations](#status-implementasi--known-limitations)
+
+---
+
+## Tentang Platform
+
+**KursusIO** adalah platform SaaS kursus online yang memungkinkan:
+
+1. **Instructor** membuat kursus dari nol (modul → materi → konten → quiz → resource).
+2. **Admin** menyetujui dan mempublikasikan kursus, mengelola user, konten, order, dan payout.
+3. **Student** membeli/mengikuti kursus, belajar dengan progress tracking, mengerjakan quiz, mendapatkan sertifikat, menulis review, dan berdiskusi.
+4. **AI** memberikan rekomendasi kursus personal dan asisten virtual untuk menjawab pertanyaan pembelajar.
+
+Fokus utama platform: **terjemahan pembelajaran yang terukur** (progress → quiz → sertifikat) dan **kecerdasan rekomendasi** yang terus diperbaiki dari data interaksi.
+
+---
+
+## Fitur Utama
+
+### Pembelian, Order, Payment & Refund
+
+- Pembelian course **gratis** maupun **berbayar** (via Midtrans).
+- Student yang membeli course berbayar diarahkan ke halaman **checkout** (`/student/courses/{slug}/checkout`) lalu **payment page** order (`/student/orders/{order_number}`).
+- Saat ini hanya tersedia **gateway Midtrans** dengan mata uang **IDR**.
+- Payment method yang di-support: **Credit Card, QRIS, Virtual Account, GoPay**.
+- Saat checkout, order dibuat dengan status `pending`, `expires_at = now + 24 jam`, dan payment dengan status `pending`.
+- Sistem **Midtrans Snap**: membuat transaksi, memeriksa status, refund, cancel/expire.
+- **Webhook** Midtrans (`POST /payments/midtrans/webhook`) dengan verifikasi signature `sha512(order_id + status_code + gross_amount + server_key)`, validasi merchant ID, dan amount match.
+- Status order: `pending | paid | failed | expired | refunded | chargeback`.
+- Status payment: `pending | paid | failed | expired | refunded | partial_refund | chargeback`.
+- Admin bisa **konfirmasi manual pembayaran** (`PUT /admin/orders/{order}/pay`) dengan opsi `override` (mis. bypass midtrans).
+- Admin bisa **refund** order (`POST /admin/orders/{order}/refund`) — full atau partial, via Midtrans API.
+- **Chargeback** otomatis diproses (refund otomatis + revoke enrollment).
+- **Payout instructor**: fee platform (default **20%**, configurable 0–100), hold period (default **7 hari**), payout minimum (default **IDR 100.000**), account lock hours (default **24 jam**).
+- Payout per kursus dihitung dari `order_items.course_price`; `net = max(0, gross - fee)`.
+- Payout dibuat otomatis saat payment `paid` (unique per order-course), tersedia setelah `available_at`.
+- Admin proses payout per-instansi (single/batch) dengan readiness check (bank complete, not locked, total available ≥ minimum).
+- Refund/chargeback **membatalkan payout** yang masih pending.
+
+### Kurikulum & Pembelajaran
+
+- Course lifecycle: **`draft → review → published`** (status `archived` legacy, tidak dipakai app).
+- Syarat publish (`canBePublished`): judul, deskripsi, level, thumbnail, minimal 1 category, dan minimal 1 modul → material → konten published.
+- Flow instructor: buat course → isi modul/materi/konten → submit for review → admin approve → published.
+- Admin bisa approve (`PUT /admin/courses/{slug}/approve`); instructor submit (`PUT /instructor/courses/{slug}/submit-review`).
+- Tidak ada alur "reject" — admin cukup approve atau kembali ke draft via update.
+- Struktur hierarki: **Course → Module → Material → MaterialContent** (+ optional QuizQuestion → QuizOption).
+- Content types: **`video`, `text`, `quiz`, `file`, `ppt`**.
+- Modul/materi/konten punya status `draft | published` dengan gate publishing (modul butuh material published; material butuh konten published; konten quiz butuh ≥1 pertanyaan).
+- Reorder module/material/content via move (swap sort_order adjacent).
+- File upload (konten ≤ 50 MB, resource ≤ 20 MB, thumbnail ≤ 2 MB, quiz image ≤ 2 MB); external URL atau file.
+- Course resources: manual (admin/instructor) + otomatis dari konten `file`/`ppt`. Unlock: full completion untuk manual resource; content/material/course completion untuk otomatis.
+- Quiz: tipe **`multiple_choice`**, **`essay`**; minimal 1 pertanyaan; MC wajib ≥2 opsi ≥1 benar; essay tanpa opsi. Submit: semua soal harus dijawab; MC auto-graded; essay → `needs_review` → manual grading oleh instructor/admin.
+- Score auto: `round(correct MC / total MC * 100, 2)`; essay graded manual.
+- Quiz content selalu ditandai content completed saat submit (apapun hasilnya).
+- Progress tracking: dua sistem independen — **material_progress** (material-level) dan **material_content_progress** (content-level). Player frontend memakai content-level untuk progress bar, auto-post material-level saat semua konten materi selesai.
+- Learning player (`/student/courses/{slug}`) punya sidebar, content viewer (video/text/file/ppt/quiz), resume dari materi/konten, refund policy notice.
+- Enrolled students CSV export (instructor/admin).
+
+### Sertifikat
+
+- Auto-generate sertifikat saat course completion (dari `markProgress`), format nomor: **`KRSIO-YYYYMM-XXXXXXXX`**.
+- Unik per `(user_id, course_id)`.
+- PDF via **barryvdh/laravel-dompdf** (A4 landscape), stored di public disk.
+- Template: primary_color, accent_color, bg_style (`dark|light|gradient`), show_signature, signature_name, custom_title, footer_note.
+- Admin/instructor CRUD template; save template → regenerate PDF semua sertifikat course.
+- Student list & download PDF (`/student/certificates`), public verify (`/certificate/{number}`).
+- Full refund **tidak** menghapus sertifikat; progress tetap.
+
+### Reviews & Comments
+
+- Student bisa menulis review setelah **menyelesaikan 100% kursus** (eligible check: enrolled + completed).
+- Review menggunakan pola **upsert** (`storeOrUpdate`): 1 review per user per course; POST endpoint menangani create maupun update.
+- Rating (1–5) + comment (opsional); `rating_avg` & `rating_count` di-recalculate otomatis saat review dibuat/dihapus.
+- Admin moderate review: approve/reject/delete (`GET /admin/reviews`, `PUT .../approve`, `PUT .../reject`, `DELETE ...`).
+- Comment thread dengan replies; student bisa post/edit/delete comment milik sendiri.
+- Admin moderate comment: approve/reject/delete (`GET /admin/comments`, `PUT .../approve`, `PUT .../reject`, `DELETE ...`).
+- Testimonials di landing page diambil dari review yang **approved**.
+
+### AI Recommendation Engine
+
+- Hybrid recommendation: **Python FastAPI ML** (collaborative filtering + content-based + hybrid + popularity/cold-start) dengan fallback **native Laravel**.
+- Event tracking: `course_view`, `course_enroll`, `material_view`, `material_complete`, `quiz_attempt`, `quiz_complete` dengan weight (course_view: 1, material_view: 2, quiz_attempt: 3, material_complete: 4, quiz_complete: 4, course_enroll: 5).
+- Throttle view events: 1x per 5 menit per user/item.
+- Cache recommendation (TTL 2 jam) di Redis/database; invalidate event signifikan.
+- Admin toggle: `PATCH /admin/settings/recommendation/toggle` dan `PATCH /admin/integrations/ai/recommendation`.
+- AI commands: `php artisan recommendation:export|train|train --no-export|status|stats|evaluate|seed-events`.
+- Surfaces: student dashboard, `/courses`, `/courses/recommended`, AI tool Recommendation.
+
+### AI Assistant
+
+- Chat AI untuk **student & instructor** (`/ai/chat/*`, max **5 sessions** per user, message max **1000 karakter**, context last **20 messages**, temp **0.5**, max_tokens **1024**, tool loop max **5 rounds**, rate limit chat **10/min**, AI settings update **5/min**).
+- Provider adapter: **OpenAI, OpenAI-Compatible, Azure OpenAI, Anthropic, Gemini, Cohere, Bedrock, Replicate, Cloudflare** + native presets (Mistral, DeepSeek, xAI Grok, AI21 Labs) dan router/aggregator presets (OpenRouter, NVIDIA NIM, LiteLLM, Vercel AI Gateway, Together AI, Fireworks, Groq, Hugging Face, Cloudflare Workers AI) + custom (Ollama, LM Studio, vLLM, llama.cpp, custom endpoint) dengan registry & orchestrator.
+- Konfigurasi provider: API key, base URL, API version, organization ID, project ID, model, custom headers, custom params, timeout, max retries, connection status.
+- Manajemen model: auto discovery, manual add, refresh, set default, switch model, capability detection (text generation, streaming, vision, tool calling, structured output, JSON mode, embeddings, audio, image generation).
+- Unified AI interface: conversation history, system prompts, user/assistant messages, image attachments, streaming, tool calling, usage/token stats, error handling.
+- Tools: **Course Search, Course Detail, Course Comparison, Recommendation, User Progress, Instructor Students, Instructor Analytics** (LearningPath tool dibuat tapi belum terdaftar).
+- Admin: CRUD provider, CRUD model, test connection, discover models, set default, global toggle, legacy import, usage/audit logs.
+- Credentials disimpan encrypted (`AiProviderCredential`, `AiSetting`), SSRF guard `AI_ALLOW_LOCAL_ENDPOINTS=false`.
+- AI calls sinkron; jika AI disabled/tidak ada provider → response **503**.
+- Fallback: primary provider + fallback provider (mis. OpenRouter → Groq); fallback hanya saat provider unavailable; idempotency & duplicate protection.
+
+### WhatsApp Integration
+
+- Provider WhatsApp: **Meta, Infobip, Fonnte, Custom** (adapter pattern dengan unified interface); arsitektur mendukung provider masa depan (Twilio, 360Dialog, Bird, Vonage, Wablas, Whapi.Cloud).
+- Admin CRUD provider, toggle, set default, test send, message status check, template management, import legacy, global toggle.
+- Webhook: `GET /webhooks/whatsapp/{provider}` verify, `POST /webhooks/whatsapp/{provider}` handle; HMAC verification; throttle **120/min**.
+- Delivery logs & status (`queued|sent|delivered|read|failed`).
+- Notifikasi bisnis: **enrollment → instructor** (job `SendWhatsAppEnrollmentNotificationJob`, retries/backoff/dedup) dan **payout paid → instructor** (job `SendPayoutPaidNotificationJob`).
+- Konfigurasi: Meta (Access Token, Phone Number ID, Business Account ID, App Secret, Verify Token, Graph API Version), Infobip (API Key, Base URL, Sender Number, Account Config), Fonnte (API Token, Base URL).
+
+### Manajemen Konten & Moderation
+
+- Admin & instructor: course CRUD, module CRUD, material CRUD, content CRUD (video/text/quiz/file/ppt), quiz CRUD, category/tag CRUD, certificate template.
+- Moderation: review approve/reject/delete; comment approve/reject/delete; quiz grading attempts (`needs_review`).
+- Export: orders, users, payouts, course students (CSV).
+
+### Landing Page & CMS
+
+- Landing page dengan section: **Hero, About, Courses, Category, Instructors, How It Works, Benefits, Certificate, Testimonials, FAQ, TrustBar/Footer**.
+- CMS per section (`LandingSetting`): `hero, about, courses, career, testimonial, cta, footer` — deep merge defaults.
+- Testimonials diambil dari **review approved** course (bukan static).
+- Featured courses dari course published.
+
+### Akun, Profil & Manajemen User
+
+- Register/login/logout, email verification, forgot/reset password, choose role.
+- Profile: avatar, bio (nullable text max 1000), name, email, password, WhatsApp number.
+- Admin user CRUD (`/admin/users`) + user export + soft delete (revokes enrollments).
+- Admin user profile edit, student/instructor profile edit via shared `UserProfile` form.
+
+### Dashboard & Analitik
+
+- Admin dashboard: total users, courses, active enrollments, revenue; top courses, recent enrollments/courses.
+- Instructor dashboard: my courses, students, earnings, rating, recent enrollments, course performance, enrollment activity, AI tools.
+- Student dashboard: enrolled courses + progress, stats, recommended courses, continue learning.
+
+---
+
+## Capability per Role
+
+| Capability                                   | Guest | Student | Instructor | Admin |
+| -------------------------------------------- | ----- | ------- | ---------- | ----- |
+| Landing page & course catalog (browse)       | ✅    | ✅      | ✅         | ✅    |
+| Register / login / reset / verify            | —     | ✅      | ✅         | —     |
+| Choose role                                  | —     | ✅      | ✅         | —     |
+| Browse course detail & AI assistant          | ✅    | ✅      | ✅         | ✅    |
+| Enroll (free / paid via checkout)            | —     | ✅      | —          | —     |
+| Learning player, progress, quiz, resources   | —     | ✅      | —          | —     |
+| Download certificate / verify                | —     | ✅      | —          | —     |
+| Write/update/delete review & comments        | —     | ✅      | —          | —     |
+| Create / manage own courses                  | —     | —       | ✅         | ✅    |
+| Submit course for review                     | —     | —       | ✅         | —     |
+| Approve/publish courses                      | —     | —       | —          | ✅    |
+| Manage users (CRUD, export, delete)          | —     | —       | —          | ✅    |
+| Manage orders/refunds/payouts                | —     | —       | —          | ✅    |
+| Moderate reviews/comments                    | —     | —       | —          | ✅    |
+| Grade quiz attempts                          | —     | —       | ✅         | ✅    |
+| Configure AI / WhatsApp / payments / landing | —     | —       | —          | ✅    |
+| Instructor payout settings                   | —     | —       | ✅         | —     |
+
+---
+
+## Tech Stack
+
+| Layer         | Teknologi                                                     |
+| ------------- | ------------------------------------------------------------- |
+| Backend       | Laravel 12 (PHP 8.2+), Inertia Laravel 2                      |
+| Frontend      | React 19, TypeScript 5, Tailwind CSS 4, Motion (motion/react) |
+| Bridge        | Inertia.js 2 (SPA tanpa API) + Ziggy                          |
+| ML            | Python 3.11+, FastAPI, scikit-learn, pandas, NumPy            |
+| Database      | MySQL / PostgreSQL (SQLite untuk dev)                         |
+| Cache / Queue | Redis / database, Laravel queue                               |
+| PDF           | barryvdh/laravel-dompdf                                       |
+| Payments      | Midtrans                                                      |
+| WhatsApp      | Meta / Infobip / Fonnte / Custom adapters                     |
+| Testing       | Pest PHP 4, Pytest                                            |
 
 ---
 
 ## Arsitektur Sistem
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         CLIENT (Browser)                            │
-│                  React 19 + TypeScript + Tailwind                    │
-└─────────────────────────────┬───────────────────────────────────────┘
-                              │ Inertia.js Protocol
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                     LARAVEL 12 (PHP Backend)                        │
-│  ┌─────────────┐  ┌──────────────┐  ┌────────────────────────────┐ │
-│  │ Controllers  │  │  Services    │  │  Models (Eloquent ORM)     │ │
-│  │             │  │              │  │                            │ │
-│  │ • Auth      │  │ • Course     │  │ • User        • Course     │ │
-│  │ • Course    │  │ • Enrollment │  │ • Module      • Material   │ │
-│  │ • Enrollment│  │ • Dashboard  │  │ • Enrollment  • Review     │ │
-│  │ • Dashboard │  │ • Review     │  │ • Certificate • Comment    │ │
-│  │ • Review    │  │ • Comment    │  │ • Quiz*       • Tag        │ │
-│  │ • Comment   │  │ • Certificate│  │ • UserEvent   • Category   │ │
-│  │ • Tag       │  │ • Quiz       │  │ • Order*      • Payment*   │ │
-│  │ • Category  │  │ • EventTrack │  │                            │ │
-│  │ • Recommend │  │ • Recommend  │  └────────────────────────────┘ │
-│  │ • Certificate  │ • RecommAnal │                                 │
-│  └─────────────┘  └──────┬───────┘                                 │
-│                          │ HTTP Client                              │
-└──────────────────────────┼──────────────────────────────────────────┘
-                           │  Fallback: Laravel Native Engine
-                           ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│              PYTHON FASTAPI MICROSERVICE (Port 8001)                │
-│  ┌───────────────────────────────────────────────────────────────┐  │
-│  │   ML Recommendation Engine                                    │  │
-│  │                                                               │  │
-│  │   • Collaborative Filtering (User-Item Matrix)                │  │
-│  │   • Content-Based Filtering (Tag Cosine Similarity)           │  │
-│  │   • Hybrid Scoring (Collab + Content + Popularity)            │  │
-│  │   • Cold-Start Handling (Popularity Fallback)                 │  │
-│  │                                                               │  │
-│  │   Trained Model: recommender_model.pkl                        │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                     DATA STORES                                     │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────┐  │
-│  │   MySQL /     │  │    Redis     │  │   File Storage           │  │
-│  │   PostgreSQL  │  │   (Cache)    │  │   (storage/app/public)   │  │
-│  │              │  │              │  │                          │  │
-│  │ 26 Tables    │  │ Rec Cache   │  │ • Thumbnails             │  │
-│  │              │  │ Throttle    │  │ • Certificates (PDF)     │  │
-│  │              │  │              │  │ • ML Datasets (CSV)      │  │
-│  └──────────────┘  └──────────────┘  └──────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                        CLIENT (Browser)                        │
+│   React 19 + TypeScript + Tailwind + Motion + Inertia        │
+└───────────────────────────────┬──────────────────────────────┘
+                                │ Inertia Protocol
+                                ▼
+┌──────────────────────────────────────────────────────────────┐
+│                      LARAVEL 12 BACKEND                       │
+│   Controllers → Services → Models (Eloquent) → Form Requests │
+│   Policies/Gates → Queue Jobs                                 │
+└───────────────────────────────┬──────────────────────────────┘
+                                │ HTTP (FastAPI / Midtrans / WhatsApp / AI)
+                                ▼
+┌──────────────────────────────────────────────────────────────┐
+│              PYTHON FASTAPI ML SERVICE (Port 8001)            │
+│        Hybrid Recommendation Engine                           │
+│   (Collaborative + Content + Hybrid + Popularity)           │
+└──────────────────────────────────────────────────────────────┘
 ```
-
----
-
-## Tech Stack
-
-| Layer | Teknologi |
-|-------|-----------|
-| **Backend** | Laravel 12 (PHP 8.2+) |
-| **Frontend** | React 19, TypeScript 5, Tailwind CSS |
-| **Bridge** | Inertia.js 2.0 (SPA tanpa API) |
-| **ML Engine** | Python 3.11+, FastAPI, scikit-learn, pandas, numpy |
-| **Database** | MySQL / PostgreSQL |
-| **Cache** | Redis |
-| **PDF Generation** | barryvdh/laravel-dompdf |
-| **Routing (JS)** | Ziggy (tightenco/ziggy) |
-| **Code Generation** | Laravel Blueprint |
-| **Testing** | Pest PHP 4, Pytest |
-| **Code Style** | Laravel Pint (PHP), ESLint + Prettier (TS) |
 
 ---
 
 ## Database Schema
 
-### Entity-Relationship Diagram
-
-```
-┌───────────┐       ┌──────────────┐       ┌────────────┐
-│   Users   │──1:N──│   Courses    │──1:N──│  Modules   │
-│           │       │              │       │            │
-│ id        │       │ id           │       │ id         │
-│ name      │       │ creator_id   │───┐   │ course_id  │
-│ email     │       │ title        │   │   │ title      │
-│ password  │       │ slug         │   │   │ sort_order │
-│ role      │       │ description  │   │   └──────┬─────┘
-│ avatar    │       │ thumbnail    │   │          │ 1:N
-└─────┬─────┘       │ type (free/  │   │   ┌──────┴─────┐
-      │             │       paid)  │   │   │ Materials  │
-      │             │ price        │   │   │            │
-      │             │ level        │   │   │ id         │
-      │             │ status       │   │   │ module_id  │
-      │             │ rating_avg   │   │   │ title      │
-      │             │ rating_count │   │   │ sort_order │
-      │             │ certificate_ │   │   └──────┬─────┘
-      │             │   template   │   │          │ 1:N
-      │             │ published_at │   │   ┌──────┴─────────┐
-      │             │ approved_at  │   │   │ Material       │
-      │             └──────┬───────┘   │   │ Contents       │
-      │                    │           │   │                │
-      │    ┌───────────────┤           │   │ id             │
-      │    │               │           │   │ material_id    │
-      │    │ M:N           │ M:N       │   │ title          │
-      │    ▼               ▼           │   │ type (video/   │
-      │ ┌──────────┐ ┌──────────┐     │   │   text/file/   │
-      │ │Categories│ │  Tags    │     │   │   ppt/quiz)    │
-      │ │          │ │          │     │   │ body           │
-      │ │ id       │ │ id       │     │   │ file_path      │
-      │ │ name     │ │ name     │     │   │ duration       │
-      │ │ slug     │ │ slug     │     │   │ sort_order     │
-      │ └──────────┘ └──────────┘     │   └──────┬─────────┘
-      │                               │          │ 1:N
-      │                               │   ┌──────┴─────────┐
-      │ 1:N                           │   │ Quiz Questions │
-      ├───────────────────┐           │   │                │
-      │                   │           │   │ id             │
-      │ ┌─────────────┐   │           │   │ content_id     │
-      │ │ Enrollments │   │           │   │ question       │
-      │ │             │   │           │   │ type           │
-      │ │ id          │   │           │   └──────┬─────────┘
-      │ │ user_id  ───┘   │           │          │ 1:N
-      │ │ course_id ──────┘           │   ┌──────┴─────────┐
-      │ │ status       │              │   │ Quiz Options   │
-      │ │ enrolled_at  │              │   │                │
-      │ └──────────────┘              │   │ id             │
-      │                               │   │ question_id    │
-      │ 1:N                           │   │ option_text    │
-      ├─────────────────┐             │   │ is_correct     │
-      │                 │             │   └────────────────┘
-      │ ┌────────────┐  │             │
-      │ │  Reviews   │  │             │   ┌────────────────┐
-      │ │            │  │             │   │ Quiz Attempts  │
-      │ │ id         │  │             │   │                │
-      │ │ user_id ───┘  │             │   │ id             │
-      │ │ course_id  ───┘             │   │ user_id        │
-      │ │ rating  (1-5)│              │   │ content_id     │
-      │ │ comment      │              │   │ score          │
-      │ │ is_approved  │              │   │ passed         │
-      │ │ approved_at  │              │   └────────────────┘
-      │ └──────────────┘              │
-      │                               │   ┌────────────────┐
-      │ 1:N                           │   │ Quiz Answers   │
-      ├─────────────────┐             │   │                │
-      │                 │             │   │ id             │
-      │ ┌────────────┐  │             │   │ attempt_id     │
-      │ │  Comments  │  │             │   │ question_id    │
-      │ │            │  │             │   │ option_id      │
-      │ │ id         │  │             │   │ is_correct     │
-      │ │ user_id ───┘  │             │   └────────────────┘
-      │ │ course_id  ───┘             │
-      │ │ parent_id (self-ref)        │   ┌────────────────┐
-      │ │ body         │              │   │ Material       │
-      │ │ is_approved  │              │   │ Progress       │
-      │ └──────────────┘              │   │                │
-      │                               │   │ id             │
-      │ 1:N                           │   │ user_id        │
-      ├─────────────────┐             │   │ material_id    │
-      │                 │             │   │ is_completed   │
-      │ ┌──────────────┐│             │   │ completed_at   │
-      │ │ Certificates ││             │   └────────────────┘
-      │ │              ││             │
-      │ │ id           ││             │   ┌────────────────┐
-      │ │ user_id ─────┘│             │   │ User Events    │
-      │ │ course_id  ───┘             │   │ (AI Tracking)  │
-      │ │ certificate_  │             │   │                │
-      │ │   number      │             │   │ id             │
-      │ │ issued_at     │             │   │ user_id        │
-      │ │ pdf_path      │             │   │ course_id      │
-      │ └───────────────┘             │   │ material_id    │
-      │                               │   │ event_type     │
-      │ 1:N                           │   │ metadata (JSON)│
-      └─────────────────────────────────→ └────────────────┘
-```
-
-### Daftar Tabel (32 Migrasi)
-
-| Tabel | Deskripsi |
-|-------|-----------|
-| `users` | Data pengguna (admin, instructor, student) |
-| `courses` | Data kursus (judul, harga, level, status, rating) |
-| `course_categories` | Pivot many-to-many Course ↔ Category |
-| `course_tags` | Pivot many-to-many Course ↔ Tag |
-| `categories` | Kategori kursus |
-| `tags` | Tag/label untuk kursus |
-| `modules` | Modul dalam kursus (bab/chapter) |
-| `materials` | Materi dalam modul (lesson/subbab) |
-| `material_contents` | Konten materi (video, teks, file, PPT, quiz) |
-| `material_progress` | Progress belajar per materi per user |
-| `enrollments` | Data enrollment student ke kursus |
-| `reviews` | Review & rating dari student |
-| `comments` | Diskusi/komentar per kursus (support reply) |
-| `certificates` | Sertifikat kelulusan kursus |
-| `quiz_questions` | Pertanyaan quiz |
-| `quiz_options` | Pilihan jawaban quiz |
-| `quiz_attempts` | Percobaan quiz oleh student |
-| `quiz_answers` | Jawaban student per pertanyaan |
-| `user_events` | Event tracking untuk AI recommendation |
-| `orders` | Data order pembelian (model ready, belum aktif) |
-| `order_items` | Item dalam order |
-| `payments` | Data pembayaran |
-| `payment_logs` | Log aktivitas pembayaran |
-| `payment_methods` | Metode pembayaran |
-| `payment_providers` | Provider pembayaran (Midtrans, dll) |
-| `refunds` | Data refund |
-| `sessions` | Laravel session storage |
-| `cache` | Laravel cache storage |
-
----
-
-## Role & Activity Diagram
-
-Platform ini memiliki **3 role utama** dan **1 sistem AI** yang bekerja secara otomatis:
-
-| Role | Deskripsi |
-|------|-----------|
-| **Admin** | Mengelola seluruh platform: approval kursus, moderasi konten, manajemen user |
-| **Instructor** | Membuat & mengelola kursus, memonitor performa |
-| **Student** | Belajar, enroll kursus, quiz, review, sertifikat |
-| **AI Engine** | Memberikan rekomendasi kursus secara personalized |
-
----
-
-### Authentication (Semua Role)
-
-```
-┌──────────────────────────────────────────────────────────┐
-│                   AUTHENTICATION FLOW                     │
-└──────────────────────────────────────────────────────────┘
-
-  ┌─────────┐     ┌──────────┐     ┌─────────────┐
-  │  Guest  │────▶│ Register │────▶│ Choose Role │
-  │         │     │          │     │             │
-  │         │     │ • name   │     │ ○ Admin     │
-  │         │     │ • email  │     │ ○ Instructor│
-  │         │     │ • pass   │     │ ○ Student   │
-  └────┬────┘     └──────────┘     └──────┬──────┘
-       │                                   │
-       │          ┌──────────┐             │
-       └─────────▶│  Login   │             │
-                  │          │             ▼
-                  │ • email  │     ┌───────────────┐
-                  │ • pass   │────▶│ Role-based    │
-                  └──────────┘     │ Dashboard     │
-                                   │ Redirect      │
-                                   │               │
-                                   │ admin ──▶ /admin/dashboard
-                                   │ instructor ──▶ /instructor/dashboard
-                                   │ student ──▶ /student/dashboard
-                                   └───────────────┘
-```
-
-**Routes:**
-| Method | Route | Deskripsi |
-|--------|-------|-----------|
-| `GET` | `/login` | Tampilkan halaman login |
-| `POST` | `/login` | Proses login |
-| `GET` | `/register` | Tampilkan halaman register |
-| `POST` | `/register` | Proses registrasi |
-| `POST` | `/logout` | Logout user |
-| `GET` | `/choose-role` | Pilih role setelah login |
-| `POST` | `/choose-role` | Simpan pilihan role |
-
----
-
-### Admin
-
-Admin adalah **super user** yang mengelola seluruh platform. Berikut semua aktivitas yang bisa dilakukan admin:
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      ADMIN ACTIVITY DIAGRAM                      │
-└─────────────────────────────────────────────────────────────────┘
-
-                          ┌──────────────┐
-                          │ Admin Login  │
-                          └──────┬───────┘
-                                 │
-                                 ▼
-                     ┌───────────────────────┐
-                     │   Admin Dashboard     │
-                     │                       │
-                     │ KPI Metrics:          │
-                     │ • Total Users         │
-                     │ • Total Courses       │
-                     │ • Active Enrollments  │
-                     │ • Revenue             │
-                     │                       │
-                     │ Widgets:              │
-                     │ • Top 5 Courses       │
-                     │ • Recent Enrollments  │
-                     │ • Recent Courses      │
-                     └───────────┬───────────┘
-                                 │
-          ┌──────────────────────┼──────────────────────┐
-          │                      │                      │
-          ▼                      ▼                      ▼
-  ┌───────────────┐   ┌──────────────────┐   ┌──────────────────┐
-  │ Course        │   │ Content          │   │ User & Review    │
-  │ Management    │   │ Management       │   │ Management       │
-  └───────┬───────┘   └────────┬─────────┘   └────────┬─────────┘
-          │                    │                       │
-          ▼                    ▼                       ▼
-┌─────────────────┐  ┌─────────────────┐    ┌─────────────────┐
-│ • List Courses  │  │ • CRUD Category │    │ • List Users    │
-│   (semua status)│  │ • CRUD Tags     │    │ • View User     │
-│ • Create Course │  └─────────────────┘    │ • Update User   │
-│ • View/Edit     │                         │                 │
-│ • Delete Course │                         │ • Moderate      │
-│ • Preview       │                         │   Reviews       │
-│ • Approve &     │                         │   (approve/     │
-│   Publish       │                         │    reject/      │
-│ • Set Certificate                         │    delete)      │
-│   Template      │                         │                 │
-│                 │                         │ • Moderate      │
-│ Module CRUD:    │                         │   Comments      │
-│ • Add Module    │                         │   (approve/     │
-│ • Edit Module   │                         │    reject/      │
-│ • Delete Module │                         │    delete)      │
-│ • Reorder Module│                         └─────────────────┘
-│                 │
-│ Material CRUD:  │
-│ • Add Material  │
-│ • Edit Material │
-│ • Delete Material
-│ • Reorder       │
-│                 │
-│ Content CRUD:   │
-│ • Add Content   │
-│   (video/text/  │
-│    file/ppt/    │
-│    quiz)        │
-│ • Edit Content  │
-│ • Delete Content│
-│ • Reorder       │
-│                 │
-│ Quiz CRUD:      │
-│ • Add Questions │
-│ • Edit Questions│
-│ • Delete Ques.  │
-│ • Set Options   │
-│ • Mark Correct  │
-└─────────────────┘
-```
-
-#### Admin Activity Detail
-
-| # | Aktivitas | Deskripsi | Route |
-|---|-----------|-----------|-------|
-| 1 | **Dashboard** | Melihat KPI: total users, courses, enrollments, revenue. Lihat top courses & recent enrollments. | `GET /admin/dashboard` |
-| 2 | **List Courses** | Melihat semua kursus di platform (semua status: draft, review, published) dengan pagination. | `GET /admin/courses` |
-| 3 | **Create Course** | Membuat kursus baru (judul, deskripsi, thumbnail, level, tipe, harga, kategori, tags). | `POST /admin/courses` |
-| 4 | **View Course** | Melihat detail kursus beserta modul, materi, dan konten. | `GET /admin/courses/{slug}` |
-| 5 | **Edit Course** | Mengubah informasi kursus. | `PUT /admin/courses/{slug}` |
-| 6 | **Delete Course** | Menghapus kursus (soft delete, termasuk semua modul & materi). | `DELETE /admin/courses/{slug}` |
-| 7 | **Preview Course** | Preview kursus sebagai tampilan learning page. | `GET /admin/courses/{slug}/preview` |
-| 8 | **Approve & Publish** | Menyetujui kursus dari instructor (status: review → published). | `PUT /admin/courses/{slug}/approve` |
-| 9 | **Certificate Template** | Mengatur template sertifikat kursus (warna, tanda tangan, teks). | `GET/PUT /admin/courses/{slug}/certificate-template` |
-| 10 | **Module CRUD** | Membuat, mengedit, menghapus, dan reorder modul dalam kursus. | `POST/PUT/DELETE /admin/courses/{slug}/modules/{module}` |
-| 11 | **Material CRUD** | Membuat, mengedit, menghapus, dan reorder materi dalam modul. | `POST/PUT/DELETE .../modules/{module}/materials/{material}` |
-| 12 | **Content CRUD** | Membuat konten materi (video, teks, file, PPT, quiz). | `POST/PUT/DELETE .../materials/{material}/contents/{content}` |
-| 13 | **Quiz CRUD** | Membuat pertanyaan quiz, opsi jawaban, dan menandai jawaban benar. | `GET/POST/PUT/DELETE .../contents/{content}/quiz-questions` |
-| 14 | **Category CRUD** | Membuat, mengedit, dan menghapus kategori kursus. | `GET/POST/PUT/DELETE /admin/categories` |
-| 15 | **Tag CRUD** | Membuat, mengedit, dan menghapus tag kursus. | `GET/POST/PUT/DELETE /admin/tags` |
-| 16 | **User Management** | Melihat daftar user, detail user, dan update data user. | `GET /admin/users` |
-| 17 | **Review Moderation** | Melihat semua review, approve, reject, atau hapus review. | `GET/PUT/DELETE /admin/reviews` |
-| 18 | **Comment Moderation** | Melihat semua komentar, approve, reject, atau hapus komentar. | `GET/PUT/DELETE /admin/comments` |
-
----
-
-### Instructor
-
-Instructor membuat dan mengelola kursus mereka sendiri. Kursus harus di-approve oleh admin sebelum bisa diakses student.
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                   INSTRUCTOR ACTIVITY DIAGRAM                    │
-└─────────────────────────────────────────────────────────────────┘
-
-                      ┌──────────────────┐
-                      │ Instructor Login │
-                      └────────┬─────────┘
-                               │
-                               ▼
-                  ┌────────────────────────┐
-                  │  Instructor Dashboard  │
-                  │                        │
-                  │  Stats:                │
-                  │  • My Courses (list)   │
-                  │  • Total Students      │
-                  │  • Total Earnings      │
-                  │  • Average Rating      │
-                  │  • Recent Enrollments  │
-                  └────────────┬───────────┘
-                               │
-               ┌───────────────┼───────────────┐
-               │               │               │
-               ▼               ▼               ▼
-      ┌────────────┐  ┌────────────────┐  ┌──────────────┐
-      │ Create New │  │ Manage My      │  │ Certificate  │
-      │ Course     │  │ Courses        │  │ Template     │
-      └─────┬──────┘  └───────┬────────┘  └──────┬───────┘
-            │                 │                   │
-            ▼                 ▼                   ▼
-   ┌─────────────────┐ ┌──────────────┐  ┌──────────────────┐
-   │ Fill Course Info│ │ View Detail  │  │ Customize cert   │
-   │                 │ │ Edit Course  │  │ colors, text,    │
-   │ • Title         │ │ Delete Course│  │ signature        │
-   │ • Description   │ │ Preview      │  └──────────────────┘
-   │ • Thumbnail     │ └──────┬───────┘
-   │ • Level         │        │
-   │ • Type & Price  │        ▼
-   │ • Categories    │ ┌───────────────────────────────────────┐
-   │ • Tags          │ │        COURSE LIFECYCLE               │
-   └────────┬────────┘ │                                       │
-            │          │  ┌───────┐  submit   ┌────────┐       │
-            └─────────▶│  │ DRAFT │──────────▶│ REVIEW │       │
-                       │  └───────┘  for      └───┬────┘       │
-                       │     ▲       review       │            │
-                       │     │                    │ admin      │
-                       │     │ reject             │ approve    │
-                       │     │                    ▼            │
-                       │     │              ┌───────────┐      │
-                       │     └──────────────│ PUBLISHED │      │
-                       │                    └───────────┘      │
-                       └───────────────────────────────────────┘
-```
-
-#### Instructor Activity Detail
-
-| # | Aktivitas | Deskripsi | Route |
-|---|-----------|-----------|-------|
-| 1 | **Dashboard** | Melihat daftar kursus sendiri, total students, earnings, average rating, dan recent enrollments. | `GET /instructor/dashboard` |
-| 2 | **List My Courses** | Melihat semua kursus yang dibuat (filter by status). | `GET /instructor/courses` |
-| 3 | **Create Course** | Membuat kursus baru dengan informasi lengkap. | `POST /instructor/courses` |
-| 4 | **View Course Detail** | Melihat detail kursus beserta struktur modul & materi. | `GET /instructor/courses/{slug}` |
-| 5 | **Edit Course** | Mengubah informasi kursus (hanya course milik sendiri). | `PUT /instructor/courses/{slug}` |
-| 6 | **Delete Course** | Menghapus kursus milik sendiri. | `DELETE /instructor/courses/{slug}` |
-| 7 | **Preview Course** | Preview kursus dalam tampilan learning page sebelum publish. | `GET /instructor/courses/{slug}/preview` |
-| 8 | **Submit for Review** | Mengirim kursus ke admin untuk direview & di-approve. Syarat: title, description, level, thumbnail, minimal 1 modul, dan minimal 1 kategori harus terisi. | `PUT /instructor/courses/{slug}/submit-review` |
-| 9 | **Certificate Template** | Mengatur desain sertifikat: warna primer, warna aksen, style background, tanda tangan, judul custom, dan catatan footer. | `GET/PUT /instructor/courses/{slug}/certificate-template` |
-
-#### Course Approval Flow
-
-```
-Instructor                    Admin                      Platform
-    │                           │                           │
-    │  1. Create course (draft) │                           │
-    │──────────────────────────▶│                           │
-    │                           │                           │
-    │  2. Add modules,          │                           │
-    │     materials, content    │                           │
-    │──────────────────────────▶│                           │
-    │                           │                           │
-    │  3. Submit for review     │                           │
-    │──────────────────────────▶│                           │
-    │                           │                           │
-    │                           │  4. Review course         │
-    │                           │     (check quality)       │
-    │                           │                           │
-    │                           │  5a. Approve ────────────▶│  Status: published
-    │                           │                           │  Visible to students
-    │                           │                           │
-    │                           │  5b. Reject ─────────────▶│  Status: back to draft
-    │                           │                           │
-```
-
----
-
-### Student (User)
-
-Student adalah pengguna utama platform yang belajar melalui kursus online.
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    STUDENT ACTIVITY DIAGRAM                       │
-└─────────────────────────────────────────────────────────────────┘
-
-                      ┌────────────────┐
-                      │ Student Login  │
-                      └───────┬────────┘
-                              │
-                              ▼
-                 ┌────────────────────────┐
-                 │   Student Dashboard    │
-                 │                        │
-                 │ • Enrolled Courses     │
-                 │   (with progress bar)  │
-                 │ • Total Completed      │
-                 │ • Overall Progress %   │
-                 │ • Completed Materials  │
-                 │ • Learning Minutes     │
-                 │ • AI Recommended       │
-                 │   Courses              │
-                 └───────────┬────────────┘
-                             │
-       ┌─────────────────────┼─────────────────────┐
-       │                     │                     │
-       ▼                     ▼                     ▼
-┌──────────────┐   ┌──────────────────┐   ┌────────────────┐
-│ Browse       │   │ My Learning      │   │ My             │
-│ Course       │   │                  │   │ Certificates   │
-│ Catalog      │   │                  │   │                │
-└──────┬───────┘   └────────┬─────────┘   └───────┬────────┘
-       │                    │                      │
-       ▼                    ▼                      ▼
-┌──────────────┐   ┌──────────────────┐   ┌────────────────┐
-│ • Search     │   │ Continue         │   │ • View List    │
-│ • Filter     │   │ Learning         │   │ • Download PDF │
-│   (level,    │   │                  │   └────────────────┘
-│    type,     │   │ ┌──────────────┐ │
-│    category) │   │ │ Content      │ │
-│ • Toggle AI  │   │ │ Viewer       │ │
-│   Recommend  │   │ │              │ │
-└──────┬───────┘   │ │ • Video      │ │
-       │           │ │ • Text       │ │
-       ▼           │ │ • File       │ │
-┌──────────────┐   │ │ • PPT        │ │
-│ Course       │   │ │ • Quiz       │ │
-│ Detail Page  │   │ └──────┬───────┘ │
-│              │   │        │         │
-│ • Info       │   │        ▼         │
-│ • Syllabus   │   │ ┌──────────────┐ │
-│ • Reviews    │   │ │ Mark as      │ │
-│ • Comments   │   │ │ Complete     │ │
-│ • Tags       │   │ └──────┬───────┘ │
-│              │   │        │         │
-│ [Enroll Now] │   │        ▼         │
-└──────┬───────┘   │ ┌──────────────┐ │
-       │           │ │ 100% Done?   │ │
-       ▼           │ │              │ │
-┌──────────────┐   │ │ YES ──▶ Auto │ │
-│ Enrolled!    │   │ │ generate     │ │
-│              │───▶ │ Certificate  │ │
-│ Start        │   │ └──────────────┘ │
-│ Learning     │   └──────────────────┘
-└──────────────┘
-
-       ┌─────────────────────────────────┐
-       │     REVIEW & DISCUSSION         │
-       │                                 │
-       │  After enrolling, student can:  │
-       │                                 │
-       │  Write Review (1-5 rating)   │
-       │  Update own review           │
-       │  Delete own review           │
-       │                                 │
-       │  Post comment / discussion   │
-       │  Reply to comments           │
-       │  Edit own comments           │
-       │  Delete own comments         │
-       └─────────────────────────────────┘
-```
-
-#### Student Activity Detail
-
-| # | Aktivitas | Deskripsi | Route |
-|---|-----------|-----------|-------|
-| 1 | **Dashboard** | Melihat enrolled courses dengan progress bar, total completed, learning minutes, dan AI recommended courses. | `GET /student/dashboard` |
-| 2 | **Browse Catalog** | Menjelajahi semua kursus published dengan search & filter (level, type, tags). Toggle mode AI recommendation. | `GET /course` |
-| 3 | **View Course Detail** | Melihat detail kursus: deskripsi, instructor, level, harga, silabus, reviews, komentar. | `GET /course/{slug}` |
-| 4 | **Enroll Course** | Mendaftar ke kursus gratis (kursus berbayar belum aktif). | `POST /course/{slug}/enroll` |
-| 5 | **My Courses** | Melihat daftar kursus yang sudah di-enroll. | `GET /student/courses` |
-| 6 | **Learning Page** | Mengakses halaman belajar: konten viewer (video/text/file/ppt/quiz), sidebar navigasi, progress tracking. | `GET /student/courses/{slug}` |
-| 7 | **Mark Progress** | Menandai materi sebagai selesai. Progress dihitung dari total materi yang selesai. | `POST /student/courses/{slug}/progress` |
-| 8 | **Submit Quiz** | Mengerjakan quiz dan melihat hasil (score & passed/failed). | `POST /student/courses/{slug}/quiz/{content}/submit` |
-| 9 | **Auto Certificate** | Ketika 100% materi selesai, sertifikat PDF otomatis di-generate dengan nomor unik (format: `KRSIO-YYYYMM-XXXXXXXX`). | Otomatis saat progress 100% |
-| 10 | **My Certificates** | Melihat daftar sertifikat yang sudah didapat. | `GET /student/certificates` |
-| 11 | **Download Certificate** | Mengunduh sertifikat dalam format PDF. | `GET /student/certificates/{id}/download` |
-| 12 | **Write Review** | Menulis review & rating (1-5 bintang) untuk kursus yang sudah di-enroll. Satu review per user per course. | `POST /student/courses/{slug}/reviews` |
-| 13 | **Delete Review** | Menghapus review milik sendiri. | `DELETE /student/courses/{slug}/reviews/{review}` |
-| 14 | **Post Comment** | Menulis komentar/diskusi di kursus (top-level atau reply). Hanya enrolled student yang bisa berkomentar. | `POST /student/courses/{slug}/comments` |
-| 15 | **Edit Comment** | Mengubah komentar milik sendiri. | `PUT /student/courses/{slug}/comments/{comment}` |
-| 16 | **Delete Comment** | Menghapus komentar milik sendiri. | `DELETE /student/courses/{slug}/comments/{comment}` |
-
-#### Learning Flow Detail
-
-```
-Student membuka course ──▶ Load Learning Page
-                           │
-                           ├──▶ Sidebar: Module list + Material list
-                           ├──▶ Content Viewer (multi-type):
-                           │    ├── Video Player
-                           │    ├── Rich Text
-                           │    ├── File Download
-                           │    ├── PPT Viewer
-                           │    └── Quiz Interface
-                           │
-                           ├──▶ Progress Tracking:
-                           │    └── Mark material complete ──▶ Progress bar updates
-                           │                                       │
-                           │                                       ▼
-                           │                                  All materials done?
-                           │                                       │
-                           │                              YES ─────┴───── NO
-                           │                               │               │
-                           │                               ▼               │
-                           │                    Auto-generate          Continue
-                           │                    Certificate PDF        Learning
-                           │                    (DomPDF)
-                           │
-                           ├──▶ Quiz Submission:
-                           │    └── Submit answers ──▶ Calculate score
-                           │                          ──▶ Save attempt
-                           │                          ──▶ Track event (AI)
-                           │
-                           ├──▶ Discussion Tab:
-                           │    ├── Post comment
-                           │    └── Reply to comment
-                           │
-                           └──▶ Review Tab:
-                                ├── Write/Update review
-                                └── View all reviews + rating stats
-```
-
----
-
-### AI Recommendation Engine
-
-Sistem rekomendasi KursusIO menggunakan **arsitektur hybrid dual-engine** dengan automatic fallback:
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                  AI RECOMMENDATION ARCHITECTURE                      │
-└─────────────────────────────────────────────────────────────────────┘
-
-  ┌────────────────────────────────────────────────────────────────┐
-  │                   EVENT TRACKING LAYER                         │
-  │                                                                │
-  │  User actions yang di-track untuk AI:                          │
-  │                                                                │
-  │  ┌──────────────────┬──────────┬──────────────────────────┐   │
-  │  │ Event Type       │ Weight   │ Trigger                  │   │
-  │  ├──────────────────┼──────────┼──────────────────────────┤   │
-  │  │ course_view      │ 1.0      │ View course detail page  │   │
-  │  │ course_enroll    │ 5.0      │ Enroll to a course       │   │
-  │  │ material_view    │ 2.0      │ Open a material/lesson   │   │
-  │  │ material_complete│ 4.0      │ Mark material done       │   │
-  │  │ quiz_attempt     │ 3.0      │ Submit quiz answers      │   │
-  │  │ quiz_complete    │ 4.0      │ Complete quiz (passed)   │   │
-  │  └──────────────────┴──────────┴──────────────────────────┘   │
-  │                                                                │
-  │  Features:                                                     │
-  │  • Throttling: course_view & material_view dibatasi            │
-  │    1x per 5 menit untuk mencegah spam event                    │
-  │  • Auto-invalidate: recommendation cache dihapus saat          │
-  │    terjadi event signifikan (enroll, complete, quiz)            │
-  └────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-  ┌────────────────────────────────────────────────────────────────┐
-  │              DUAL-ENGINE RECOMMENDATION SYSTEM                 │
-  │                                                                │
-  │  ┌────────────────────────────────────────────────────────┐   │
-  │  │  ENGINE 1: Python FastAPI ML Microservice (Primary)    │   │
-  │  │                                                        │   │
-  │  │  Algoritma:                                            │   │
-  │  │  ┌──────────────────────────────────────────────────┐  │   │
-  │  │  │ 1. Collaborative Filtering                       │  │   │
-  │  │  │    • User-Item interaction matrix                 │  │   │
-  │  │  │    • Implicit feedback (weighted events)          │  │   │
-  │  │  │                                                   │  │   │
-  │  │  │ 2. Content-Based Filtering                        │  │   │
-  │  │  │    • Tag cosine similarity                        │  │   │
-  │  │  │    • Course-Course similarity matrix              │  │   │
-  │  │  │                                                   │  │   │
-  │  │  │ 3. Hybrid Scoring                                 │  │   │
-  │  │  │    score = Σ(sim × weight) + (popularity × 0.1)   │  │   │
-  │  │  │                                                   │  │   │
-  │  │  │ 4. Popularity Backfill                            │  │   │
-  │  │  │    If hybrid < limit, fill with popular courses   │  │   │
-  │  │  └──────────────────────────────────────────────────┘  │   │
-  │  │                                                        │   │
-  │  │  Endpoints:                                            │   │
-  │  │  • GET  /api/v1/health                                 │   │
-  │  │  • GET  /api/v1/recommendations/guest?limit=N          │   │
-  │  │  • GET  /api/v1/recommendations/user/{id}?limit=N      │   │
-  │  │  • POST /api/v1/recommend {user_id, limit}             │   │
-  │  │  • POST /course {user_id, limit}                       │   │
-  │  └────────────────────────────────────────────────────────┘   │
-  │                         │                                      │
-  │                    FAIL │ (timeout / offline)                   │
-  │                         ▼                                      │
-  │  ┌────────────────────────────────────────────────────────┐   │
-  │  │  ENGINE 2: Laravel Native Engine (Fallback)            │   │
-  │  │                                                        │   │
-  │  │  Algoritma:                                            │   │
-  │  │  ┌──────────────────────────────────────────────────┐  │   │
-  │  │  │ 1. Content-Based Filtering (Tag Overlap)         │  │   │
-  │  │  │    • Hitung tag preference dari interaction       │  │   │
-  │  │  │    • Score candidate courses by tag match         │  │   │
-  │  │  │                                                   │  │   │
-  │  │  │ 2. Popularity Fallback                            │  │   │
-  │  │  │    • Composite: views × 1.5 + enrolls × 3.0      │  │   │
-  │  │  │                   + rating × 2.0                  │  │   │
-  │  │  │    • Window: 30 hari terakhir                     │  │   │
-  │  │  │                                                   │  │   │
-  │  │  │ 3. Cold-Start Handling                            │  │   │
-  │  │  │    • User baru tanpa event → popular courses      │  │   │
-  │  │  │    • Guest → popular courses                      │  │   │
-  │  │  └──────────────────────────────────────────────────┘  │   │
-  │  └────────────────────────────────────────────────────────┘   │
-  └────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-  ┌────────────────────────────────────────────────────────────────┐
-  │                    CACHING LAYER (Redis)                        │
-  │                                                                │
-  │  Cache Key Pattern:                                            │
-  │  • recommendations:user:{id}:limit:{n}   (TTL: 2 hours)       │
-  │  • recommendations:guest:limit:{n}       (TTL: 2 hours)       │
-  │                                                                │
-  │  Auto-invalidation on:                                         │
-  │  • course_enroll event                                         │
-  │  • material_complete event                                     │
-  │  • quiz_complete event                                         │
-  └────────────────────────────────────────────────────────────────┘
-```
-
-#### Recommendation Data Pipeline
-
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                    ML TRAINING PIPELINE                               │
-│                                                                      │
-│  Step 1: Export Data (Laravel → CSV)                                 │
-│  ┌──────────────────────────────────────────────────────────────┐    │
-│  │  php artisan recommendation:export                           │    │
-│  │                                                              │    │
-│  │  Output files:                                               │    │
-│  │  • storage/app/ml/events.csv          (raw user events)      │    │
-│  │  • storage/app/ml/user_item_matrix.csv (weighted pairs)      │    │
-│  │  • storage/app/ml/courses.csv         (course catalog+tags)  │    │
-│  │  • storage/app/ml/dataset_summary.json (analytics + gate)    │    │
-│  └──────────────────────────────────────────────────────────────┘    │
-│                              │                                       │
-│                              ▼                                       │
-│  Step 2: Gate Check (ML Readiness Evaluation)                        │
-│  ┌──────────────────────────────────────────────────────────────┐    │
-│  │  Criteria:                                                   │    │
-│  │  ✓ Total events ≥ 100                                        │    │
-│  │  ✓ Active users ≥ 10                                         │    │
-│  │  ✓ ≥ 50% users have ≥ 5 events                              │    │
-│  │  ✓ ≥ 30 distinct user-course pairs                           │    │
-│  │                                                              │    │
-│  │  Result: READY_FOR_PHASE_4 or STAY_ON_PHASE_2_BASELINE       │    │
-│  └──────────────────────────────────────────────────────────────┘    │
-│                              │                                       │
-│                              ▼                                       │
-│  Step 3: Train Model (Python scikit-learn)                           │
-│  ┌──────────────────────────────────────────────────────────────┐    │
-│  │  php artisan recommendation:train                            │    │
-│  │                                                              │    │
-│  │  Process:                                                    │    │
-│  │  1. Load CSV datasets                                        │    │
-│  │  2. Build tag vectors → content feature matrix               │    │
-│  │  3. Calculate cosine similarity (item-item)                  │    │
-│  │  4. Build user-item collaborative matrix                     │    │
-│  │  5. Calculate popularity scores                              │    │
-│  │  6. Save model → recommender_model.pkl                       │    │
-│  └──────────────────────────────────────────────────────────────┘    │
-│                              │                                       │
-│                              ▼                                       │
-│  Step 4: Serve Recommendations (FastAPI)                             │
-│  ┌──────────────────────────────────────────────────────────────┐    │
-│  │  uvicorn app.main:app --port 8001                            │    │
-│  │                                                              │    │
-│  │  Request Flow:                                               │    │
-│  │  Laravel → HTTP GET → FastAPI → Load Model → Score →         │    │
-│  │  Return {course_id, score, reason, matching_tags}            │    │
-│  └──────────────────────────────────────────────────────────────┘    │
-└──────────────────────────────────────────────────────────────────────┘
-```
-
-#### Recommendation Output Example
-
-Setiap course yang direkomendasikan memiliki metadata:
-
-```json
-{
-  "id": 5,
-  "title": "Advanced React Patterns",
-  "slug": "advanced-react-patterns",
-  "thumbnail_url": "/storage/thumbnails/react.jpg",
-  "recommendation_score": 12.45,
-  "recommendation_reason": "Based on your interests in React, JavaScript, TypeScript",
-  "matching_tags": ["React", "JavaScript", "TypeScript"]
-}
-```
-
-#### Dimana Rekomendasi Ditampilkan
-
-| Halaman | Deskripsi |
-|---------|-----------|
-| **Student Dashboard** | Section "Recommended Courses" — 4 kursus yang dipersonalisasi |
-| **Course Catalog** | Toggle "AI Recommendations" untuk melihat kursus yang direkomendasikan |
-| **Landing Page** | Section featured courses berdasarkan popularitas |
-| **API Endpoint** | `GET /courses/recommended` — JSON response untuk integrasi |
+| Tabel utama                                                                                                                                        | Deskripsi                                                                                                              |
+| -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `users`                                                                                                                                            | Admin/instructor/student; `bio`, avatar, whatsapp_number, payout_account_number (encrypted), role                      |
+| `courses`                                                                                                                                          | Judul, slug, description, level, type (free/paid), price, status, thumbnail, rating, published/approved_at, creator_id |
+| `modules` / `materials` / `material_contents`                                                                                                      | Hierarki kurikulum + content (video/text/quiz/file/ppt)                                                                |
+| `material_progress` / `material_content_progress`                                                                                                  | Progress belajar                                                                                                       |
+| `enrollments`                                                                                                                                      | Status `active`, `revoked`, `expired`; unique user+course                                                              |
+| `orders` / `order_items` / `payments` / `payment_logs` / `refunds`                                                                                 | Transaksi & pembayaran                                                                                                 |
+| `instructor_payouts` / `payout_account_audits`                                                                                                     | Ledger payout instructor                                                                                               |
+| `certificates`                                                                                                                                     | Nomor `KRSIO-YYYYMM-XXXXXXXX`, PDF path, template                                                                      |
+| `reviews` / `comments` / `rating`                                                                                                                  | Feedback & diskusi                                                                                                     |
+| `quiz_questions` / `quiz_options` / `quiz_attempts` / `quiz_answers`                                                                               | Quiz & grading                                                                                                         |
+| `user_events`                                                                                                                                      | Event tracking AI                                                                                                      |
+| `ai_providers` / `ai_provider_credentials` / `ai_models` / `ai_provider_logs` / `ai_settings` / `ai_setting_audits` / `ai_usage_logs`              | AI integration                                                                                                         |
+| `whatsapp_*` (settings, providers, credentials, logs, messages, conversations, contacts, delivery logs, templates, webhooks)                       | WhatsApp integration                                                                                                   |
+| `landing_settings`, `payment_settings`, `appearance_settings`, `recommendation_settings`, `categories`, `tags`, `course_categories`, `course_tags` | CMS & platform settings                                                                                                |
 
 ---
 
@@ -839,113 +269,127 @@ Setiap course yang direkomendasikan memiliki metadata:
 
 ### Public Routes (No Auth)
 
-| Method | Route | Controller | Deskripsi |
-|--------|-------|-----------|-----------|
-| `GET` | `/` | `LandingController@show` | Landing page |
-| `GET` | `/course` | Closure | Course catalog |
-| `GET` | `/course/{slug}` | Closure | Course detail + reviews + comments |
-| `GET` | `/certificate/{number}` | `CertificateController@verify` | Public certificate verification |
-| `GET` | `/courses/recommended` | `RecommendationController@index` | AI recommendations (JSON/redirect) |
+| Method | Route                   | Deskripsi                           |
+| ------ | ----------------------- | ----------------------------------- |
+| GET    | `/`                     | Landing page                        |
+| GET    | `/course`               | Course catalog + AI recommendations |
+| GET    | `/course/{slug}`        | Course detail + reviews + comments  |
+| GET    | `/courses/recommended`  | AI recommendations (JSON/redirect)  |
+| GET    | `/certificate/{number}` | Public certificate verification     |
+| GET    | `/terms`                | Terms of service                    |
+| GET    | `/privacy`              | Privacy policy                      |
 
 ### Auth Routes (Guest Only)
 
-| Method | Route | Controller | Deskripsi |
-|--------|-------|-----------|-----------|
-| `GET` | `/login` | `AuthControllers@show` | Login page |
-| `POST` | `/login` | `AuthControllers@store` | Process login |
-| `GET` | `/register` | `AuthControllers@showRegister` | Register page |
-| `POST` | `/register` | `AuthControllers@register` | Process registration |
-| `POST` | `/logout` | `AuthControllers@logout` | Logout |
-
-### Admin Routes (`/admin/*`)
-
-| Method | Route | Controller | Deskripsi |
-|--------|-------|-----------|-----------|
-| `GET` | `/admin/dashboard` | `DashboardController@admin` | Admin dashboard |
-| `GET` | `/admin/courses` | `CourseController@index` | List all courses |
-| `GET` | `/admin/courses/{slug}` | `CourseController@show` | Course detail |
-| `GET` | `/admin/courses/{slug}/preview` | `CourseController@preview` | Preview course |
-| `POST` | `/admin/courses` | `CourseController@store` | Create course |
-| `PUT` | `/admin/courses/{slug}` | `CourseController@update` | Update course |
-| `PUT` | `/admin/courses/{slug}/approve` | `CourseApprovalController@approve` | Approve & publish |
-| `DELETE` | `/admin/courses/{slug}` | `CourseController@destroy` | Delete course |
-| `GET/PUT` | `/admin/courses/{slug}/certificate-template` | `CertificateTemplateController` | Certificate template |
-| `POST` | `/admin/courses/{slug}/modules` | `ModuleController@store` | Create module |
-| `GET` | `/admin/courses/{slug}/modules/{module}` | `ModuleController@show` | View module |
-| `PUT` | `/admin/courses/{slug}/modules/{module}` | `ModuleController@update` | Update module |
-| `DELETE` | `/admin/courses/{slug}/modules/{module}` | `ModuleController@destroy` | Delete module |
-| `PUT` | `.../modules/{module}/move` | `ModuleController@move` | Reorder module |
-| `POST` | `.../modules/{module}/materials` | `MaterialController@store` | Create material |
-| `PUT` | `.../materials/{material}` | `MaterialController@update` | Update material |
-| `DELETE` | `.../materials/{material}` | `MaterialController@destroy` | Delete material |
-| `PUT` | `.../materials/{material}/move` | `MaterialController@move` | Reorder material |
-| `POST` | `.../materials/{material}/contents` | `MaterialContentController@store` | Create content |
-| `GET` | `.../contents/{content}` | `MaterialContentController@show` | View content |
-| `PUT` | `.../contents/{content}` | `MaterialContentController@update` | Update content |
-| `DELETE` | `.../contents/{content}` | `MaterialContentController@destroy` | Delete content |
-| `PUT` | `.../contents/{content}/move` | `MaterialContentController@move` | Reorder content |
-| `GET` | `.../contents/{content}/edit` | `MaterialContentController@edit` | Edit content page |
-| `GET/POST/PUT/DELETE` | `.../quiz-questions` | `QuizController` | Quiz CRUD |
-| `GET` | `/admin/categories` | Closure | List categories |
-| `POST` | `/admin/categories` | `CategoryController@store` | Create category |
-| `PUT` | `/admin/categories/{category}` | `CategoryController@update` | Update category |
-| `DELETE` | `/admin/categories/{category}` | `CategoryController@destroy` | Delete category |
-| `GET` | `/admin/tags` | `TagController@index` | List tags |
-| `POST` | `/admin/tags` | `TagController@store` | Create tag |
-| `PUT` | `/admin/tags/{tag}` | `TagController@update` | Update tag |
-| `DELETE` | `/admin/tags/{tag}` | `TagController@destroy` | Delete tag |
-| `GET` | `/admin/users` | `UserController@index` | List users |
-| `GET` | `/admin/reviews` | Closure | List all reviews |
-| `PUT` | `/admin/reviews/{review}/approve` | `ReviewController@approve` | Approve review |
-| `PUT` | `/admin/reviews/{review}/reject` | `ReviewController@reject` | Reject review |
-| `DELETE` | `/admin/reviews/{review}` | `ReviewController@adminDestroy` | Delete review |
-| `GET` | `/admin/comments` | Closure | List all comments |
-| `PUT` | `/admin/comments/{comment}/approve` | `CommentController@approve` | Approve comment |
-| `PUT` | `/admin/comments/{comment}/reject` | `CommentController@reject` | Reject comment |
-| `DELETE` | `/admin/comments/{comment}` | `CommentController@adminDestroy` | Delete comment |
-
-### Instructor Routes (`/instructor/*`)
-
-| Method | Route | Controller | Deskripsi |
-|--------|-------|-----------|-----------|
-| `GET` | `/instructor/dashboard` | `DashboardController@instructor` | Instructor dashboard |
-| `GET` | `/instructor/courses` | `CourseController@index` | My courses |
-| `GET` | `/instructor/courses/{slug}` | `CourseController@show` | Course detail |
-| `GET` | `/instructor/courses/{slug}/preview` | `CourseController@preview` | Preview course |
-| `POST` | `/instructor/courses` | `CourseController@store` | Create course |
-| `PUT` | `/instructor/courses/{slug}` | `CourseController@update` | Update course |
-| `PUT` | `/instructor/courses/{slug}/submit-review` | `CourseController@submitForReview` | Submit for review |
-| `DELETE` | `/instructor/courses/{slug}` | `CourseController@destroy` | Delete course |
-| `GET/PUT` | `/instructor/courses/{slug}/certificate-template` | `CertificateTemplateController` | Certificate template |
+| Method | Route                       | Deskripsi                             |
+| ------ | --------------------------- | ------------------------------------- |
+| GET    | `/login`                    | Login page                            |
+| POST   | `/login`                    | Process login (throttle 6/min)        |
+| GET    | `/register`                 | Register page                         |
+| POST   | `/register`                 | Process registration (throttle 6/min) |
+| POST   | `/logout`                   | Logout                                |
+| GET    | `/forgot-password`          | Forgot password                       |
+| POST   | `/forgot-password`          | Process forgot password               |
+| GET    | `/reset-password/{token}`   | Reset password                        |
+| POST   | `/reset-password`           | Reset password                        |
+| GET    | `/verify-email/{id}/{hash}` | Verify email                          |
+| POST   | `/email/resend`             | Resend verification email             |
 
 ### Student Routes (`/student/*`)
 
-| Method | Route | Controller | Deskripsi |
-|--------|-------|-----------|-----------|
-| `GET` | `/student/dashboard` | `DashboardController@student` | Student dashboard |
-| `GET` | `/student/courses` | Closure | My enrolled courses |
-| `GET` | `/student/courses/{slug}` | `EnrollmentController@show` | Learning page |
-| `POST` | `/student/courses/{slug}/progress` | `EnrollmentController@markProgress` | Mark progress |
-| `POST` | `/student/courses/{slug}/quiz/{content}/submit` | `EnrollmentController@submitQuiz` | Submit quiz |
-| `GET` | `/student/certificates` | `CertificateController@index` | My certificates |
-| `GET` | `/student/certificates/{certificate}/download` | `CertificateController@download` | Download PDF |
-| `POST` | `/student/courses/{slug}/reviews` | `ReviewController@store` | Write review |
-| `DELETE` | `/student/courses/{slug}/reviews/{review}` | `ReviewController@destroy` | Delete review |
-| `POST` | `/student/courses/{slug}/comments` | `CommentController@store` | Post comment |
-| `PUT` | `/student/courses/{slug}/comments/{comment}` | `CommentController@update` | Edit comment |
-| `DELETE` | `/student/courses/{slug}/comments/{comment}` | `CommentController@destroy` | Delete comment |
+| Method | Route                                                  | Deskripsi                     |
+| ------ | ------------------------------------------------------ | ----------------------------- |
+| GET    | `/student/dashboard`                                   | Student dashboard             |
+| GET    | `/student/courses`                                     | My enrolled courses           |
+| GET    | `/student/courses/{slug}`                              | Learning page                 |
+| POST   | `/student/courses/{slug}/progress`                     | Mark material complete        |
+| POST   | `/student/courses/{slug}/contents/{content}/complete`  | Mark content complete         |
+| GET    | `/student/courses/{slug}/checkout`                     | Checkout (paid course)        |
+| POST   | `/student/courses/{slug}/checkout`                     | Create checkout (paid course) |
+| GET    | `/student/courses/{slug}/resources/{resource}`         | Download resource             |
+| GET    | `/student/courses/{slug}/resources/contents/{content}` | Download automatic content    |
+| POST   | `/student/courses/{slug}/quiz/{content}/start`         | Quiz start                    |
+| POST   | `/student/courses/{slug}/quiz/{content}/draft`         | Quiz save draft               |
+| POST   | `/student/courses/{slug}/quiz/{content}/reset`         | Quiz reset                    |
+| POST   | `/student/courses/{slug}/quiz/{content}/submit`        | Quiz submit                   |
+| GET    | `/student/certificates`                                | My certificates               |
+| GET    | `/student/certificates/{certificate}/download`         | Download certificate          |
+| POST   | `/student/courses/{slug}/reviews`                      | Write review                  |
+| DELETE | `/student/courses/{slug}/reviews/{review}`             | Delete review                 |
+| POST   | `/student/courses/{slug}/comments`                     | Post comment                  |
+| PUT    | `/student/courses/{slug}/comments/{comment}`           | Edit comment                  |
+| DELETE | `/student/courses/{slug}/comments/{comment}`           | Delete comment                |
+| GET    | `/student/orders/{order}`                              | Payment page                  |
+| GET    | `/student/profile`                                     | Profile                       |
+| PUT    | `/student/profile`                                     | Update profile                |
+| PUT    | `/student/settings/whatsapp`                           | WhatsApp settings             |
 
-### Python ML Microservice Routes (Port 8001)
+### Instructor Routes (`/instructor/*`)
 
-| Method | Route | Deskripsi |
-|--------|-------|-----------|
-| `GET` | `/` | Service info |
-| `GET` | `/docs` | Swagger/OpenAPI docs |
-| `GET` | `/api/v1/health` | Health check + model status |
-| `GET` | `/api/v1/recommendations/guest?limit=N` | Guest recommendations |
-| `GET` | `/api/v1/recommendations/user/{id}?limit=N` | User recommendations |
-| `POST` | `/api/v1/recommend` | Recommend (body: `{user_id, limit}`) |
-| `POST` | `/course` | Recommend (body: `{user_id, limit}`) |
+| Method | Route                                             | Deskripsi                   |
+| ------ | ------------------------------------------------- | --------------------------- |
+| GET    | `/instructor/dashboard`                           | Instructor dashboard        |
+| GET    | `/instructor/courses`                             | My courses                  |
+| POST   | `/instructor/courses`                             | Create course               |
+| GET    | `/instructor/courses/{slug}`                      | Course detail               |
+| PUT    | `/instructor/courses/{slug}`                      | Update course               |
+| DELETE | `/instructor/courses/{slug}`                      | Delete course               |
+| PUT    | `/instructor/courses/{slug}/submit-review`        | Submit for review           |
+| GET    | `/instructor/courses/{slug}/preview`              | Preview course              |
+| GET    | `/instructor/courses/{slug}/certificate-template` | Certificate template        |
+| PUT    | `/instructor/courses/{slug}/certificate-template` | Update certificate template |
+| PUT    | `/instructor/quiz-attempts/{attempt}/grade`       | Grade essay attempt         |
+| GET    | `/instructor/profile`                             | Profile                     |
+| PUT    | `/instructor/profile`                             | Update profile              |
+| GET    | `/instructor/settings`                            | Instructor settings         |
+| PUT    | `/instructor/settings/whatsapp`                   | WhatsApp settings           |
+| PUT    | `/instructor/settings/payout`                     | Payout settings             |
+
+### Admin Routes (`/admin/*`)
+
+| Area            | Route                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Deskripsi                       |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
+| Dashboard       | GET `/admin/dashboard`                                                                                                                                                                                                                                                                                                                                                                                                                                                         | KPIs, top courses, recent lists |
+| Courses         | GET/POST `/admin/courses`, GET/PUT/DELETE `/admin/courses/{slug}`, PUT `/admin/courses/{slug}/approve`, GET `/admin/courses/{slug}/preview`, GET/PUT `/admin/courses/{slug}/certificate-template`                                                                                                                                                                                                                                                                              | Full course management          |
+| Users           | GET `/admin/users`, GET/POST `/admin/users/{user}`, PUT `/admin/users/{user}`, DELETE `/admin/users/{user}`, GET `/admin/users/export`                                                                                                                                                                                                                                                                                                                                         | User management                 |
+| Orders          | GET `/admin/orders`, GET `/admin/orders/{order}`, PUT `/admin/orders/{order}/pay`, POST `/admin/orders/{order}/refund`, GET `/admin/orders/export`                                                                                                                                                                                                                                                                                                                             | Order & payment ops             |
+| Payouts         | GET `/admin/payouts`, GET `/admin/payouts/{payout}/pay`, PUT `/admin/payouts/batch`, GET `/admin/payouts/export`                                                                                                                                                                                                                                                                                                                                                               | Payout processing               |
+| Reviews         | GET `/admin/reviews`, PUT `/admin/reviews/{review}/approve`, PUT `/admin/reviews/{review}/reject`, DELETE `/admin/reviews/{review}`                                                                                                                                                                                                                                                                                                                                            | Moderation                      |
+| Comments        | GET `/admin/comments`, PUT `/admin/comments/{comment}/approve`, PUT `/admin/comments/{comment}/reject`, DELETE `/admin/comments/{comment}`                                                                                                                                                                                                                                                                                                                                     | Moderation                      |
+| Quiz attempts   | GET `/admin/quiz-attempts`, PUT `/admin/quiz-attempts/{attempt}/grade`                                                                                                                                                                                                                                                                                                                                                                                                         | Essay grading                   |
+| Categories/Tags | GET/POST `/admin/categories`, PUT/DELETE `/admin/categories/{category}`; GET/POST `/admin/tags`, PUT/DELETE `/admin/tags/{tag}`                                                                                                                                                                                                                                                                                                                                                | Taxonomy                        |
+| Landing         | GET/PUT `/admin/settings/landing/{section}`                                                                                                                                                                                                                                                                                                                                                                                                                                    | CMS landing                     |
+| Settings        | GET/PUT `/admin/settings/general`, PATCH `/admin/settings/appearance`, PATCH `/admin/settings/identity`, POST/DELETE `/admin/settings/logo`, GET/PUT `/admin/settings/payment`, PATCH `/admin/settings/ai/toggle`, PUT `/admin/settings/ai`, POST `/admin/settings/ai/verify-password`, PATCH `/admin/settings/recommendation/toggle`, PATCH `/admin/settings/whatsapp/toggle`, PUT `/admin/settings/whatsapp`, POST `/admin/settings/whatsapp/test` | Platform settings               |
+| Integrations    | GET/POST `/admin/integrations/ai[...]`, `/admin/integrations/whatsapp[...]`                                                                                                                                                                                                                                                                                                                                                                                                    | Provider management             |
+
+### AI Routes
+
+| Method | Route                         | Deskripsi                |
+| ------ | ----------------------------- | ------------------------ |
+| GET    | `/ai/chat/sessions`           | List AI chat sessions    |
+| POST   | `/ai/chat`                    | Create AI chat session   |
+| GET    | `/ai/chat/{session}`          | Get session              |
+| DELETE | `/ai/chat/{session}`          | Delete session           |
+| GET    | `/ai/chat/{session}/messages` | List messages            |
+| POST   | `/ai/chat/{session}/messages` | Send message (tool loop) |
+
+### WhatsApp & Webhooks
+
+| Method | Route                           | Deskripsi        |
+| ------ | ------------------------------- | ---------------- |
+| GET    | `/webhooks/whatsapp/{provider}` | Webhook verify   |
+| POST   | `/webhooks/whatsapp/{provider}` | Webhook handle   |
+| POST   | `/payments/midtrans/webhook`    | Midtrans webhook |
+
+### ML Microservice
+
+| Method | Route                                       | Deskripsi                    |
+| ------ | ------------------------------------------- | ---------------------------- |
+| GET    | `/api/v1/health`                            | Health check                 |
+| GET    | `/api/v1/recommendations/guest?limit=N`     | Guest recs                   |
+| GET    | `/api/v1/recommendations/user/{id}?limit=N` | User recs                    |
+| POST   | `/api/v1/recommend`                         | Recommend                    |
+| POST   | `/course`                                   | Recommend via course context |
 
 ---
 
@@ -953,24 +397,22 @@ Setiap course yang direkomendasikan memiliki metadata:
 
 ### Recommendation Commands
 
-| Command | Deskripsi |
-|---------|-----------|
-| `php artisan recommendation:export` | Export event data, user-item matrix, dan course catalog ke CSV untuk ML training. Output di `storage/app/ml/`. |
-| `php artisan recommendation:train` | Jalankan full pipeline: export data → training Python ML model → save `recommender_model.pkl`. |
-| `php artisan recommendation:train --no-export` | Training model tanpa re-export data (gunakan CSV yang sudah ada). |
-| `php artisan recommendation:status` | Cek status recommendation engine (Python online/offline, fallback status). |
-| `php artisan recommendation:stats` | Tampilkan analytics detail: event counts, user engagement, gate check readiness. |
-| `php artisan recommendation:evaluate` | Evaluasi kualitas rekomendasi (precision, recall metrics). |
-| `php artisan recommendation:seed-events` | Generate dummy event data untuk testing. |
+| Command                                        | Deskripsi                                            |
+| ---------------------------------------------- | ---------------------------------------------------- |
+| `php artisan recommendation:export`            | Export event data + matrices + course catalog ke CSV |
+| `php artisan recommendation:train`             | Full pipeline: export → train Python → save model    |
+| `php artisan recommendation:train --no-export` | Train tanpa re-export                                |
+| `php artisan recommendation:status`            | Status engine (Python online/offline, fallback)      |
+| `php artisan recommendation:stats`             | Analytics detail + gate check                        |
+| `php artisan recommendation:evaluate`          | Evaluasi kualitas rekomendasi                        |
+| `php artisan recommendation:seed-events`       | Dummy event data                                     |
 
-### Standard Laravel Commands
+### Standard & Payment
 
-| Command | Deskripsi |
-|---------|-----------|
-| `composer dev` | Start development servers (Laravel, Queue, Pail logs, Vite) |
-| `composer setup` | Full setup: install deps, generate key, migrate, build |
-| `php artisan migrate` | Run database migrations |
-| `php artisan db:seed` | Seed database with sample data |
+| Command                                                             | Deskripsi                                        |
+| ------------------------------------------------------------------- | ------------------------------------------------ |
+| `php artisan orders:expire`                                         | Expirasi pending order (scheduler tiap 10 menit) |
+| `php artisan migrate` / `db:seed` / `key:generate` / `storage:link` | Standard Laravel                                 |
 
 ---
 
@@ -978,34 +420,25 @@ Setiap course yang direkomendasikan memiliki metadata:
 
 ### Prerequisites
 
-- PHP 8.2+
-- Composer
+- PHP 8.2+, Composer
 - Node.js 18+ & npm
 - MySQL / PostgreSQL
 - Redis
-- Python 3.11+ (untuk ML recommendation engine)
+- Python 3.11+ (ML recommendation)
+- Midtrans account (payment)
 
-### Step 1: Clone & Install Dependencies
+### Step 1: Clone & install
 
 ```bash
-git clone https://github.com/your-repo/course-sale.git
-cd course-sale
-
-# Install PHP dependencies
 composer install
-
-# Install Node.js dependencies
 npm install
-```
-
-### Step 2: Environment Setup
-
-```bash
 cp .env.example .env
 php artisan key:generate
+php artisan migrate
+php artisan storage:link
 ```
 
-Edit `.env` dengan konfigurasi database, Redis, dan recommendation:
+### Step 2: Environment
 
 ```env
 DB_CONNECTION=mysql
@@ -1019,71 +452,52 @@ CACHE_STORE=redis
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 
-# Recommendation Engine Config
 RECOMMENDATION_ENABLED=true
 RECOMMENDATION_DRIVER=python
 RECOMMENDATION_PYTHON_URL=http://127.0.0.1:8001
 RECOMMENDATION_PYTHON_TIMEOUT=2.0
-RECOMMENDATION_PYTHON_FALLBACK=true
+RECOMMENDATION_FALLBACK_TO_LARAVEL=true
 RECOMMENDATION_CACHE_TTL=7200
+
+WHATSAPP_PROVIDER=infobip
+WHATSAPP_ACCESS_TOKEN=
+...
+
+MIDTRANS_IS_PRODUCTION=false
+MIDTRANS_SERVER_KEY=
+MIDTRANS_CLIENT_KEY=
+MIDTRANS_MERCHANT_ID=
+MIDTRANS_TIMEOUT=15
 ```
 
-### Step 3: Database & Storage
-
-```bash
-php artisan migrate
-php artisan storage:link
-```
-
-### Step 4: Setup Python ML Service
+### Step 3: ML service
 
 ```bash
 cd recommendation-service
-
-# Create virtual environment
 python3 -m venv venv
 source venv/bin/activate
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Go back to project root
 cd ..
-```
-
-### Step 5: Train ML Model (Optional — requires data)
-
-```bash
-# Export interaction data from database
-php artisan recommendation:export
-
-# Train the model
-php artisan recommendation:train
-```
-
-### Step 6: Run Development Servers
-
-```bash
-# Option 1: Run everything with one command
-composer dev
-
-# Option 2: Run separately
-# Terminal 1: Laravel server
-php artisan serve
-
-# Terminal 2: Vite dev server
-npm run dev
-
-# Terminal 3: Queue worker
-php artisan queue:listen
-
-# Terminal 4: Python ML service
-cd recommendation-service
-source venv/bin/activate
 uvicorn app.main:app --port 8001 --reload
 ```
 
-Akses aplikasi di: **http://localhost:8000**
+### Step 4: Train ML model (opsional)
+
+```bash
+php artisan recommendation:export
+php artisan recommendation:train
+```
+
+### Step 5: Run
+
+```bash
+composer dev        # Laravel + Queue + Vite + Pail
+# atau
+php artisan serve
+npm run dev
+```
+
+Akses: **http://localhost:8000**
 
 ---
 
@@ -1092,67 +506,41 @@ Akses aplikasi di: **http://localhost:8000**
 ```
 course-sale/
 ├── app/
-│   ├── Console/Commands/           # Artisan commands (6 recommendation commands)
-│   ├── Http/
-│   │   ├── Controllers/
-│   │   │   ├── Admin/              # CourseApprovalController
-│   │   │   ├── Course/             # CourseController, ModuleController,
-│   │   │   │                       # MaterialController, MaterialContentController,
-│   │   │   │                       # QuizController
-│   │   │   ├── AuthControllers.php
-│   │   │   ├── CertificateController.php
-│   │   │   ├── CertificateTemplateController.php
-│   │   │   ├── CommentController.php
-│   │   │   ├── DashboardController.php
-│   │   │   ├── EnrollmentController.php
-│   │   │   ├── LandingController.php
-│   │   │   ├── RecommendationController.php
-│   │   │   ├── ReviewController.php
-│   │   │   ├── RoleController.php
-│   │   │   ├── TagController.php
-│   │   │   └── UserController.php
-│   │   ├── Middleware/
-│   │   │   ├── EnsureRoleSelected.php
-│   │   │   ├── HandleInertiaRequests.php
-│   │   │   └── RoleMiddleware.php
-│   │   └── Requests/               # Form Request validation (20+ files)
-│   ├── Models/                     # 26 Eloquent models
-│   └── Services/                   # 20 service classes (business logic)
-├── database/
-│   ├── factories/
-│   ├── migrations/                 # 32 migration files
-│   └── seeders/
-├── recommendation-service/         # Python ML Microservice
-│   ├── app/
-│   │   ├── api/recommend.py        # FastAPI endpoints
-│   │   ├── main.py                 # FastAPI app entry
-│   │   └── schemas.py              # Pydantic schemas
-│   ├── ml/
-│   │   ├── data/build_matrix.py    # Data preprocessing
-│   │   ├── train.py                # Model training script
-│   │   └── evaluate.py             # Model evaluation
-│   ├── models/                     # Trained model (.pkl)
-│   ├── tests/                      # Pytest test files
-│   ├── requirements.txt            # Python dependencies
-│   └── venv/                       # Python virtual environment
-├── resources/
-│   └── js/
-│       ├── components/             # React components (atoms, molecules, organisms)
-│       └── pages/                  # Inertia pages
-│           ├── admin/              # Admin pages
-│           ├── auth/               # Login, Register
-│           ├── course/             # Public course catalog & detail
-│           └── user/               # Student & Instructor pages
-├── routes/
-│   └── web.php                     # All application routes (472 lines)
-├── storage/
-│   └── app/ml/                     # ML training datasets (CSV)
-├── composer.json
-├── package.json
-├── design.md                       # Design & feature analysis
-├── task.md                         # Task tracking
-└── README.md                       # ← You are here
+│   ├── Console/Commands/          # Artisan commands
+│   ├── Http/Controllers/          # API + Web controllers (Admin, Course, Student, Instructor, AI, Payment, WhatsApp, ...)
+│   ├── Http/Middleware/, Requests/, Policies/
+│   ├── Jobs/                      # WhatsApp notification jobs, event tracking job
+│   ├── Models/                    # Eloquent models
+│   └── Services/                  # incl. AI/*, WhatsApp/*, Payment/*
+├── database/migrations/, factories/, seeders/
+├── recommendation-service/       # FastAPI ML microservice
+├── resources/js/                  # React + Inertia pages & components
+├── routes/web.php
+├── storage/app/ml/                 # ML training datasets
+└── ...
 ```
+
+---
+
+## Dokumentasi
+
+- [Activity Diagram](./docs/activity-diagram.md) — alur setiap fitur, termasuk cabang keputusan, webhook, job, dan temuan audit.
+- [Use Case Diagram](./docs/use-case-diagram.md) — aktor, use case, sequence pembayaran, dan state course.
+- [PRD](./docs/PRD.md) — kebutuhan produk, kebijakan, dan batasan platform.
+
+---
+
+## Status Implementasi & Known Limitations
+
+- Course approval: tidak ada alur reject (approve only).
+- Refund policy hanya informatif di student side; approval refund manual admin.
+- AI streaming belum tersedia via endpoint (SSE adapter ada tapi belum dipakai).
+- LearningPathTool dibuat tapi belum terdaftar di orchestrator.
+- Impersonation, PDF export, WhatsApp notifikasi order/certificate belum ada.
+- Progress tracking terdapat dua sistem (material vs content) — perbaikan pada masa depan.
+- `role.selected` middleware terdaftar tapi belum dipakai.
+- Multi-gateway/multi-currency belum didukung.
+- Marketplace multi-instructor belum didukung.
 
 ---
 

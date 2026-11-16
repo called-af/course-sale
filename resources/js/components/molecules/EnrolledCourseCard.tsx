@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { CheckCircle, Download, Play } from 'lucide-react';
+import Button from '@/components/atoms/Button';
 import ProgressBar from '@/components/atoms/ProgressBar';
 import { useBranding } from '@/hooks/useBranding';
 import type { ContinueLearningCourse } from '@/types/dashboard';
@@ -101,30 +102,28 @@ export default function EnrolledCourseCard({ course }: EnrolledCourseCardProps) 
                 {isCompleted ? (
                     <div className="flex items-center gap-1.5">
                         {course.certificate && (
-                            <a
-                                href={`/student/certificates/${course.certificate.id}/download`}
-                                className="inline-flex items-center gap-1 bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300"
-                            >
-                                <Download size={12} />
-                                Download Certificate
+                            <a href={`/student/certificates/${course.certificate.id}/download`}>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    leftIcon={<Download size={12} />}
+                                    className="!rounded-none !border-emerald-200 !bg-emerald-50 !text-emerald-700 hover:!bg-emerald-100 dark:!border-emerald-900/60 dark:!bg-emerald-950/60 dark:!text-emerald-300"
+                                >
+                                    Download Certificate
+                                </Button>
                             </a>
                         )}
-                        <Link
-                            href={resumeUrl}
-                            title="Open the lesson viewer to review the course materials"
-                            className="inline-flex items-center gap-1 bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-purple-700"
-                        >
-                            <Play size={10} className="fill-white" />
-                            Review Lessons
+                        <Link href={resumeUrl} title="Open the lesson viewer to review the course materials">
+                            <Button size="sm" leftIcon={<Play size={10} className="fill-white" />} className="!rounded-none">
+                                Review Lessons
+                            </Button>
                         </Link>
                     </div>
                 ) : (
-                    <Link
-                        href={resumeUrl}
-                        className="inline-flex items-center gap-1 bg-purple-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-purple-700 active:scale-98"
-                    >
-                        <Play size={11} className="fill-white" />
-                        {progress > 0 ? 'Continue Learning' : 'Start Learning'}
+                    <Link href={resumeUrl}>
+                        <Button size="sm" leftIcon={<Play size={11} className="fill-white" />} className="!rounded-none">
+                            {progress > 0 ? 'Continue Learning' : 'Start Learning'}
+                        </Button>
                     </Link>
                 )}
             </div>

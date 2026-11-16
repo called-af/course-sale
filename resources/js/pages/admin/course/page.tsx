@@ -56,14 +56,19 @@ export default function Course() {
                     title="Courses Management"
                     description="Manage all courses available on the platform"
                     actions={
-                        <Button variant="primary" onClick={() => setOpen(true)} leftIcon={<Plus className="h-4 w-4" />} className="!rounded-none">
+                        <Button
+                            variant="primary"
+                            onClick={() => setOpen(true)}
+                            leftIcon={<Plus className="h-4 w-4" />}
+                            className="w-full justify-center !rounded-none sm:w-auto"
+                        >
                             Add Course
                         </Button>
                     }
                 />
 
                 {/* Content Card */}
-                <div className="space-y-6 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
+                <div className="space-y-6 border border-slate-200/80 bg-white p-4 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="flex flex-col justify-between gap-4 border-b border-slate-100 pb-4 sm:flex-row sm:items-center dark:border-slate-700">
                         <div>
                             <h2 className="text-lg font-bold text-slate-900 dark:text-white">All Courses ({coursePaginator.total})</h2>
@@ -87,13 +92,14 @@ export default function Course() {
                                 Showing {courseItems.length === 0 ? 0 : (coursePaginator.current_page - 1) * 10 + 1}–
                                 {Math.min(coursePaginator.current_page * 10, coursePaginator.total)} of {coursePaginator.total} courses
                             </p>
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     disabled={coursePaginator.current_page === 1}
                                     onClick={() => changePage(coursePaginator.current_page - 1)}
                                     leftIcon={<ChevronLeft className="h-4 w-4" />}
+                                    className="flex-1 justify-center sm:flex-none"
                                 >
                                     Previous
                                 </Button>
@@ -106,6 +112,7 @@ export default function Course() {
                                     disabled={coursePaginator.current_page === coursePaginator.last_page}
                                     onClick={() => changePage(coursePaginator.current_page + 1)}
                                     rightIcon={<ChevronRight className="h-4 w-4" />}
+                                    className="flex-1 justify-center sm:flex-none"
                                 >
                                     Next
                                 </Button>

@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { ArrowRight, BookOpen, Plus, Star, TrendingUp, Users, Wallet } from 'lucide-react';
+import Button from '@/components/atoms/Button';
 import WeeklyPulse from '@/components/molecules/WeeklyPulse';
 import { formatCoursePrice } from '@/lib/currency';
 import type { InstructorCourse } from '@/types/dashboard';
@@ -61,12 +62,16 @@ export default function InstructorSpotlight({
                                 </span>
                             </div>
                         </div>
-                        <Link
-                            href={`/instructor/courses/${topCourse.slug}`}
-                            className="inline-flex w-full shrink-0 items-center justify-center gap-2 bg-white px-4 py-2.5 text-xs font-bold text-slate-900 transition hover:bg-purple-50 sm:w-auto"
-                        >
-                            Manage
-                            <ArrowRight size={13} />
+                        <Link href={`/instructor/courses/${topCourse.slug}`} className="w-full shrink-0 sm:w-auto">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                widthFull
+                                rightIcon={<ArrowRight size={13} />}
+                                className="!rounded-none !border-white/20 !bg-white !text-slate-900 hover:!bg-purple-50 dark:!border-white/20 dark:!bg-white dark:!text-slate-900 dark:hover:!bg-purple-50"
+                            >
+                                Manage
+                            </Button>
                         </Link>
                     </div>
                 </div>
@@ -75,11 +80,10 @@ export default function InstructorSpotlight({
                     <BookOpen size={22} className="text-slate-300 dark:text-slate-600" />
                     <p className="mt-2 text-sm font-semibold text-slate-700 dark:text-slate-200">No course to spotlight yet</p>
                     <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Create a course to see its performance here.</p>
-                    <Link
-                        href="/instructor/courses"
-                        className="mt-4 inline-flex items-center gap-1.5 bg-purple-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-purple-700"
-                    >
-                        <Plus size={14} /> Create Course
+                    <Link href="/instructor/courses" className="mt-4">
+                        <Button size="sm" leftIcon={<Plus size={14} />} className="!rounded-none">
+                            Create Course
+                        </Button>
                     </Link>
                 </div>
             )}

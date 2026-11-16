@@ -122,5 +122,3 @@ export default function CoursePage() {
 }
 
 CoursePage.layout = (page: React.ReactNode) => <UserLayout>{page}</UserLayout>;
-
-CoursePage.layout = (page: React.ReactNode) => <UserLayout>{page}</UserLayout>;

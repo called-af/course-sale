@@ -98,7 +98,7 @@ export default function AiSettingsPanel({ initialAi, flash }: AiSettingsPanelPro
             <Head title="Pengaturan AI" />
 
             <Card className="overflow-hidden rounded-none">
-                <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-5 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                     <div className="flex items-start gap-4">
                         <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-300">
                             <Sparkles size={21} />
@@ -112,14 +112,14 @@ export default function AiSettingsPanel({ initialAi, flash }: AiSettingsPanelPro
                     <Toggle checked={data.enabled} onCheckedChange={updateEnabled} disabled={processing} label="Aktifkan atau nonaktifkan fitur AI" />
                 </div>
 
-                <div className="border-t border-neutral-200 bg-neutral-50/70 p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
+                <div className="border-t border-neutral-200 bg-neutral-50/70 p-4 sm:p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h3 className="font-semibold text-slate-900 dark:text-white">Konfigurasi AI</h3>
                             <p className="mt-1 text-sm text-neutral-500">Base URL, model, dan API key untuk koneksi AI.</p>
                         </div>
                         {!isEditing && (
-                            <Button type="button" variant="secondary" onClick={startEditing}>
+                            <Button type="button" variant="secondary" onClick={startEditing} className="w-full sm:w-auto">
                                 Edit mode
                             </Button>
                         )}
@@ -229,10 +229,16 @@ export default function AiSettingsPanel({ initialAi, flash }: AiSettingsPanelPro
                             </div>
 
                             <div className="flex flex-col gap-3 sm:flex-row sm:justify-end md:col-span-2">
-                                <Button type="button" variant="ghost" onClick={() => setIsEditing(false)} disabled={processing}>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={() => setIsEditing(false)}
+                                    disabled={processing}
+                                    className="w-full sm:w-auto"
+                                >
                                     Keluar edit mode
                                 </Button>
-                                <Button type="submit" disabled={processing} isLoading={processing}>
+                                <Button type="submit" disabled={processing} isLoading={processing} className="w-full sm:w-auto">
                                     Simpan konfigurasi
                                 </Button>
                             </div>

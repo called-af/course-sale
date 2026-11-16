@@ -88,13 +88,9 @@ export default function ReviewCard({ review, courseSlug, currentUserId, isAdmin,
                     {(isOwner || isAdmin) && (
                         <div className="flex gap-1">
                             {isOwner && (
-                                <button
-                                    type="button"
-                                    onClick={() => setEditing(true)}
-                                    className="px-2 py-1 text-xs text-slate-500 transition-colors hover:text-purple-700 dark:text-slate-400 dark:hover:text-purple-400"
-                                >
+                                <Button variant="ghost" size="sm" onClick={() => setEditing(true)} className="!rounded-none">
                                     Edit
-                                </button>
+                                </Button>
                             )}
                             <Button
                                 variant="ghost"

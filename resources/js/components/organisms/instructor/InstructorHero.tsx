@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { BookOpen, Star, Users } from 'lucide-react';
+import Button from '@/components/atoms/Button';
 import PageHeader from '@/components/molecules/PageHeader';
 
 interface InstructorHeroProps {
@@ -27,12 +28,10 @@ export default function InstructorHero({ userName, courseCount, publishedCount, 
                 { icon: <Star size={18} />, value: averageRating ? `${averageRating}` : '—', label: 'Rating' },
             ]}
             actions={
-                <Link
-                    href="/instructor/courses"
-                    className="inline-flex items-center gap-1.5 bg-purple-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-purple-700"
-                >
-                    <BookOpen size={14} />
-                    Manage Courses
+                <Link href="/instructor/courses">
+                    <Button size="sm" leftIcon={<BookOpen size={14} />} className="!rounded-none">
+                        Manage Courses
+                    </Button>
                 </Link>
             }
         />

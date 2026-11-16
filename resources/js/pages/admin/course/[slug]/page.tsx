@@ -70,26 +70,26 @@ export default function CourseSlug({ course, categories, tags, enrolled_students
                     }
                     description={course.creator ? `Created by ${course.creator.name}` : undefined}
                     actions={
-                        <div className="flex items-center gap-3">
+                        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
                             {course.status === 'review' && (
                                 <Button
                                     onClick={() => setIsApprovalModalOpen(true)}
                                     leftIcon={<CheckCircle className="h-4 w-4" />}
-                                    className="!rounded-none"
+                                    className="w-full justify-center !rounded-none sm:w-auto"
                                 >
                                     Approve & Publish
                                 </Button>
                             )}
                             <Link
                                 href={`/${rolePrefix}/courses/${course.slug}/preview`}
-                                className="inline-flex items-center gap-2 border border-purple-500 bg-purple-600 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:scale-[1.02] hover:bg-purple-500 active:scale-[0.98]"
+                                className="inline-flex w-full items-center justify-center gap-2 border border-purple-500 bg-purple-600 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:scale-[1.02] hover:bg-purple-500 active:scale-[0.98] sm:w-auto"
                             >
                                 <Eye className="h-4 w-4" />
                                 Preview
                             </Link>
                             <Link
                                 href={`/${rolePrefix}/courses`}
-                                className="inline-flex items-center gap-2 border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-medium text-white backdrop-blur-md transition-all duration-200 hover:scale-[1.02] hover:bg-white/20 active:scale-[0.98]"
+                                className="inline-flex w-full items-center justify-center gap-2 border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-medium text-white backdrop-blur-md transition-all duration-200 hover:scale-[1.02] hover:bg-white/20 active:scale-[0.98] sm:w-auto"
                             >
                                 <ArrowLeft className="h-4 w-4" />
                                 Back
@@ -103,7 +103,7 @@ export default function CourseSlug({ course, categories, tags, enrolled_students
                     {/* Left Column */}
                     <div className="space-y-6 lg:col-span-5">
                         {/* Thumbnail */}
-                        <div className="space-y-4 border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
+                        <div className="space-y-4 border border-slate-200/80 bg-white p-4 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
                             <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-700">
                                 <h3 className="flex items-center gap-2 text-sm font-bold tracking-wider text-slate-800 uppercase dark:text-slate-100">
                                     <Image className="h-4 w-4 text-purple-500" />
@@ -119,7 +119,7 @@ export default function CourseSlug({ course, categories, tags, enrolled_students
                         </div>
 
                         {/* Tags */}
-                        <div className="space-y-4 border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
+                        <div className="space-y-4 border border-slate-200/80 bg-white p-4 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
                             <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-700">
                                 <h3 className="flex items-center gap-2 text-sm font-bold tracking-wider text-slate-800 uppercase dark:text-slate-100">
                                     <Tag className="h-4 w-4 text-purple-500" />
@@ -141,16 +141,16 @@ export default function CourseSlug({ course, categories, tags, enrolled_students
                     </div>
 
                     {/* Right Column */}
-                    <div className="space-y-6 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 lg:col-span-7 dark:border-slate-700 dark:bg-[#1e1f24]">
-                        <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-700">
-                            <div>
+                    <div className="space-y-6 border border-slate-200/80 bg-white p-4 shadow-sm sm:p-8 lg:col-span-7 dark:border-slate-700 dark:bg-[#1e1f24]">
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-4 dark:border-slate-700">
+                            <div className="min-w-0">
                                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">Course Information & Details</h2>
                                 <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                                     Manage title, description, pricing, and accessibility level.
                                 </p>
                             </div>
                             {hasChanges && (
-                                <span className="animate-pulse border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300">
+                                <span className="shrink-0 animate-pulse border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300">
                                     Unsaved Changes
                                 </span>
                             )}
@@ -225,12 +225,12 @@ export default function CourseSlug({ course, categories, tags, enrolled_students
                             options={(categories ?? []).map((c) => ({ label: c.name, value: c.id }))}
                         />
 
-                        <div className="flex items-center justify-between border-t border-slate-100 pt-4 dark:border-slate-700">
+                        <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-700">
                             <Button
                                 onClick={save}
                                 disabled={!hasChanges || processing}
                                 leftIcon={<Save className="h-4 w-4" />}
-                                className="!rounded-none"
+                                className="w-full justify-center !rounded-none sm:w-auto"
                             >
                                 {processing ? 'Saving Changes...' : 'Save Course Changes'}
                             </Button>
@@ -249,7 +249,7 @@ export default function CourseSlug({ course, categories, tags, enrolled_students
                 <EnrolledStudentsList students={enrolled_students ?? []} exportUrl={`/admin/courses/${course.slug}/students/export`} />
 
                 {/* Certificate Template Editor */}
-                <div className="space-y-6 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
+                <div className="space-y-6 border border-slate-200/80 bg-white p-4 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="flex items-center gap-3 border-b border-slate-100 pb-4 dark:border-slate-700">
                         <div className="flex h-8 w-8 items-center justify-center bg-purple-50 dark:bg-purple-950/40">
                             <Award className="h-4 w-4 text-purple-600 dark:text-purple-400" />

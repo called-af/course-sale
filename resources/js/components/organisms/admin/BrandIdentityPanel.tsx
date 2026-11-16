@@ -71,11 +71,12 @@ export default function BrandIdentityPanel({ initialName, initialEmail }: BrandI
                     {errors.contact_email && <p className="text-xs text-red-600 dark:text-red-400">{errors.contact_email}</p>}
                 </div>
 
-                <div className="flex items-center gap-3 md:col-span-2">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center md:col-span-2">
                     <Button
                         type="submit"
                         leftIcon={processing ? <LoaderCircle size={16} className="animate-spin" /> : <Save size={16} />}
                         disabled={processing}
+                        className="w-full sm:w-auto"
                     >
                         Simpan identitas
                     </Button>

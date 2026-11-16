@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { Award, Compass, Sparkles } from 'lucide-react';
+import Button from '@/components/atoms/Button';
 import { useBranding } from '@/hooks/useBranding';
 import { getGreeting } from '@/lib/dashboard';
 
@@ -36,19 +37,20 @@ export default function StudentHero({ userName, enrolledCount, activeCourseTitle
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
-                    <Link
-                        href="/course"
-                        className="inline-flex items-center gap-1.5 bg-purple-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-purple-700"
-                    >
-                        <Compass size={14} />
-                        Explore Courses
+                    <Link href="/course">
+                        <Button size="sm" leftIcon={<Compass size={14} />} className="!rounded-none">
+                            Explore Courses
+                        </Button>
                     </Link>
-                    <Link
-                        href="/student/certificates"
-                        className="inline-flex items-center gap-1.5 bg-white/10 px-4 py-2.5 text-xs font-semibold text-white backdrop-blur-xs transition hover:bg-white/20"
-                    >
-                        <Award size={14} className="text-purple-300" />
-                        My Certificates
+                    <Link href="/student/certificates">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            leftIcon={<Award size={14} className="text-purple-300" />}
+                            className="!rounded-none !border-white/20 !bg-white/10 !text-white backdrop-blur-xs hover:!border-white/30 hover:!bg-white/20 dark:!border-white/20 dark:!bg-white/10 dark:!text-white dark:hover:!border-white/30 dark:hover:!bg-white/20"
+                        >
+                            My Certificates
+                        </Button>
                     </Link>
                 </div>
             </div>

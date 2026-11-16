@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\Admin\AiIntegrationController;
 use App\Http\Controllers\Admin\CourseApprovalController;
 use App\Http\Controllers\Admin\ExportController;
 use App\Http\Controllers\Admin\GeneralSettingsController;
 use App\Http\Controllers\Admin\LandingSettingsController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PayoutController;
+use App\Http\Controllers\Admin\WhatsAppIntegrationController;
 use App\Http\Controllers\AuthControllers;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CertificateController;
@@ -31,10 +33,12 @@ use App\Http\Controllers\QuizGradingController;
 use App\Http\Controllers\RecommendationController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\Student\CourseResourceContentDownloadController;
 use App\Http\Controllers\Student\CourseResourceDownloadController;
 use App\Http\Controllers\Student\StudentProfileController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\Webhooks\WhatsAppWebhookController;
 use App\Models\Course;
 use App\Services\EventTrackingService;
 use App\Services\Payment\PaymentService;
@@ -510,6 +514,50 @@ Route::middleware(['auth', 'role'])->group(function () {
 
             Route::put('/settings/payment', [GeneralSettingsController::class, 'updatePayment'])
                 ->name('settings.payment.update');
+
+            /*
+            |--------------------------------------------------------------------------
+            | INTEGRATIONS
+            |--------------------------------------------------------------------------
+            */
+            Route::prefix('integrations')->name('integrations.')->group(function () {
+                Route::get('/ai', [AiIntegrationController::class, 'index'])->name('ai.index');
+                Route::post('/ai/providers', [AiIntegrationController::class, 'store'])->name('ai.store');
+                Route::put('/ai/providers/{provider}', [AiIntegrationController::class, 'update'])->name('ai.update');
+                Route::delete('/ai/providers/{provider}', [AiIntegrationController::class, 'destroy'])->name('ai.destroy');
+                Route::patch('/ai/providers/{provider}/toggle', [AiIntegrationController::class, 'toggle'])->name('ai.toggle');
+                Route::put('/ai/providers/{provider}/default', [AiIntegrationController::class, 'setDefault'])->name('ai.default');
+                Route::post('/ai/providers/{provider}/test', [AiIntegrationController::class, 'test'])
+                    ->middleware('throttle:10,1')
+                    ->name('ai.test');
+                Route::post('/ai/providers/{provider}/models/discover', [AiIntegrationController::class, 'discoverModels'])
+                    ->middleware('throttle:10,1')
+                    ->name('ai.models.discover');
+                Route::post('/ai/providers/{provider}/models', [AiIntegrationController::class, 'storeModel'])->name('ai.models.store');
+                Route::put('/ai/providers/{provider}/models/{model}', [AiIntegrationController::class, 'updateModel'])->name('ai.models.update');
+                Route::delete('/ai/providers/{provider}/models/{model}', [AiIntegrationController::class, 'destroyModel'])->name('ai.models.destroy');
+                Route::post('/ai/import-legacy', [AiIntegrationController::class, 'importLegacy'])->name('ai.import-legacy');
+                Route::patch('/ai/global', [AiIntegrationController::class, 'toggleGlobal'])->name('ai.global');
+                Route::patch('/ai/recommendation', [GeneralSettingsController::class, 'toggleRecommendation'])->name('ai.recommendation');
+
+                Route::get('/whatsapp', [WhatsAppIntegrationController::class, 'index'])->name('whatsapp.index');
+                Route::post('/whatsapp/providers', [WhatsAppIntegrationController::class, 'store'])->name('whatsapp.store');
+                Route::put('/whatsapp/providers/{provider}', [WhatsAppIntegrationController::class, 'update'])->name('whatsapp.update');
+                Route::delete('/whatsapp/providers/{provider}', [WhatsAppIntegrationController::class, 'destroy'])->name('whatsapp.destroy');
+                Route::patch('/whatsapp/providers/{provider}/toggle', [WhatsAppIntegrationController::class, 'toggle'])->name('whatsapp.toggle');
+                Route::put('/whatsapp/providers/{provider}/default', [WhatsAppIntegrationController::class, 'setDefault'])->name('whatsapp.default');
+                Route::post('/whatsapp/providers/{provider}/test', [WhatsAppIntegrationController::class, 'test'])
+                    ->middleware('throttle:10,1')
+                    ->name('whatsapp.test');
+                Route::post('/whatsapp/providers/{provider}/messages/{message}/status', [WhatsAppIntegrationController::class, 'messageStatus'])->name('whatsapp.messages.status');
+                Route::post('/whatsapp/providers/{provider}/templates', [WhatsAppIntegrationController::class, 'storeTemplate'])->name('whatsapp.templates.store');
+                Route::delete('/whatsapp/providers/{provider}/templates/{template}', [WhatsAppIntegrationController::class, 'destroyTemplate'])->name('whatsapp.templates.destroy');
+                Route::post('/whatsapp/send-test', [WhatsAppIntegrationController::class, 'sendTest'])
+                    ->middleware('throttle:10,1')
+                    ->name('whatsapp.send-test');
+                Route::post('/whatsapp/import-legacy', [WhatsAppIntegrationController::class, 'importLegacy'])->name('whatsapp.import-legacy');
+                Route::patch('/whatsapp/global', [WhatsAppIntegrationController::class, 'toggleGlobal'])->name('whatsapp.global');
+            });
         });
 
     /*
@@ -612,6 +660,9 @@ Route::middleware(['auth', 'role'])->group(function () {
 
             Route::get('/courses/{course:slug}/resources/{resource}', CourseResourceDownloadController::class)
                 ->name('courses.resources.download');
+
+            Route::get('/courses/{course:slug}/resources/contents/{content}', CourseResourceContentDownloadController::class)
+                ->name('courses.resources.content.download');
 
             Route::get('/orders/{order:order_number}', [PaymentController::class, 'show'])->name('payment.show');
             Route::post('/courses/{course:slug}/contents/{content}/complete', [EnrollmentController::class, 'markContentProgress'])
@@ -738,6 +789,18 @@ Route::middleware(['auth', 'role:admin'])
 */
 Route::post('/payments/midtrans/webhook', [PaymentWebhookController::class, 'midtrans'])
     ->name('payment.webhook.midtrans');
+
+/*
+|--------------------------------------------------------------------------
+| WhatsApp provider webhooks (unauthenticated, signature verified)
+|--------------------------------------------------------------------------
+*/
+Route::get('/webhooks/whatsapp/{provider}', [WhatsAppWebhookController::class, 'verify'])
+    ->name('webhooks.whatsapp.verify');
+
+Route::post('/webhooks/whatsapp/{provider}', [WhatsAppWebhookController::class, 'handle'])
+    ->middleware('throttle:whatsapp-webhooks')
+    ->name('webhooks.whatsapp');
 
 /*
 |--------------------------------------------------------------------------

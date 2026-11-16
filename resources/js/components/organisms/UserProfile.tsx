@@ -7,6 +7,7 @@ import Button from '@/components/atoms/Button';
 import ChooseFile from '@/components/molecules/ChooseFile';
 import InputField from '@/components/molecules/InputField';
 import SelectField from '@/components/molecules/SelectField';
+import TextAreaField from '@/components/molecules/TextAreaField';
 import CourseGrid from '@/components/organisms/Course/CourseGrid';
 
 import type { Course } from '@/types';
@@ -26,6 +27,7 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
         name: user.name,
         email: user.email,
         role: user.role,
+        bio: user.bio ?? '',
         password: '',
         avatar: null as File | null,
     });
@@ -69,6 +71,15 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
                         <div className="text-sm font-medium text-neutral-600 dark:text-slate-300">Account Information</div>
                         <InputField label="Name" value={data.name} onChange={(e) => setData('name', e.target.value)} error={errors.name} />
                         <InputField label="Email" value={data.email} onChange={(e) => setData('email', e.target.value)} error={errors.email} />
+                        <TextAreaField
+                            label="Bio"
+                            rows={4}
+                            maxLength={1000}
+                            placeholder="Tell us a little about yourself..."
+                            value={data.bio}
+                            onChange={(e) => setData('bio', e.target.value)}
+                            error={errors.bio}
+                        />
                         {canChangeRole ? (
                             <>
                                 <SelectField

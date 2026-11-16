@@ -32,6 +32,8 @@ export function useCourseResources(courseSlug: string, resources: CourseResource
     }
 
     function openEdit(resource: CourseResource) {
+        if (resource.source === 'material') return;
+
         setEditing(resource);
         setTitle(resource.title);
         setDescription(resource.description ?? '');
@@ -95,7 +97,7 @@ export function useCourseResources(courseSlug: string, resources: CourseResource
     }
 
     function destroy() {
-        if (!deleteTarget) return;
+        if (!deleteTarget || deleteTarget.source === 'material') return;
 
         router.delete(`${baseUrl}/${deleteTarget.id}`, {
             preserveScroll: true,

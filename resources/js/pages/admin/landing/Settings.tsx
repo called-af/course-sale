@@ -483,8 +483,8 @@ export default function LandingSettingsPage({ section, label, content, testimoni
                     title={`Landing · ${label}`}
                     description="Ubah konten section ini. Perubahan langsung tampil di halaman landing."
                     actions={
-                        <Link href="/" target="_blank" rel="noopener noreferrer">
-                            <Button variant="outline" size="sm" rightIcon={<ExternalLink size={14} />}>
+                        <Link href="/" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+                            <Button variant="outline" size="sm" rightIcon={<ExternalLink size={14} />} className="w-full justify-center sm:w-auto">
                                 Preview
                             </Button>
                         </Link>
@@ -528,11 +528,16 @@ export default function LandingSettingsPage({ section, label, content, testimoni
                         <FooterForm data={data} set={set} list={list} updateItem={updateItem} removeItem={removeItem} addItem={addItem} />
                     )}
 
-                    <div className="sticky bottom-4 flex items-center justify-between gap-4 border border-slate-200 bg-white/95 p-4 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-[#1e1f24]/95">
+                    <div className="sticky bottom-4 flex flex-col items-stretch justify-between gap-3 border border-slate-200 bg-white/95 p-4 shadow-lg backdrop-blur sm:flex-row sm:items-center dark:border-slate-700 dark:bg-[#1e1f24]/95">
                         <p className="text-xs text-slate-500 dark:text-slate-400">
                             Perubahan disimpan untuk section <strong>{label}</strong>.
                         </p>
-                        <Button type="submit" isLoading={saving} leftIcon={<Save size={16} />}>
+                        <Button
+                            type="submit"
+                            isLoading={saving}
+                            leftIcon={<Save size={16} />}
+                            className="w-full justify-center sm:w-auto sm:shrink-0"
+                        >
                             Save changes
                         </Button>
                     </div>

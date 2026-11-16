@@ -3,6 +3,7 @@ export type User = {
     name: string;
     email: string;
     role: 'student' | 'instructor' | 'admin';
+    bio?: string | null;
     avatar_url?: string | null;
 
     // Counts (from withCount)

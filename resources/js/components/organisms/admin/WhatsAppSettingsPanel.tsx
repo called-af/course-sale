@@ -149,13 +149,13 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
         <section className="space-y-6">
             <Card className="overflow-hidden rounded-none">
                 {/* Header Toggle */}
-                <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-5 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                     <div className="flex items-start gap-4">
                         <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-300">
                             <MessageSquare size={21} />
                         </span>
                         <div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                                 <h2 className="font-semibold text-slate-900 dark:text-white">WhatsApp Gateway</h2>
                                 <span className="inline-flex items-center bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
                                     Ready Prod (DB Managed)
@@ -176,14 +176,14 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
                 </div>
 
                 {/* Configuration Section */}
-                <div className="border-t border-neutral-200 bg-neutral-50/70 p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
+                <div className="border-t border-neutral-200 bg-neutral-50/70 p-4 sm:p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h3 className="font-semibold text-slate-900 dark:text-white">Konfigurasi WhatsApp</h3>
                             <p className="mt-1 text-sm text-neutral-500">Base URL, API Key, nomor pengirim (From), dan kata kunci sandbox.</p>
                         </div>
                         {!isEditing && (
-                            <Button type="button" variant="secondary" onClick={startEditing}>
+                            <Button type="button" variant="secondary" onClick={startEditing} className="w-full sm:w-auto">
                                 Edit mode
                             </Button>
                         )}
@@ -303,10 +303,16 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
                             </div>
 
                             <div className="flex flex-col gap-3 sm:flex-row sm:justify-end md:col-span-2">
-                                <Button type="button" variant="ghost" onClick={() => setIsEditing(false)} disabled={processing}>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={() => setIsEditing(false)}
+                                    disabled={processing}
+                                    className="w-full sm:w-auto"
+                                >
                                     Keluar edit mode
                                 </Button>
-                                <Button type="submit" disabled={processing} isLoading={processing}>
+                                <Button type="submit" disabled={processing} isLoading={processing} className="w-full sm:w-auto">
                                     Simpan konfigurasi WhatsApp
                                 </Button>
                             </div>

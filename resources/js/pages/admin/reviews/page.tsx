@@ -117,8 +117,95 @@ export default function AdminReviewsPage({ reviews }: Props) {
                         <p className="text-sm">No reviews found.</p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
-                        <table className="w-full text-sm">
+                    <>
+                        {/* Mobile: review cards */}
+                        <div className="space-y-3 lg:hidden">
+                            {filtered.map((review) => (
+                                <div
+                                    key={review.id}
+                                    className="border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]"
+                                >
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <p className="truncate text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                                {review.user.name}
+                                            </p>
+                                            <p className="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">
+                                                {formatDate(review.created_at)}
+                                            </p>
+                                        </div>
+                                        {review.is_approved ? (
+                                            <Badge variant="success">Approved</Badge>
+                                        ) : (
+                                            <Badge variant="warning">Pending</Badge>
+                                        )}
+                                    </div>
+
+                                    <div className="mt-3 flex items-center gap-1.5">
+                                        <StarRating value={review.rating} readonly size="sm" />
+                                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{review.rating}</span>
+                                    </div>
+
+                                    <p className="mt-2 text-sm whitespace-pre-line text-slate-600 dark:text-slate-300">
+                                        {review.comment || <span className="text-slate-400 italic dark:text-slate-500">No comment</span>}
+                                    </p>
+
+                                    <p className="mt-2 truncate text-xs">
+                                        <span className="text-slate-400 dark:text-slate-500">Course: </span>
+                                        {review.course.slug ? (
+                                            <Link
+                                                href={`/admin/courses/${review.course.slug}`}
+                                                className="font-medium text-purple-600 hover:underline dark:text-purple-400"
+                                            >
+                                                {review.course.title}
+                                            </Link>
+                                        ) : (
+                                            <span className="font-medium text-slate-500 dark:text-slate-400">{review.course.title}</span>
+                                        )}
+                                    </p>
+
+                                    <div className="mt-3 flex flex-wrap gap-1.5 border-t border-slate-100 pt-3 dark:border-slate-700">
+                                        {!review.is_approved ? (
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => approve(review.id)}
+                                                isLoading={processingId === review.id}
+                                                leftIcon={<CheckCircle2 size={13} />}
+                                                className="!text-emerald-600 hover:!bg-emerald-50 dark:hover:!bg-emerald-950/30"
+                                            >
+                                                Approve
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => reject(review.id)}
+                                                isLoading={processingId === review.id}
+                                                leftIcon={<XCircle size={13} />}
+                                                className="!text-amber-600 hover:!bg-amber-50 dark:hover:!bg-amber-950/30"
+                                            >
+                                                Hide
+                                            </Button>
+                                        )}
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => destroy(review.id)}
+                                            isLoading={processingId === review.id}
+                                            leftIcon={<Trash2 size={13} />}
+                                            className="!text-red-500 hover:!bg-red-50 dark:hover:!bg-red-950/30"
+                                        >
+                                            Delete
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Desktop: table */}
+                        <div className="hidden overflow-x-auto border border-slate-200 bg-white shadow-sm lg:block dark:border-slate-700 dark:bg-[#1e1f24]">
+                        <table className="w-full min-w-[820px] text-sm">
                             <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-[#1e1f24]">
                                 <tr>
                                     <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
@@ -224,7 +311,8 @@ export default function AdminReviewsPage({ reviews }: Props) {
                                 ))}
                             </tbody>
                         </table>
-                    </div>
+                        </div>
+                    </>
                 )}
             </div>
         </>

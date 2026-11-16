@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { BookOpen, Compass } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import Button from '@/components/atoms/Button';
 import TabButton from '@/components/atoms/TabButton';
 import DashboardPanel from '@/components/molecules/DashboardPanel';
 import EnrolledCourseCard from '@/components/molecules/EnrolledCourseCard';
@@ -99,12 +100,10 @@ export default function StudentCoursesSection({ enrolledCourses }: StudentCourse
                         </p>
                         {enrolledCourses.length === 0 && (
                             <div className="mt-4">
-                                <Link
-                                    href="/course"
-                                    className="inline-flex items-center gap-1.5 bg-purple-600 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-purple-700"
-                                >
-                                    <Compass size={14} />
-                                    Explore Course Catalog
+                                <Link href="/course">
+                                    <Button size="sm" leftIcon={<Compass size={14} />} className="!rounded-none">
+                                        Explore Course Catalog
+                                    </Button>
                                 </Link>
                             </div>
                         )}

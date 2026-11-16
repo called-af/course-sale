@@ -3,6 +3,7 @@ import { Filter, Sparkles, X } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { useMemo, useState } from 'react';
 import Badge from '@/components/atoms/Badge';
+import Button from '@/components/atoms/Button';
 import Title from '@/components/atoms/Title';
 import InputField from '@/components/molecules/InputField';
 import CourseResults from '@/components/organisms/Course/CourseResults';
@@ -144,28 +145,29 @@ export default function CoursePage({ courses = [], recommendedCourses = [] }: Co
                                 <span className="flex items-center gap-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
                                     <Sparkles className="h-3 w-3 text-purple-600 dark:text-purple-400" /> Recommendation
                                 </span>
-                                <button
+                                <Button
                                     type="button"
+                                    variant={onlyRecommended ? 'primary' : 'outline'}
+                                    size="sm"
                                     onClick={() => setOnlyRecommended((prev) => !prev)}
-                                    className={`inline-flex cursor-pointer items-center gap-2 border px-3 py-2 text-sm font-semibold transition ${
-                                        onlyRecommended
-                                            ? 'border-purple-700 bg-purple-700 text-white shadow-sm'
-                                            : 'border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 dark:border-purple-900/50 dark:bg-purple-950/40 dark:text-purple-300 dark:hover:bg-purple-950/60'
-                                    }`}
+                                    leftIcon={<Sparkles className="h-3.5 w-3.5" />}
+                                    rightIcon={
+                                        recommendedCourses.length > 0 ? (
+                                            <span
+                                                className={`px-1.5 py-0.5 text-[10px] font-bold ${
+                                                    onlyRecommended
+                                                        ? 'bg-amber-400 text-slate-900'
+                                                        : 'bg-purple-200 text-purple-800 dark:bg-purple-900/60 dark:text-purple-300'
+                                                }`}
+                                            >
+                                                {recommendedCourses.length}
+                                            </span>
+                                        ) : undefined
+                                    }
+                                    className="!rounded-none"
                                 >
-                                    <span>{onlyRecommended ? 'Recommended: ON' : 'Recommended for You'}</span>
-                                    {recommendedCourses.length > 0 && (
-                                        <span
-                                            className={`py-0.2 px-1.5 text-[10px] font-bold ${
-                                                onlyRecommended
-                                                    ? 'bg-amber-400 text-slate-900'
-                                                    : 'bg-purple-200 text-purple-800 dark:bg-purple-900/60 dark:text-purple-300'
-                                            }`}
-                                        >
-                                            {recommendedCourses.length}
-                                        </span>
-                                    )}
-                                </button>
+                                    {onlyRecommended ? 'Recommended: ON' : 'Recommended for You'}
+                                </Button>
                             </div>
                         </div>
 
@@ -174,13 +176,16 @@ export default function CoursePage({ courses = [], recommendedCourses = [] }: Co
                                 {filteredCourses.length} course{filteredCourses.length === 1 ? '' : 's'}
                             </span>
                             {hasActiveFilters && (
-                                <button
+                                <Button
                                     type="button"
+                                    variant="ghost"
+                                    size="sm"
                                     onClick={resetFilters}
-                                    className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-purple-700 transition-colors hover:text-purple-900 dark:text-purple-300 dark:hover:text-purple-100"
+                                    leftIcon={<X size={13} />}
+                                    className="!rounded-none !text-purple-700 hover:!text-purple-900 dark:!text-purple-300 dark:hover:!text-purple-100"
                                 >
-                                    <X size={13} /> Reset
-                                </button>
+                                    Reset
+                                </Button>
                             )}
                         </div>
                     </motion.div>
@@ -200,13 +205,16 @@ export default function CoursePage({ courses = [], recommendedCourses = [] }: Co
                                     interests.
                                 </span>
                             </div>
-                            <button
+                            <Button
                                 type="button"
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => setOnlyRecommended(false)}
-                                className="inline-flex cursor-pointer items-center gap-1 font-semibold text-purple-700 hover:text-purple-900 dark:text-purple-300 dark:hover:text-purple-100"
+                                leftIcon={<X size={14} />}
+                                className="!rounded-none !text-purple-700 hover:!text-purple-900 dark:!text-purple-300 dark:hover:!text-purple-100"
                             >
-                                <X size={14} /> Clear
-                            </button>
+                                Clear
+                            </Button>
                         </motion.div>
                     )}
 

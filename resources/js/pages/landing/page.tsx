@@ -1,10 +1,16 @@
 import { Head } from '@inertiajs/react';
 
 import AboutSection from '@/components/organisms/Landing/AboutSection';
+import BenefitSection from '@/components/organisms/Landing/BenefitSection';
 import CategorySection from '@/components/organisms/Landing/CategorySection';
+import CertificateSection from '@/components/organisms/Landing/CertificateSection';
 import CourseSection from '@/components/organisms/Landing/CourseSection';
+import FaqSection from '@/components/organisms/Landing/FaqSection';
 import HeroSection from '@/components/organisms/Landing/HeroSection';
+import HowItWorksSection from '@/components/organisms/Landing/HowItWorksSection';
+import InstructorSection from '@/components/organisms/Landing/InstructorSection';
 import TestimonialSection from '@/components/organisms/Landing/TestimoniSection';
+import TrustBar from '@/components/organisms/Landing/TrustBar';
 import WelcomeLayout from '@/components/templates/WelcomeLayout';
 
 import type { Course, TestimonialItem } from '@/types';
@@ -25,7 +31,13 @@ export default function Welcome({ courses, categories, testimonials }: WelcomePr
             <AboutSection />
             <CourseSection courses={courses} />
             <CategorySection categories={categories} />
+            <InstructorSection />
+            <HowItWorksSection />
+            <BenefitSection />
+            <CertificateSection />
             <TestimonialSection testimonials={testimonials} />
+            <FaqSection />
+            <TrustBar />
         </>
     );
 }

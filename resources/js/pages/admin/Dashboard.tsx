@@ -47,29 +47,29 @@ export default function Dashboard() {
     return (
         <>
             <Head title="Admin Dashboard" />
-            <div className="max-w-8xl mx-auto space-y-8">
+            <div className="max-w-8xl mx-auto space-y-6 sm:space-y-8">
                 <PageHeader
                     breadcrumbs={[{ label: 'Admin' }, { label: 'Dashboard' }]}
                     title={`Welcome back, ${auth.user.name}`}
                     description="Monitor your platform's latest performance and activity."
                 />
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4">
                     <Kpi title="Total Users" value={metrics.totalUsers ?? 0} icon={<Users size={18} />} />
                     <Kpi title="Total Courses" value={metrics.totalCourses ?? 0} icon={<BookOpen size={18} />} />
                     <Kpi title="Active Enrollments" value={metrics.activeEnrollments ?? 0} icon={<GraduationCap size={18} />} />
                     <Kpi title="Paid Revenue" value={formatRupiah(metrics.revenue ?? 0)} icon={<DollarSign size={18} />} compact />
                 </div>
-                <div className="grid gap-6 xl:grid-cols-3">
+                <div className="grid gap-4 sm:gap-6 xl:grid-cols-3">
                     <Panel title="Top Courses" className="xl:col-span-2">
                         {topCourses.length ? (
                             topCourses.map((course) => (
                                 <Link
                                     key={course.id}
                                     href={`/admin/courses/${course.slug}`}
-                                    className="flex items-center justify-between border-b border-slate-100 py-3 text-slate-700 last:border-0 hover:text-purple-700 dark:border-slate-700 dark:text-slate-200 dark:hover:text-purple-400"
+                                    className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-slate-100 py-3 text-slate-700 last:border-0 hover:text-purple-700 dark:border-slate-700 dark:text-slate-200 dark:hover:text-purple-400"
                                 >
-                                    <p className="font-medium">{course.title}</p>
-                                    <span className="text-sm font-semibold text-purple-700 dark:text-purple-400">
+                                    <p className="min-w-0 flex-1 truncate font-medium">{course.title}</p>
+                                    <span className="shrink-0 text-xs font-semibold text-purple-700 sm:text-sm dark:text-purple-400">
                                         {course.enrollments_count} students
                                     </span>
                                 </Link>
@@ -82,8 +82,8 @@ export default function Dashboard() {
                         {recentEnrollments.length ? (
                             recentEnrollments.map((item) => (
                                 <div key={item.id} className="border-b border-slate-100 py-3 last:border-0 dark:border-slate-700">
-                                    <p className="font-medium text-slate-700 dark:text-slate-200">{item.user?.name ?? 'Student'}</p>
-                                    <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
+                                    <p className="truncate font-medium text-slate-700 dark:text-slate-200">{item.user?.name ?? 'Student'}</p>
+                                    <p className="mt-0.5 line-clamp-2 text-xs text-slate-400 dark:text-slate-500">
                                         {item.course?.title ?? 'Course'} · {date(item.enrolled_at)}
                                     </p>
                                 </div>
@@ -127,12 +127,14 @@ interface KpiProps {
 
 function Kpi({ title, value, icon, compact = false }: KpiProps) {
     return (
-        <div className="border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
-            <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
-                <span>{title}</span>
-                <span className="bg-purple-50 p-2 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400">{icon}</span>
+        <div className="min-w-0 border border-slate-200/80 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-700 dark:bg-[#1e1f24]">
+            <div className="flex items-center justify-between gap-2 text-sm text-slate-500 dark:text-slate-400">
+                <span className="min-w-0 truncate">{title}</span>
+                <span className="shrink-0 bg-purple-50 p-2 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400">{icon}</span>
             </div>
-            <p className={`mt-3 font-bold text-slate-800 dark:text-white ${compact ? 'text-xl' : 'text-2xl'}`}>{value}</p>
+            <p className={`mt-3 font-bold break-words text-slate-800 dark:text-white ${compact ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'}`}>
+                {value}
+            </p>
         </div>
     );
 }
@@ -145,7 +147,7 @@ interface PanelProps {
 
 function Panel({ title, children, className = '' }: PanelProps) {
     return (
-        <section className={`border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-[#1e1f24] ${className}`}>
+        <section className={`border border-slate-200/80 bg-white p-4 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-[#1e1f24] ${className}`}>
             <div className="mb-4 border-b border-slate-100 pb-4 dark:border-slate-700">
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">{title}</h2>
             </div>

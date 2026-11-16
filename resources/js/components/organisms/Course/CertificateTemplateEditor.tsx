@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react';
 import { Award, Info, Palette, RotateCcw, Save, Shield } from 'lucide-react';
 import { useState } from 'react';
+import Button from '@/components/atoms/Button';
 import { useBranding } from '@/hooks/useBranding';
 
 export interface CertificateTemplate {
@@ -205,26 +206,12 @@ export default function CertificateTemplateEditor({
 
                 {/* Actions */}
                 <div className="flex gap-3">
-                    <button
-                        onClick={save}
-                        disabled={saving}
-                        className="flex flex-1 items-center justify-center gap-2 bg-purple-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-purple-800 disabled:opacity-60"
-                    >
-                        {saving ? (
-                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                        ) : (
-                            <Save size={15} />
-                        )}
+                    <Button onClick={save} isLoading={saving} leftIcon={<Save size={15} />} className="flex-1 !rounded-none">
                         {saving ? 'Saving…' : 'Save Template'}
-                    </button>
-                    <button
-                        onClick={reset}
-                        title="Reset to defaults"
-                        className="flex items-center gap-2 border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-800"
-                    >
-                        <RotateCcw size={14} />
+                    </Button>
+                    <Button variant="outline" onClick={reset} title="Reset to defaults" leftIcon={<RotateCcw size={14} />} className="!rounded-none">
                         Reset
-                    </button>
+                    </Button>
                 </div>
             </div>
 

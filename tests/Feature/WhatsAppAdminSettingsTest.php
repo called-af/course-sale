@@ -14,7 +14,7 @@ class WhatsAppAdminSettingsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_admin_can_view_whatsapp_settings_on_general_settings_page(): void
+    public function test_admin_can_view_whatsapp_settings_on_integration_page(): void
     {
         /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin']);
@@ -30,18 +30,18 @@ class WhatsAppAdminSettingsTest extends TestCase
 
         $this->actingAs($admin);
 
-        $this->get(route('admin.settings.general'))
+        $this->get(route('admin.integrations.whatsapp.index'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('admin/settings/General')
-                ->where('whatsapp.enabled', true)
-                ->where('whatsapp.provider', 'infobip')
-                ->where('whatsapp.base_url', 'https://custom.api.infobip.com')
-                ->where('whatsapp.from_number', '447860088999')
-                ->where('whatsapp.sandbox_keyword', 'CUSTOMKEYWORD')
-                ->where('whatsapp.has_api_key', true)
-                ->where('whatsapp.api_key_hint', '••••••••2345')
-                ->where('whatsapp.is_configured', true));
+                ->component('admin/integrations/WhatsApp')
+                ->where('global.enabled', true)
+                ->where('global.provider', 'infobip')
+                ->where('global.base_url', 'https://custom.api.infobip.com')
+                ->where('global.from_number', '447860088999')
+                ->where('global.sandbox_keyword', 'CUSTOMKEYWORD')
+                ->where('global.has_api_key', true)
+                ->where('global.api_key_hint', '••••••••2345')
+                ->where('global.is_configured', true));
     }
 
     public function test_admin_can_toggle_whatsapp_notifications(): void
@@ -184,6 +184,8 @@ class WhatsAppAdminSettingsTest extends TestCase
         // Instructor cannot access
         $this->actingAs($instructor);
         $this->get(route('admin.settings.general'))->assertForbidden();
+        $this->get(route('admin.integrations.whatsapp.index'))->assertForbidden();
+        $this->patch(route('admin.integrations.whatsapp.global'), ['enabled' => false])->assertForbidden();
         $this->patch(route('admin.settings.whatsapp.toggle'), ['enabled' => false])->assertForbidden();
         $this->put(route('admin.settings.whatsapp.update'), ['base_url' => 'https://evil.com'])->assertForbidden();
         $this->postJson(route('admin.settings.whatsapp.test'), ['phone_number' => '0812345'])->assertForbidden();
@@ -191,6 +193,8 @@ class WhatsAppAdminSettingsTest extends TestCase
         // Student cannot access
         $this->actingAs($student);
         $this->get(route('admin.settings.general'))->assertForbidden();
+        $this->get(route('admin.integrations.whatsapp.index'))->assertForbidden();
+        $this->patch(route('admin.integrations.whatsapp.global'), ['enabled' => false])->assertForbidden();
         $this->patch(route('admin.settings.whatsapp.toggle'), ['enabled' => false])->assertForbidden();
         $this->put(route('admin.settings.whatsapp.update'), ['base_url' => 'https://evil.com'])->assertForbidden();
         $this->postJson(route('admin.settings.whatsapp.test'), ['phone_number' => '0812345'])->assertForbidden();

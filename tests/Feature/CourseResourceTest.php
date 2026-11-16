@@ -5,6 +5,7 @@ use App\Models\CourseResource;
 use App\Models\Enrollment;
 use App\Models\Material;
 use App\Models\MaterialContent;
+use App\Models\MaterialContentProgress;
 use App\Models\MaterialProgress;
 use App\Models\Module;
 use App\Models\User;
@@ -93,6 +94,223 @@ it('unlocks resources once every material is completed', function () {
             ->where('resourcesUnlocked', true)
             ->has('resources', 1)
             ->where('resources.0.title', 'Starter Kit'));
+});
+
+it('collects file-type lesson materials as automatic resources', function () {
+    [, $student, $course, $materials, $resource] = makeResourceCourse();
+
+    MaterialContent::factory()->create([
+        'material_id' => $materials->first()->id,
+        'type' => 'file',
+        'title' => 'Course Workbook',
+        'content_url' => '/storage/materials/contents/workbook.pdf',
+        'status' => 'published',
+    ]);
+
+    foreach ($materials as $material) {
+        MaterialProgress::create([
+            'user_id' => $student->id,
+            'material_id' => $material->id,
+            'is_completed' => true,
+            'completed_at' => now(),
+        ]);
+    }
+
+    $this->actingAs($student)
+        ->get("/student/courses/{$course->slug}")
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('resourcesUnlocked', true)
+            ->has('resources', 2)
+            ->where('resources.0.title', $resource->title)
+            ->where('resources.1.title', 'Course Workbook')
+            ->where('resources.1.source', 'material')
+            ->where('resources.1.file_type', 'PDF'));
+});
+
+it('downloads automatic lesson-file resources after completion', function () {
+    [, $student, $course, $materials] = makeResourceCourse();
+
+    Storage::fake('public');
+    Storage::disk('public')->put('materials/contents/workbook.pdf', 'pdf-content');
+
+    $content = MaterialContent::factory()->create([
+        'material_id' => $materials->first()->id,
+        'type' => 'ppt',
+        'title' => 'Lecture Slides',
+        'content_url' => '/storage/materials/contents/workbook.pdf',
+        'status' => 'published',
+    ]);
+
+    foreach ($materials as $material) {
+        MaterialProgress::create([
+            'user_id' => $student->id,
+            'material_id' => $material->id,
+            'is_completed' => true,
+            'completed_at' => now(),
+        ]);
+    }
+
+    $this->actingAs($student)
+        ->get("/student/courses/{$course->slug}/resources/contents/{$content->id}")
+        ->assertOk()
+        ->assertDownload('lecture-slides.pdf');
+});
+
+it('downloads automatic lesson-file resources once their lesson is completed', function () {
+    [, $student, $course, $materials] = makeResourceCourse();
+
+    Storage::fake('public');
+    Storage::disk('public')->put('materials/contents/workbook.pdf', 'pdf-content');
+
+    $content = MaterialContent::factory()->create([
+        'material_id' => $materials->first()->id,
+        'type' => 'file',
+        'title' => 'Partial Workbook',
+        'content_url' => '/storage/materials/contents/workbook.pdf',
+        'status' => 'published',
+    ]);
+
+    MaterialProgress::create([
+        'user_id' => $student->id,
+        'material_id' => $materials->first()->id,
+        'is_completed' => true,
+        'completed_at' => now(),
+    ]);
+
+    $this->actingAs($student)
+        ->get("/student/courses/{$course->slug}/resources/contents/{$content->id}")
+        ->assertOk()
+        ->assertDownload('partial-workbook.pdf');
+});
+
+it('forbids downloading automatic lesson-file resources before completion', function () {
+    [, $student, $course, $materials] = makeResourceCourse();
+
+    $content = MaterialContent::factory()->create([
+        'material_id' => $materials->first()->id,
+        'type' => 'file',
+        'content_url' => '/storage/materials/contents/workbook.pdf',
+        'status' => 'published',
+    ]);
+
+    $this->actingAs($student)
+        ->get("/student/courses/{$course->slug}/resources/contents/{$content->id}")
+        ->assertForbidden();
+});
+
+it('forbids downloading automatic resources from another course', function () {
+    [, $student, , $materials] = makeResourceCourse();
+    [, , $otherCourse] = makeResourceCourse();
+
+    $content = MaterialContent::factory()->create([
+        'material_id' => $materials->first()->id,
+        'type' => 'file',
+        'content_url' => '/storage/materials/contents/workbook.pdf',
+        'status' => 'published',
+    ]);
+
+    foreach ($materials as $material) {
+        MaterialProgress::create([
+            'user_id' => $student->id,
+            'material_id' => $material->id,
+            'is_completed' => true,
+            'completed_at' => now(),
+        ]);
+    }
+
+    $this->actingAs($student)
+        ->get("/student/courses/{$otherCourse->slug}/resources/contents/{$content->id}")
+        ->assertNotFound();
+});
+
+it('exposes automatic resources on the course management page', function () {
+    [, , $course, $materials] = makeResourceCourse();
+
+    MaterialContent::factory()->create([
+        'material_id' => $materials->first()->id,
+        'type' => 'file',
+        'title' => 'Management Workbook',
+        'content_url' => '/storage/materials/contents/workbook.pdf',
+        'status' => 'published',
+    ]);
+
+    $admin = User::factory()->create(['role' => 'admin']);
+
+    $this->actingAs($admin)
+        ->get("/admin/courses/{$course->slug}")
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('admin/course/[slug]/page')
+            ->has('course.resources', 2)
+            ->where('course.resources.0.source', 'manual')
+            ->where('course.resources.1.title', 'Management Workbook')
+            ->where('course.resources.1.source', 'material'));
+});
+
+it('unlocks automatic resources as each lesson material is completed', function () {
+    [, $student, $course, $materials] = makeResourceCourse();
+
+    $first = MaterialContent::factory()->create([
+        'material_id' => $materials->first()->id,
+        'type' => 'file',
+        'title' => 'First Lesson Workbook',
+        'content_url' => '/storage/materials/contents/workbook.pdf',
+        'status' => 'published',
+    ]);
+
+    MaterialContent::factory()->create([
+        'material_id' => $materials->last()->id,
+        'type' => 'file',
+        'title' => 'Second Lesson Workbook',
+        'content_url' => '/storage/materials/contents/workbook.pdf',
+        'status' => 'published',
+    ]);
+
+    MaterialProgress::create([
+        'user_id' => $student->id,
+        'material_id' => $materials->first()->id,
+        'is_completed' => true,
+        'completed_at' => now(),
+    ]);
+
+    $this->actingAs($student)
+        ->get("/student/courses/{$course->slug}")
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('resourcesUnlocked', false)
+            ->has('resources', 1)
+            ->where('resources.0.id', $first->id)
+            ->where('resources.0.title', 'First Lesson Workbook')
+            ->where('resources.0.source', 'material'));
+});
+
+it('unlocks automatic resources when their lesson content is completed', function () {
+    [, $student, $course, $materials] = makeResourceCourse();
+
+    $content = MaterialContent::factory()->create([
+        'material_id' => $materials->first()->id,
+        'type' => 'ppt',
+        'title' => 'Slide Deck',
+        'content_url' => '/storage/materials/contents/slides.pdf',
+        'status' => 'published',
+    ]);
+
+    MaterialContentProgress::create([
+        'user_id' => $student->id,
+        'material_content_id' => $content->id,
+        'is_completed' => true,
+        'completed_at' => now(),
+    ]);
+
+    $this->actingAs($student)
+        ->get("/student/courses/{$course->slug}")
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('resourcesUnlocked', false)
+            ->has('resources', 1)
+            ->where('resources.0.id', $content->id)
+            ->where('resources.0.source', 'material'));
 });
 
 it('forbids downloading resources before completion', function () {

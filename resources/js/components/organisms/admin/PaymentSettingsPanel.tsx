@@ -65,7 +65,7 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
             <Head title="Pengaturan Pembayaran" />
 
             <Card className="overflow-hidden rounded-none">
-                <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-5 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                     <div className="flex items-start gap-4">
                         <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-300">
                             <svg
@@ -101,7 +101,7 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
                     </div>
                 </div>
 
-                <div className="border-t border-neutral-200 bg-neutral-50/70 p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
+                <div className="border-t border-neutral-200 bg-neutral-50/70 p-4 sm:p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h3 className="font-semibold text-slate-900 dark:text-white">Konfigurasi Midtrans</h3>
@@ -151,8 +151,8 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
                             disabled={processing}
                         />
                         <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                            Persentase fee platform yang dipotong dari pendapatan instruktur saat order course lunas. Instruktur menerima
-                            sisa setelah fee ini.
+                            Persentase fee platform yang dipotong dari pendapatan instruktur saat order course lunas. Instruktur menerima sisa setelah
+                            fee ini.
                         </p>
 
                         <div className="grid gap-4 sm:grid-cols-3">
@@ -163,9 +163,7 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
                                 min={0}
                                 max={90}
                                 value={data.payout_hold_days}
-                                onChange={(event) =>
-                                    setData('payout_hold_days', event.target.value === '' ? 0 : Number(event.target.value))
-                                }
+                                onChange={(event) => setData('payout_hold_days', event.target.value === '' ? 0 : Number(event.target.value))}
                                 error={errors.payout_hold_days}
                                 disabled={processing}
                             />
@@ -176,9 +174,7 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
                                 min={0}
                                 step={1000}
                                 value={data.payout_minimum}
-                                onChange={(event) =>
-                                    setData('payout_minimum', event.target.value === '' ? 0 : Number(event.target.value))
-                                }
+                                onChange={(event) => setData('payout_minimum', event.target.value === '' ? 0 : Number(event.target.value))}
                                 error={errors.payout_minimum}
                                 disabled={processing}
                             />
@@ -189,16 +185,14 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
                                 min={0}
                                 max={168}
                                 value={data.payout_account_lock_hours}
-                                onChange={(event) =>
-                                    setData('payout_account_lock_hours', event.target.value === '' ? 0 : Number(event.target.value))
-                                }
+                                onChange={(event) => setData('payout_account_lock_hours', event.target.value === '' ? 0 : Number(event.target.value))}
                                 error={errors.payout_account_lock_hours}
                                 disabled={processing}
                             />
                         </div>
                         <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                            Dana ditahan sekian hari setelah order lunas sebelum bisa dicairkan. Payout hanya dikirim jika total payout
-                            instruktur sudah mencapai minimum. Rekening yang baru diubah dikunci sekian jam demi keamanan.
+                            Dana ditahan sekian hari setelah order lunas sebelum bisa dicairkan. Payout hanya dikirim jika total payout instruktur
+                            sudah mencapai minimum. Rekening yang baru diubah dikunci sekian jam demi keamanan.
                         </p>
 
                         <div className="space-y-2 border border-sky-200 bg-sky-50 p-4 text-xs text-sky-900 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-sky-200">
@@ -268,8 +262,8 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
 
                         {errors.gateway && <p className="text-xs text-red-600 dark:text-red-400">{errors.gateway}</p>}
 
-                        <div className="flex justify-end">
-                            <Button type="submit" disabled={processing}>
+                        <div className="flex">
+                            <Button type="submit" disabled={processing} className="w-full sm:w-auto">
                                 Simpan pengaturan pembayaran
                             </Button>
                         </div>

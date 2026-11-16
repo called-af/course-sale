@@ -2,6 +2,7 @@ import Button from '@/components/atoms/Button';
 import Modal from '@/components/atoms/Modal';
 import InputField from '@/components/molecules/InputField';
 import SelectField from '@/components/molecules/SelectField';
+import TextAreaField from '@/components/molecules/TextAreaField';
 
 import type { User } from '@/types/user';
 
@@ -16,8 +17,9 @@ interface UserFormModalProps {
         email: string;
         password: string;
         role: User['role'];
+        bio: string;
     };
-    setData: (key: 'name' | 'email' | 'password' | 'role', value: string) => void;
+    setData: (key: 'name' | 'email' | 'password' | 'role' | 'bio', value: string) => void;
 }
 
 export default function UserFormModal({ open, onClose, onSubmit, processing, editing, data, setData }: UserFormModalProps) {
@@ -44,6 +46,15 @@ export default function UserFormModal({ open, onClose, onSubmit, processing, edi
                 <InputField label="Email" value={data.email} onChange={(e) => setData('email', e.target.value)} />
 
                 <InputField label="Password" type="password" value={data.password} onChange={(e) => setData('password', e.target.value)} />
+
+                <TextAreaField
+                    label="Bio"
+                    rows={3}
+                    maxLength={1000}
+                    placeholder="Short description about this user..."
+                    value={data.bio}
+                    onChange={(e) => setData('bio', e.target.value)}
+                />
 
                 <SelectField
                     label="Role"

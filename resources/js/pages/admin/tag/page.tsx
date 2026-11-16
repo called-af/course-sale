@@ -47,14 +47,14 @@ export default function TagPage({ tags }: { tags: Tag[] }) {
                     title="Tag Management"
                     description="Manage course tags used for categorization and content recommendations"
                     actions={
-                        <Button onClick={openCreate} leftIcon={<Plus size={15} />} className="!rounded-none">
+                        <Button onClick={openCreate} leftIcon={<Plus size={15} />} className="w-full justify-center !rounded-none sm:w-auto">
                             Add Tag
                         </Button>
                     }
                 />
 
                 {/* Content Card */}
-                <div className="space-y-6 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
+                <div className="space-y-6 border border-slate-200/80 bg-white p-4 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="flex flex-col justify-between gap-4 border-b border-slate-100 pb-4 sm:flex-row sm:items-center dark:border-slate-700">
                         <div>
                             <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
@@ -97,27 +97,27 @@ export default function TagPage({ tags }: { tags: Tag[] }) {
                         {filteredTags.map((tag) => (
                             <div
                                 key={tag.id}
-                                className="flex items-center justify-between bg-white p-4 transition-colors hover:bg-neutral-50 dark:bg-[#1e1f24] dark:hover:bg-slate-700"
+                                className="flex items-center justify-between gap-3 bg-white p-4 transition-colors hover:bg-neutral-50 dark:bg-[#1e1f24] dark:hover:bg-slate-700"
                             >
-                                <div className="flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center border border-purple-100/80 bg-purple-50 text-purple-600 dark:border-purple-900/50 dark:bg-purple-950/40 dark:text-purple-400">
+                                <div className="flex min-w-0 items-center gap-3">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-purple-100/80 bg-purple-50 text-purple-600 dark:border-purple-900/50 dark:bg-purple-950/40 dark:text-purple-400">
                                         <TagIcon className="h-4 w-4" />
                                     </div>
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <p className="text-sm font-semibold text-neutral-900 dark:text-slate-100">{tag.name}</p>
+                                    <div className="min-w-0">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <p className="truncate text-sm font-semibold text-neutral-900 dark:text-slate-100">{tag.name}</p>
                                             {typeof tag.courses_count === 'number' && (
-                                                <span className="inline-flex items-center gap-1 rounded-none border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                                                <span className="inline-flex shrink-0 items-center gap-1 rounded-none border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300">
                                                     <BookOpen className="h-3 w-3 text-slate-400 dark:text-slate-500" />
                                                     {tag.courses_count} {tag.courses_count === 1 ? 'course' : 'courses'}
                                                 </span>
                                             )}
                                         </div>
-                                        <p className="mt-0.5 font-mono text-xs text-neutral-400 dark:text-slate-500">#{tag.slug}</p>
+                                        <p className="mt-0.5 truncate font-mono text-xs text-neutral-400 dark:text-slate-500">#{tag.slug}</p>
                                     </div>
                                 </div>
 
-                                <div className="flex gap-1">
+                                <div className="flex shrink-0 gap-1">
                                     <button
                                         onClick={() => startEdit(tag)}
                                         className="flex h-8 w-8 items-center justify-center text-neutral-400 transition-colors hover:bg-purple-50 hover:text-purple-600 dark:text-slate-500 dark:hover:bg-purple-950/40 dark:hover:text-purple-400"

@@ -38,6 +38,7 @@ class UpdateUserRequest extends FormRequest
             ],
             'password' => ['nullable', 'min:8'],
             'avatar' => ['nullable', 'image', 'max:2048'],
+            'bio' => ['nullable', 'string', 'max:1000'],
         ];
 
         // Only admins may change a role. Without this check a student could

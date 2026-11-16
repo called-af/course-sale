@@ -48,14 +48,14 @@ export default function CategoryPage({ categories }: { categories: Category[] })
                     title="Category Management"
                     description="Manage course categories shown on the platform"
                     actions={
-                        <Button onClick={openCreate} leftIcon={<Plus size={15} />} className="!rounded-none">
+                        <Button onClick={openCreate} leftIcon={<Plus size={15} />} className="w-full justify-center !rounded-none sm:w-auto">
                             Add Category
                         </Button>
                     }
                 />
 
                 {/* Content Card */}
-                <div className="space-y-4 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
+                <div className="space-y-4 border border-slate-200/80 bg-white p-4 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="border-b border-slate-100 pb-4 dark:border-slate-700">
                         <h2 className="text-lg font-bold text-slate-900 dark:text-white">All Categories ({categories.length})</h2>
                         <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Click edit or delete to manage each category.</p>
@@ -69,26 +69,26 @@ export default function CategoryPage({ categories }: { categories: Category[] })
                         {categories.map((category) => (
                             <div
                                 key={category.id}
-                                className="flex items-center justify-between bg-white p-4 transition-colors hover:bg-neutral-50 dark:bg-[#1e1f24] dark:hover:bg-slate-700"
+                                className="flex items-center justify-between gap-3 bg-white p-4 transition-colors hover:bg-neutral-50 dark:bg-[#1e1f24] dark:hover:bg-slate-700"
                             >
-                                <div className="flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center overflow-hidden bg-neutral-100 dark:bg-slate-700">
+                                <div className="flex min-w-0 items-center gap-3">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden bg-neutral-100 dark:bg-slate-700">
                                         {category.img_url ? (
                                             <img src={category.img_url} className="h-full w-full object-cover" />
                                         ) : (
                                             <span className="text-xs text-neutral-400 dark:text-slate-500">IMG</span>
                                         )}
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-neutral-800 dark:text-slate-100">{category.name}</p>
-                                        <p className="font-mono text-xs text-neutral-400 dark:text-slate-500">/{category.slug}</p>
+                                    <div className="min-w-0">
+                                        <p className="truncate text-sm font-medium text-neutral-800 dark:text-slate-100">{category.name}</p>
+                                        <p className="truncate font-mono text-xs text-neutral-400 dark:text-slate-500">/{category.slug}</p>
                                         {category.desc && (
                                             <p className="line-clamp-1 text-xs text-neutral-500 dark:text-slate-400">{category.desc}</p>
                                         )}
                                     </div>
                                 </div>
 
-                                <div className="flex gap-2">
+                                <div className="flex shrink-0 gap-2">
                                     <button
                                         onClick={() => startEdit(category)}
                                         className="flex h-8 w-8 items-center justify-center text-neutral-400 hover:text-purple-600 dark:hover:text-purple-400"

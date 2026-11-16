@@ -1,4 +1,4 @@
-import { Download, ExternalLink, FileUp, FolderDown, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Download, ExternalLink, FileUp, FolderDown, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
 import Button from '@/components/atoms/Button';
 import Modal from '@/components/atoms/Modal';
 import ConfirmationDelete from '@/components/molecules/ConfirmationDelete';
@@ -19,20 +19,23 @@ export default function CourseResourcesSection({ courseSlug, resources = [], rou
 
     return (
         <>
-            <div className="space-y-5 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
+            <div className="space-y-5 border border-slate-200/80 bg-white p-4 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
                 <div className="flex flex-col justify-between gap-4 border-b border-slate-100 pb-4 sm:flex-row sm:items-center dark:border-slate-700">
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center bg-emerald-600 text-white">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-emerald-600 text-white">
                             <FolderDown size={20} />
                         </div>
-                        <div>
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Course Resources</h3>
+                        <div className="min-w-0">
+                            <h3 className="text-lg font-bold break-words text-slate-900 dark:text-white">Course Resources</h3>
                             <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                                 Files and links unlocked only after students complete every material ({resources.length} resources).
                             </p>
+                            <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+                                File-type lesson materials (PDF, Word, PPT, Excel) are collected automatically.
+                            </p>
                         </div>
                     </div>
-                    <Button size="md" onClick={crud.openCreate} leftIcon={<Plus className="h-4 w-4" />} className="!rounded-none">
+                    <Button size="md" onClick={crud.openCreate} leftIcon={<Plus className="h-4 w-4" />} className="w-full !rounded-none sm:w-auto">
                         Add Resource
                     </Button>
                 </div>
@@ -42,66 +45,91 @@ export default function CourseResourcesSection({ courseSlug, resources = [], rou
                         <FolderDown className="mb-3 h-9 w-9 text-slate-300 dark:text-slate-600" />
                         <p className="text-sm font-bold text-slate-700 dark:text-slate-200">No resources yet</p>
                         <p className="mt-1 max-w-sm text-xs text-slate-400 dark:text-slate-500">
-                            Add downloadable files or external links for students who finish the course.
+                            Add downloadable files or external links for students who finish the course. File-type lesson materials (PDF, Word, PPT,
+                            Excel) appear here automatically.
                         </p>
                     </div>
                 ) : (
                     <ul className="divide-y divide-slate-100 dark:divide-slate-700">
-                        {resources.map((resource) => (
-                            <li key={resource.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
-                                <div className="min-w-0">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{resource.title}</p>
-                                        <span
-                                            className={`px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase ${
-                                                resource.status === 'published'
-                                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
-                                                    : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
-                                            }`}
-                                        >
-                                            {resource.status}
-                                        </span>
-                                        <span className="flex items-center gap-1 text-[10px] font-medium text-slate-400 uppercase dark:text-slate-500">
-                                            {resource.file_path ? <Download size={11} /> : <ExternalLink size={11} />}
-                                            {resource.file_path ? 'File' : 'Link'}
-                                        </span>
-                                    </div>
-                                    {resource.description && (
-                                        <p className="mt-1 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">{resource.description}</p>
-                                    )}
-                                </div>
+                        {resources.map((resource) => {
+                            const isAutomatic = resource.source === 'material';
 
-                                <div className="flex shrink-0 items-center gap-1">
-                                    {resource.url && (
-                                        <a
-                                            href={resource.url}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="p-2 text-slate-400 transition-colors hover:text-purple-700 dark:hover:text-purple-400"
-                                            title="Open resource"
-                                        >
-                                            <ExternalLink size={15} />
-                                        </a>
-                                    )}
-                                    <button
-                                        type="button"
-                                        onClick={() => crud.openEdit(resource)}
-                                        className="p-2 text-slate-400 transition-colors hover:text-purple-700 dark:hover:text-purple-400"
-                                        title="Edit resource"
-                                    >
-                                        <Pencil size={15} />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => crud.setDeleteTarget(resource)}
-                                        className="p-2 text-slate-400 transition-colors hover:text-rose-600 dark:hover:text-rose-400"
-                                        title="Delete resource"
-                                    >
-                                        <Trash2 size={15} />
-                                    </button>
-                                </div>
-                            </li>
-                        ))}
+                            return (
+                                <li
+                                    key={`${resource.source ?? 'manual'}-${resource.id}`}
+                                    className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
+                                >
+                                    <div className="min-w-0">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <p className="min-w-0 text-sm font-semibold break-words text-slate-900 dark:text-white">
+                                                {resource.title}
+                                            </p>
+                                            {isAutomatic && (
+                                                <span className="inline-flex items-center gap-1 bg-purple-100 px-2 py-0.5 text-[10px] font-bold tracking-wide text-purple-700 uppercase dark:bg-purple-950/40 dark:text-purple-300">
+                                                    <Sparkles size={10} /> Auto
+                                                </span>
+                                            )}
+                                            <span
+                                                className={`px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase ${
+                                                    resource.status === 'published'
+                                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+                                                        : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
+                                                }`}
+                                            >
+                                                {resource.status}
+                                            </span>
+                                            <span className="flex items-center gap-1 text-[10px] font-medium text-slate-400 uppercase dark:text-slate-500">
+                                                {resource.file_path ? <Download size={11} /> : <ExternalLink size={11} />}
+                                                {resource.file_type ?? (resource.file_path ? 'File' : 'Link')}
+                                            </span>
+                                        </div>
+                                        {resource.description && (
+                                            <p className="mt-1 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">{resource.description}</p>
+                                        )}
+                                    </div>
+
+                                    <div className="flex shrink-0 items-center gap-1">
+                                        {resource.url && (
+                                            <a href={resource.url} target="_blank" rel="noreferrer" title="Open resource">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    leftIcon={<ExternalLink size={15} />}
+                                                    aria-label="Open resource"
+                                                    className="!h-8 !w-8 !rounded-none !p-0"
+                                                />
+                                            </a>
+                                        )}
+                                        {isAutomatic ? (
+                                            <span className="px-2 text-[10px] font-medium tracking-wide text-purple-500 uppercase dark:text-purple-400">
+                                                From lesson
+                                            </span>
+                                        ) : (
+                                            <>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => crud.openEdit(resource)}
+                                                    leftIcon={<Pencil size={15} />}
+                                                    title="Edit resource"
+                                                    aria-label="Edit resource"
+                                                    className="!h-8 !w-8 !rounded-none !p-0"
+                                                />
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => crud.setDeleteTarget(resource)}
+                                                    leftIcon={<Trash2 size={15} />}
+                                                    title="Delete resource"
+                                                    aria-label="Delete resource"
+                                                    className="!h-8 !w-8 !rounded-none !p-0 !text-rose-600 hover:!bg-rose-50 dark:!text-rose-400 dark:hover:!bg-rose-950/30"
+                                                />
+                                            </>
+                                        )}
+                                    </div>
+                                </li>
+                            );
+                        })}
                     </ul>
                 )}
             </div>

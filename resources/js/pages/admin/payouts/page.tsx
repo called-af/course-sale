@@ -230,6 +230,7 @@ export default function AdminPayouts({
                             disabled={readyBatches.length === 0}
                             leftIcon={<Download size={14} />}
                             title="Export CSV batch yang siap ditransfer"
+                            className="w-full sm:w-auto"
                         >
                             Export CSV
                         </Button>
@@ -246,73 +247,156 @@ export default function AdminPayouts({
                             </p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full min-w-[900px] text-left text-sm">
-                                <thead className="border-b border-slate-100 bg-slate-50/60 dark:border-slate-700 dark:bg-slate-800/30">
-                                    <tr className="text-[11px] tracking-wide text-slate-500 uppercase dark:text-slate-400">
-                                        <th className="px-5 py-3 font-semibold sm:px-6">Instruktur</th>
-                                        <th className="px-4 py-3 font-semibold">Rekening</th>
-                                        <th className="px-4 py-3 font-semibold">Ledger</th>
-                                        <th className="px-4 py-3 text-right font-semibold">Total Net</th>
-                                        <th className="px-4 py-3 font-semibold">Status</th>
-                                        <th className="px-5 py-3 text-right font-semibold sm:px-6">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {batches.map((batch) => (
-                                        <tr key={batch.instructor_id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/30">
-                                            <td className="px-5 py-4 align-top sm:px-6">
-                                                <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                        <>
+                            {/* Mobile: batch cards */}
+                            <div className="space-y-3 p-4 lg:hidden">
+                                {batches.map((batch) => (
+                                    <div
+                                        key={batch.instructor_id}
+                                        className="border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1e1f24]"
+                                    >
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="min-w-0">
+                                                <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
                                                     {batch.instructor?.name ?? '—'}
                                                 </p>
-                                                <p className="text-[11px] text-slate-400 dark:text-slate-500">{batch.instructor?.email ?? '—'}</p>
-                                            </td>
-                                            <td className="px-4 py-4 align-top text-xs text-slate-600 dark:text-slate-300">
-                                                <p className="font-semibold">{batch.instructor?.bank_name ?? 'Belum diatur'}</p>
-                                                <p className="font-mono">{batch.instructor?.account_number_masked ?? '—'}</p>
-                                                <p>{batch.instructor?.account_name ?? '—'}</p>
-                                            </td>
-                                            <td className="px-4 py-4 align-top text-xs text-slate-600 dark:text-slate-300">
-                                                <p>{batch.count} ledger</p>
+                                                <p className="truncate text-[11px] text-slate-400 dark:text-slate-500">
+                                                    {batch.instructor?.email ?? '—'}
+                                                </p>
+                                            </div>
+
+                                            {batch.ready ? (
+                                                <span className="inline-flex shrink-0 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                                                    Siap ditransfer
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex shrink-0 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                                                    Tertahan
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <div className="mt-3 grid grid-cols-2 gap-3 text-[11px]">
+                                            <div className="min-w-0">
+                                                <p className="text-slate-400 dark:text-slate-500">Rekening</p>
+                                                <p className="mt-0.5 truncate font-semibold text-slate-600 dark:text-slate-300">
+                                                    {batch.instructor?.bank_name ?? 'Belum diatur'}
+                                                </p>
+                                                <p className="truncate font-mono text-slate-600 dark:text-slate-300">
+                                                    {batch.instructor?.account_number_masked ?? '—'}
+                                                </p>
+                                                <p className="truncate text-slate-600 dark:text-slate-300">{batch.instructor?.account_name ?? '—'}</p>
+                                            </div>
+
+                                            <div>
+                                                <p className="text-slate-400 dark:text-slate-500">Ledger</p>
+                                                <p className="mt-0.5 text-slate-600 dark:text-slate-300">{batch.count} ledger</p>
                                                 {batch.earliest_available_at ? (
-                                                    <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+                                                    <p className="mt-0.5 text-slate-400 dark:text-slate-500">
                                                         Tersedia sejak {formatDate(batch.earliest_available_at)}
                                                     </p>
                                                 ) : null}
-                                            </td>
-                                            <td className="px-4 py-4 text-right align-top">
-                                                <p className="font-semibold text-slate-900 dark:text-white">{formatRupiah(batch.net_total)}</p>
-                                            </td>
-                                            <td className="px-4 py-4 align-top">
-                                                {batch.ready ? (
-                                                    <span className="inline-flex px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-                                                        Siap ditransfer
-                                                    </span>
-                                                ) : (
-                                                    <div className="max-w-[220px]">
-                                                        <span className="inline-flex px-2 py-0.5 text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-                                                            Tertahan
-                                                        </span>
-                                                        <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">{batch.reason ?? 'Belum siap.'}</p>
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="px-5 py-4 text-right align-top sm:px-6">
-                                                <Button
-                                                    size="sm"
-                                                    onClick={() => markBatchPaid(batch)}
-                                                    disabled={!batch.ready}
-                                                    leftIcon={<Wallet size={14} />}
-                                                    title={batch.ready ? 'Tandai semua ledger siap ini sudah ditransfer' : (batch.reason ?? 'Belum siap')}
-                                                >
-                                                    Tandai batch
-                                                </Button>
-                                            </td>
+                                            </div>
+                                        </div>
+
+                                        {!batch.ready && (
+                                            <p className="mt-2 text-[11px] text-amber-600 dark:text-amber-300">{batch.reason ?? 'Belum siap.'}</p>
+                                        )}
+
+                                        <div className="mt-3 flex items-end justify-between gap-2 border-t border-slate-100 pt-3 dark:border-slate-700">
+                                            <div>
+                                                <p className="text-[10px] tracking-wide text-slate-400 uppercase dark:text-slate-500">Total Net</p>
+                                                <p className="text-sm font-bold text-slate-900 dark:text-white">{formatRupiah(batch.net_total)}</p>
+                                            </div>
+                                            <Button
+                                                size="sm"
+                                                onClick={() => markBatchPaid(batch)}
+                                                disabled={!batch.ready}
+                                                leftIcon={<Wallet size={14} />}
+                                                title={batch.ready ? 'Tandai semua ledger siap ini sudah ditransfer' : (batch.reason ?? 'Belum siap')}
+                                            >
+                                                Tandai batch
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Desktop: table */}
+                            <div className="hidden overflow-x-auto lg:block">
+                                <table className="w-full min-w-[900px] text-left text-sm">
+                                    <thead className="border-b border-slate-100 bg-slate-50/60 dark:border-slate-700 dark:bg-slate-800/30">
+                                        <tr className="text-[11px] tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                            <th className="px-5 py-3 font-semibold sm:px-6">Instruktur</th>
+                                            <th className="px-4 py-3 font-semibold">Rekening</th>
+                                            <th className="px-4 py-3 font-semibold">Ledger</th>
+                                            <th className="px-4 py-3 text-right font-semibold">Total Net</th>
+                                            <th className="px-4 py-3 font-semibold">Status</th>
+                                            <th className="px-5 py-3 text-right font-semibold sm:px-6">Aksi</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        {batches.map((batch) => (
+                                            <tr key={batch.instructor_id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/30">
+                                                <td className="px-5 py-4 align-top sm:px-6">
+                                                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                                                        {batch.instructor?.name ?? '—'}
+                                                    </p>
+                                                    <p className="text-[11px] text-slate-400 dark:text-slate-500">{batch.instructor?.email ?? '—'}</p>
+                                                </td>
+                                                <td className="px-4 py-4 align-top text-xs text-slate-600 dark:text-slate-300">
+                                                    <p className="font-semibold">{batch.instructor?.bank_name ?? 'Belum diatur'}</p>
+                                                    <p className="font-mono">{batch.instructor?.account_number_masked ?? '—'}</p>
+                                                    <p>{batch.instructor?.account_name ?? '—'}</p>
+                                                </td>
+                                                <td className="px-4 py-4 align-top text-xs text-slate-600 dark:text-slate-300">
+                                                    <p>{batch.count} ledger</p>
+                                                    {batch.earliest_available_at ? (
+                                                        <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+                                                            Tersedia sejak {formatDate(batch.earliest_available_at)}
+                                                        </p>
+                                                    ) : null}
+                                                </td>
+                                                <td className="px-4 py-4 text-right align-top">
+                                                    <p className="font-semibold text-slate-900 dark:text-white">{formatRupiah(batch.net_total)}</p>
+                                                </td>
+                                                <td className="px-4 py-4 align-top">
+                                                    {batch.ready ? (
+                                                        <span className="inline-flex bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                                                            Siap ditransfer
+                                                        </span>
+                                                    ) : (
+                                                        <div className="max-w-[220px]">
+                                                            <span className="inline-flex bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                                                                Tertahan
+                                                            </span>
+                                                            <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                                                                {batch.reason ?? 'Belum siap.'}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td className="px-5 py-4 text-right align-top sm:px-6">
+                                                    <Button
+                                                        size="sm"
+                                                        onClick={() => markBatchPaid(batch)}
+                                                        disabled={!batch.ready}
+                                                        leftIcon={<Wallet size={14} />}
+                                                        title={
+                                                            batch.ready
+                                                                ? 'Tandai semua ledger siap ini sudah ditransfer'
+                                                                : (batch.reason ?? 'Belum siap')
+                                                        }
+                                                    >
+                                                        Tandai batch
+                                                    </Button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </>
                     )}
                 </div>
 
@@ -376,71 +460,75 @@ export default function AdminPayouts({
                             </p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full min-w-[960px] text-left text-sm">
-                                <thead className="border-b border-slate-100 bg-slate-50/60 dark:border-slate-700 dark:bg-slate-800/30">
-                                    <tr className="text-[11px] tracking-wide text-slate-500 uppercase dark:text-slate-400">
-                                        <th className="px-5 py-3 font-semibold sm:px-6">Instruktur</th>
-                                        <th className="px-4 py-3 font-semibold">Rekening</th>
-                                        <th className="px-4 py-3 font-semibold">Order</th>
-                                        <th className="px-4 py-3 text-right font-semibold">Net</th>
-                                        <th className="px-4 py-3 font-semibold">Status</th>
-                                        <th className="px-5 py-3 text-right font-semibold sm:px-6">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {payouts.data.map((payout) => {
-                                        const state = payout.instructor_state;
-                                        const canPay = Boolean(payout.is_available && state?.ready);
+                        <>
+                            {/* Mobile: payout cards */}
+                            <div className="space-y-3 p-4 lg:hidden">
+                                {payouts.data.map((payout) => {
+                                    const state = payout.instructor_state;
+                                    const canPay = Boolean(payout.is_available && state?.ready);
 
-                                        return (
-                                            <tr key={payout.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/30">
-                                                <td className="px-5 py-4 align-top sm:px-6">
-                                                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                                    return (
+                                        <div key={payout.id} className="border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1e1f24]">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
                                                         {payout.instructor?.name ?? '—'}
                                                     </p>
-                                                    <p className="text-[11px] text-slate-400 dark:text-slate-500">{payout.instructor?.email ?? '—'}</p>
-                                                </td>
-                                                <td className="px-4 py-4 align-top text-xs text-slate-600 dark:text-slate-300">
-                                                    <p className="font-semibold">{payout.instructor?.bank_name ?? 'Belum diatur'}</p>
-                                                    <p className="font-mono">{payout.instructor?.account_number_masked ?? '—'}</p>
-                                                    <p>{payout.instructor?.account_name ?? '—'}</p>
-                                                </td>
-                                                <td className="px-4 py-4 align-top text-xs text-slate-600 dark:text-slate-300">
-                                                    <p className="font-mono">{payout.order?.order_number ?? '—'}</p>
-                                                    <p className="mt-1">{payout.course?.title ?? '—'}</p>
-                                                </td>
-                                                <td className="px-4 py-4 text-right align-top">
-                                                    <p className="font-semibold text-slate-900 dark:text-white">{formatRupiah(payout.net_amount)}</p>
-                                                    <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                                                        Gross {formatRupiah(payout.gross_amount)} · fee {formatRupiah(payout.platform_fee)}
+                                                    <p className="truncate text-[11px] text-slate-400 dark:text-slate-500">
+                                                        {payout.instructor?.email ?? '—'}
                                                     </p>
-                                                    {payout.status === 'pending' && !payout.is_available && payout.available_at ? (
-                                                        <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-300">
-                                                            Tersedia {formatDate(payout.available_at)}
+                                                </div>
+                                                <span
+                                                    className={`inline-flex shrink-0 px-2 py-0.5 text-[11px] font-semibold ${STATUS_META[payout.status] ?? STATUS_META.pending}`}
+                                                >
+                                                    {payout.status}
+                                                </span>
+                                            </div>
+
+                                            <div className="mt-3 grid grid-cols-2 gap-3 text-[11px]">
+                                                <div className="min-w-0">
+                                                    <p className="text-slate-400 dark:text-slate-500">Rekening</p>
+                                                    <p className="mt-0.5 truncate font-semibold text-slate-600 dark:text-slate-300">
+                                                        {payout.instructor?.bank_name ?? 'Belum diatur'}
+                                                    </p>
+                                                    <p className="truncate font-mono text-slate-600 dark:text-slate-300">
+                                                        {payout.instructor?.account_number_masked ?? '—'}
+                                                    </p>
+                                                    <p className="truncate text-slate-600 dark:text-slate-300">
+                                                        {payout.instructor?.account_name ?? '—'}
+                                                    </p>
+                                                </div>
+
+                                                <div className="min-w-0">
+                                                    <p className="text-slate-400 dark:text-slate-500">Order</p>
+                                                    <p className="mt-0.5 truncate font-mono text-slate-600 dark:text-slate-300">
+                                                        {payout.order?.order_number ?? '—'}
+                                                    </p>
+                                                    <p className="truncate text-slate-600 dark:text-slate-300">{payout.course?.title ?? '—'}</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-3 border-t border-slate-100 pt-3 dark:border-slate-700">
+                                                <div className="flex items-end justify-between gap-2">
+                                                    <div>
+                                                        <p className="text-[10px] tracking-wide text-slate-400 uppercase dark:text-slate-500">Net</p>
+                                                        <p className="text-sm font-bold text-slate-900 dark:text-white">
+                                                            {formatRupiah(payout.net_amount)}
                                                         </p>
-                                                    ) : null}
-                                                </td>
-                                                <td className="px-4 py-4 align-top">
-                                                    <span
-                                                        className={`inline-flex px-2 py-0.5 text-[11px] font-semibold ${STATUS_META[payout.status] ?? STATUS_META.pending}`}
-                                                    >
-                                                        {payout.status}
-                                                    </span>
-                                                    {payout.paid_at ? (
-                                                        <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
-                                                            {formatDate(payout.paid_at)}
+                                                        <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                                                            Gross {formatRupiah(payout.gross_amount)} · fee {formatRupiah(payout.platform_fee)}
                                                         </p>
-                                                    ) : null}
-                                                </td>
-                                                <td className="px-5 py-4 text-right align-top sm:px-6">
+                                                    </div>
+
                                                     {payout.status === 'pending' ? (
                                                         <Button
                                                             size="sm"
                                                             onClick={() => markPaid(payout)}
                                                             disabled={!canPay}
                                                             leftIcon={<Wallet size={14} />}
-                                                            title={canPay ? 'Tandai sudah ditransfer' : (state?.reason ?? 'Payout belum bisa dicairkan.')}
+                                                            title={
+                                                                canPay ? 'Tandai sudah ditransfer' : (state?.reason ?? 'Payout belum bisa dicairkan.')
+                                                            }
                                                         >
                                                             Tandai ditransfer
                                                         </Button>
@@ -448,20 +536,122 @@ export default function AdminPayouts({
                                                         <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
                                                             <CheckCircle2 size={13} /> Selesai
                                                         </span>
-                                                    ) : (
-                                                        <span className="text-[11px] text-slate-400">—</span>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
+                                                    ) : null}
+                                                </div>
+
+                                                {payout.status === 'pending' && !payout.is_available && payout.available_at ? (
+                                                    <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-300">
+                                                        Tersedia {formatDate(payout.available_at)}
+                                                    </p>
+                                                ) : null}
+
+                                                {payout.paid_at ? (
+                                                    <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+                                                        {formatDate(payout.paid_at)}
+                                                    </p>
+                                                ) : null}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Desktop: table */}
+                            <div className="hidden overflow-x-auto lg:block">
+                                <table className="w-full min-w-[960px] text-left text-sm">
+                                    <thead className="border-b border-slate-100 bg-slate-50/60 dark:border-slate-700 dark:bg-slate-800/30">
+                                        <tr className="text-[11px] tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                            <th className="px-5 py-3 font-semibold sm:px-6">Instruktur</th>
+                                            <th className="px-4 py-3 font-semibold">Rekening</th>
+                                            <th className="px-4 py-3 font-semibold">Order</th>
+                                            <th className="px-4 py-3 text-right font-semibold">Net</th>
+                                            <th className="px-4 py-3 font-semibold">Status</th>
+                                            <th className="px-5 py-3 text-right font-semibold sm:px-6">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        {payouts.data.map((payout) => {
+                                            const state = payout.instructor_state;
+                                            const canPay = Boolean(payout.is_available && state?.ready);
+
+                                            return (
+                                                <tr key={payout.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/30">
+                                                    <td className="px-5 py-4 align-top sm:px-6">
+                                                        <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                                                            {payout.instructor?.name ?? '—'}
+                                                        </p>
+                                                        <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                                                            {payout.instructor?.email ?? '—'}
+                                                        </p>
+                                                    </td>
+                                                    <td className="px-4 py-4 align-top text-xs text-slate-600 dark:text-slate-300">
+                                                        <p className="font-semibold">{payout.instructor?.bank_name ?? 'Belum diatur'}</p>
+                                                        <p className="font-mono">{payout.instructor?.account_number_masked ?? '—'}</p>
+                                                        <p>{payout.instructor?.account_name ?? '—'}</p>
+                                                    </td>
+                                                    <td className="px-4 py-4 align-top text-xs text-slate-600 dark:text-slate-300">
+                                                        <p className="font-mono">{payout.order?.order_number ?? '—'}</p>
+                                                        <p className="mt-1">{payout.course?.title ?? '—'}</p>
+                                                    </td>
+                                                    <td className="px-4 py-4 text-right align-top">
+                                                        <p className="font-semibold text-slate-900 dark:text-white">
+                                                            {formatRupiah(payout.net_amount)}
+                                                        </p>
+                                                        <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                                                            Gross {formatRupiah(payout.gross_amount)} · fee {formatRupiah(payout.platform_fee)}
+                                                        </p>
+                                                        {payout.status === 'pending' && !payout.is_available && payout.available_at ? (
+                                                            <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-300">
+                                                                Tersedia {formatDate(payout.available_at)}
+                                                            </p>
+                                                        ) : null}
+                                                    </td>
+                                                    <td className="px-4 py-4 align-top">
+                                                        <span
+                                                            className={`inline-flex px-2 py-0.5 text-[11px] font-semibold ${STATUS_META[payout.status] ?? STATUS_META.pending}`}
+                                                        >
+                                                            {payout.status}
+                                                        </span>
+                                                        {payout.paid_at ? (
+                                                            <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+                                                                {formatDate(payout.paid_at)}
+                                                            </p>
+                                                        ) : null}
+                                                    </td>
+                                                    <td className="px-5 py-4 text-right align-top sm:px-6">
+                                                        {payout.status === 'pending' ? (
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() => markPaid(payout)}
+                                                                disabled={!canPay}
+                                                                leftIcon={<Wallet size={14} />}
+                                                                title={
+                                                                    canPay
+                                                                        ? 'Tandai sudah ditransfer'
+                                                                        : (state?.reason ?? 'Payout belum bisa dicairkan.')
+                                                                }
+                                                            >
+                                                                Tandai ditransfer
+                                                            </Button>
+                                                        ) : payout.status === 'paid' ? (
+                                                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
+                                                                <CheckCircle2 size={13} /> Selesai
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-[11px] text-slate-400">—</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </>
                     )}
 
                     {payouts.total > 0 && (
-                        <div className="flex items-center justify-between border-t border-slate-100 px-5 py-4 text-xs text-slate-500 sm:px-6 dark:border-slate-700 dark:text-slate-400">
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-5 py-4 text-xs text-slate-500 sm:px-6 dark:border-slate-700 dark:text-slate-400">
                             <span>
                                 Menampilkan {payouts.from ?? 0}–{payouts.to ?? 0} dari {payouts.total} payout
                             </span>

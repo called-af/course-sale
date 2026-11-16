@@ -9,6 +9,7 @@ export function useUser() {
         name: '',
         email: '',
         role: 'student' as User['role'],
+        bio: '',
         password: '',
     });
 
@@ -22,6 +23,7 @@ export function useUser() {
             name: user.name,
             email: user.email,
             role: user.role,
+            bio: user.bio ?? '',
             password: '',
         });
     }

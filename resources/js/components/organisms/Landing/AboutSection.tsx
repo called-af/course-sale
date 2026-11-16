@@ -77,7 +77,7 @@ export default function AboutSection() {
     const highlights = about.highlights;
 
     return (
-        <section id="about" className="relative overflow-hidden bg-[#141416] text-white dark:bg-[#FAFAF8] dark:text-gray-900">
+        <section id="about" className="relative overflow-hidden bg-[#141416] text-white dark:bg-[#0F0F11]">
             {/* Top scroll line — full width */}
             <MarqueeLine text={name} className="py-2 sm:py-3" />
 
@@ -94,21 +94,17 @@ export default function AboutSection() {
                         <div className="flex flex-col gap-5">
                             <Title
                                 as="h2"
-                                className="max-w-xl leading-[1.12] font-semibold tracking-[-0.02em] text-white dark:text-gray-900"
+                                className="max-w-xl leading-[1.12] font-semibold tracking-[-0.02em] text-white"
                                 style={{ fontSize: 'clamp(2rem,4vw,3rem)' }}
                             >
                                 {about.title_lead}
-                                <span className="text-purple-400 dark:text-purple-600">{about.title_highlight}</span>
+                                <span className="text-purple-400">{about.title_highlight}</span>
                                 {about.title_tail}
                             </Title>
 
-                            <p className="max-w-xl text-[15px] leading-relaxed text-white/45 dark:text-gray-500">
-                                {withBrand(about.paragraph_1, name)}
-                            </p>
+                            <p className="max-w-xl text-[15px] leading-relaxed text-white/45">{withBrand(about.paragraph_1, name)}</p>
 
-                            <p className="max-w-xl text-[15px] leading-relaxed text-white/35 dark:text-gray-400">
-                                {withBrand(about.paragraph_2, name)}
-                            </p>
+                            <p className="max-w-xl text-[15px] leading-relaxed text-white/35">{withBrand(about.paragraph_2, name)}</p>
                         </div>
 
                         <ul className="flex flex-col gap-3">
@@ -119,10 +115,10 @@ export default function AboutSection() {
                                     whileInView={{ opacity: 1, x: 0 }}
                                     viewport={{ once: true, amount: 0.8 }}
                                     transition={{ duration: 0.45, delay: 0.25 + index * 0.1, ease: EASE }}
-                                    className="flex items-center gap-3 text-[13px] text-white/55 dark:text-gray-600"
+                                    className="flex items-center gap-3 text-[13px] text-white/55"
                                 >
                                     <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-purple-400/20 bg-purple-400/10">
-                                        <Check size={11} className="text-purple-300 dark:text-purple-600" />
+                                        <Check size={11} className="text-purple-300" />
                                     </span>
                                     {item}
                                 </motion.li>
@@ -136,14 +132,12 @@ export default function AboutSection() {
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true, amount: 0.3 }}
                         transition={{ duration: 0.7, delay: 0.1, ease: EASE }}
-                        className="relative border border-white/[0.08] bg-white/[0.02] dark:border-gray-200 dark:bg-white"
+                        className="relative border border-white/[0.08] bg-white/[0.02]"
                     >
-                        <div className="flex items-center justify-between border-b border-white/[0.06] px-6 py-4 sm:px-8 dark:border-gray-200">
-                            <span className="text-[11px] font-medium tracking-[0.18em] text-white/40 uppercase dark:text-gray-500">
-                                {about.eyebrow}
-                            </span>
-                            <span className="inline-flex items-center gap-2 text-[11px] text-white/40 dark:text-gray-500">
-                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-purple-400 dark:bg-purple-500" />
+                        <div className="flex items-center justify-between border-b border-white/[0.06] px-6 py-4 sm:px-8">
+                            <span className="text-[11px] font-medium tracking-[0.18em] text-white/40 uppercase">{about.eyebrow}</span>
+                            <span className="inline-flex items-center gap-2 text-[11px] text-white/40">
+                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-purple-400" />
                                 {about.since_label}
                             </span>
                         </div>
@@ -158,25 +152,25 @@ export default function AboutSection() {
                                     transition={{ duration: 0.45, delay: 0.2 + index * 0.08, ease: EASE }}
                                     className={[
                                         'flex flex-col gap-2 px-6 py-8 sm:px-8 sm:py-10',
-                                        index % 2 === 1 ? 'border-l border-white/[0.06] dark:border-gray-200' : '',
-                                        index >= 2 ? 'border-t border-white/[0.06] dark:border-gray-200' : '',
+                                        index % 2 === 1 ? 'border-l border-white/[0.06]' : '',
+                                        index >= 2 ? 'border-t border-white/[0.06]' : '',
                                     ].join(' ')}
                                 >
                                     <span
-                                        className="text-3xl font-semibold tracking-tight text-white lg:text-4xl dark:text-gray-900"
+                                        className="text-3xl font-semibold tracking-tight text-white lg:text-4xl"
                                         style={{ fontFamily: 'Georgia, serif' }}
                                     >
                                         <AnimatedStat value={stat.value} />
                                     </span>
-                                    <span className="text-[11px] tracking-[0.18em] text-white/35 uppercase dark:text-gray-500">{stat.label}</span>
+                                    <span className="text-[11px] tracking-[0.18em] text-white/35 uppercase">{stat.label}</span>
                                 </motion.div>
                             ))}
                         </div>
 
-                        <div className="border-t border-white/[0.06] px-6 py-5 sm:px-8 dark:border-gray-200">
+                        <div className="border-t border-white/[0.06] px-6 py-5 sm:px-8">
                             <Link
                                 href={about.cta_href}
-                                className="group inline-flex items-center gap-2 text-[13px] font-medium text-white/55 transition-colors hover:text-white dark:text-gray-600 dark:hover:text-gray-900"
+                                className="group inline-flex items-center gap-2 text-[13px] font-medium text-white/55 transition-colors hover:text-white"
                             >
                                 {about.cta_label}
                                 <ArrowUpRight size={14} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

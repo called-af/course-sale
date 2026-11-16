@@ -25,7 +25,7 @@ export default function RecommendationSettingsPanel({ initialRecommendation }: R
             <Head title="Rekomendasi Python" />
 
             <Card className="overflow-hidden rounded-none">
-                <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-5 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                     <div className="flex items-start gap-4">
                         <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300">
                             <Bot size={21} />
@@ -43,7 +43,7 @@ export default function RecommendationSettingsPanel({ initialRecommendation }: R
                     />
                 </div>
 
-                <div className="border-t border-neutral-200 bg-neutral-50/70 p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
+                <div className="border-t border-neutral-200 bg-neutral-50/70 p-4 sm:p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="flex items-start gap-4">
                         <Sparkles className="mt-0.5 h-5 w-5 text-blue-600 dark:text-blue-400" />
                         <div className="space-y-2">

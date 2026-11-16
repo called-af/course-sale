@@ -42,6 +42,8 @@ class CourseService
             ]),
         ])->append('thumbnail_url');
 
+        $course->setRelation('resources', collect(app(CourseResourceService::class)->mergedForCourse($course)));
+
         return [
             'course' => $course,
             'categories' => Category::select('id', 'name', 'img', 'desc')->get(),
@@ -124,14 +126,16 @@ class CourseService
             ->values();
 
         return [
-            'course' => $course->load([
+            'course' => tap($course->load([
                 'creator:id,name', 'categories:id,name', 'resources',
                 'modules' => fn ($modules) => $modules->select('id', 'course_id', 'title', 'sort_order', 'status')->orderBy('sort_order')->with([
                     'materials' => fn ($materials) => $materials->select('id', 'module_id', 'title', 'sort_order', 'status')->orderBy('sort_order')->with([
                         'contents' => fn ($contents) => $contents->orderBy('sort_order')->with('quizQuestions.quizOptions'),
                     ]),
                 ]),
-            ])->append('thumbnail_url'),
+            ])->append('thumbnail_url'), function (Course $course) {
+                $course->setRelation('resources', collect(app(CourseResourceService::class)->mergedForCourse($course)));
+            }),
             'quizStates' => app(QuizService::class)->statesFor($user, $quizContents),
         ];
     }

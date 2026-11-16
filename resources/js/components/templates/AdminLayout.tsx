@@ -17,7 +17,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }, [sidebarOpen]);
 
     return (
-        <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-[#141416]">
+        <div className="flex h-dvh overflow-hidden bg-gray-100 dark:bg-[#141416]">
             <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
             <div className="flex flex-1 flex-col overflow-hidden">

@@ -89,19 +89,19 @@ export default function CourseSlug({ course, categories, tags, enrolled_students
                                     Awaiting Admin Approval
                                 </span>
                             )}
-                            <Link
-                                href={`/${rolePrefix}/courses/${course.slug}/preview`}
-                                className="inline-flex items-center gap-2 border border-purple-500 bg-purple-600 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:scale-[1.02] hover:bg-purple-500 active:scale-[0.98]"
-                            >
-                                <Eye className="h-4 w-4" />
-                                Preview
+                            <Link href={`/${rolePrefix}/courses/${course.slug}/preview`}>
+                                <Button leftIcon={<Eye className="h-4 w-4" />} className="!rounded-none">
+                                    Preview
+                                </Button>
                             </Link>
-                            <Link
-                                href={`/${rolePrefix}/courses`}
-                                className="inline-flex items-center gap-2 border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-medium text-white backdrop-blur-md transition-all duration-200 hover:scale-[1.02] hover:bg-white/20 active:scale-[0.98]"
-                            >
-                                <ArrowLeft className="h-4 w-4" />
-                                Back
+                            <Link href={`/${rolePrefix}/courses`}>
+                                <Button
+                                    variant="outline"
+                                    leftIcon={<ArrowLeft className="h-4 w-4" />}
+                                    className="!rounded-none !border-white/15 !bg-white/10 !text-white backdrop-blur-md hover:!bg-white/20"
+                                >
+                                    Back
+                                </Button>
                             </Link>
                         </div>
                     }

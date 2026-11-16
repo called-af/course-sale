@@ -155,23 +155,37 @@ class EnrollmentService
 
         $resourcesUnlocked = $this->isCompleted($user, $course);
 
-        $resources = $resourcesUnlocked
-            ? \App\Models\CourseResource::query()
-                ->where('course_id', $course->id)
-                ->where('status', 'published')
-                ->orderBy('sort_order')
-                ->get()
-                ->map(fn ($resource) => [
-                    'id' => $resource->id,
-                    'title' => $resource->title,
-                    'description' => $resource->description,
-                    'download_url' => route('student.courses.resources.download', [
+        $resources = collect(app(CourseResourceService::class)->mergedForCourse($course, publishedOnly: true))
+            ->filter(function (array $resource) use ($resourcesUnlocked, $progress, $contentProgress) {
+                // Manual resources stay gated behind full course completion.
+                if (($resource['source'] ?? CourseResourceService::SOURCE_MANUAL) === CourseResourceService::SOURCE_MANUAL) {
+                    return $resourcesUnlocked;
+                }
+
+                if ($resourcesUnlocked) {
+                    return true;
+                }
+
+                // File resources from lesson materials unlock as soon as the
+                // student completes that content (or the whole material).
+                return ! empty($progress[$resource['material_id'] ?? 0])
+                    || ! empty($contentProgress[$resource['material_content_id'] ?? 0]);
+            })
+            ->map(function (array $resource) use ($course) {
+                $resource['download_url'] = ($resource['source'] ?? CourseResourceService::SOURCE_MANUAL) === CourseResourceService::SOURCE_MATERIAL
+                    ? route('student.courses.resources.content.download', [
                         'course' => $course->slug,
-                        'resource' => $resource->id,
-                    ]),
-                ])
-                ->all()
-            : [];
+                        'content' => $resource['material_content_id'],
+                    ])
+                    : route('student.courses.resources.download', [
+                        'course' => $course->slug,
+                        'resource' => $resource['id'],
+                    ]);
+
+                return $resource;
+            })
+            ->values()
+            ->all();
 
         return [
             'course' => $course,
@@ -318,6 +332,28 @@ class EnrollmentService
             ->count();
 
         return $completed >= $materialIds->count();
+    }
+
+    /**
+     * Whether the student has completed a specific lesson material.
+     */
+    public function hasCompletedMaterial(User $user, Material $material): bool
+    {
+        return MaterialProgress::where('user_id', $user->id)
+            ->where('material_id', $material->id)
+            ->where('is_completed', true)
+            ->exists();
+    }
+
+    /**
+     * Whether the student has completed a specific lesson content item.
+     */
+    public function hasCompletedContent(User $user, MaterialContent $content): bool
+    {
+        return MaterialContentProgress::where('user_id', $user->id)
+            ->where('material_content_id', $content->id)
+            ->where('is_completed', true)
+            ->exists();
     }
 
     public function markContentProgress(User $user, Course $course, MaterialContent $content): bool

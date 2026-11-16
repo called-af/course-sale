@@ -70,6 +70,12 @@ class AiSettings
 
     public function isConfigured(): bool
     {
+        // When providers are managed through the integration dashboard, the
+        // legacy single-provider settings are no longer authoritative.
+        if (\App\Models\AiProvider::query()->exists()) {
+            return app(\App\Services\AI\Manager::class)->defaultProvider() !== null;
+        }
+
         return ! empty($this->baseUrl()) && ! empty($this->model()) && $this->hasApiKey();
     }
 

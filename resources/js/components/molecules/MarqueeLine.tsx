@@ -74,9 +74,7 @@ export default function MarqueeLine({ text, repeat = 20, speed = 0.6, reverse = 
                                 key={index}
                                 className={[
                                     'pr-10 font-display text-[clamp(2rem,5vw,4rem)] leading-none whitespace-nowrap uppercase sm:pr-14 lg:pr-16',
-                                    index % 2 === 0
-                                        ? 'text-white dark:text-gray-900'
-                                        : 'text-transparent [-webkit-text-stroke:1.5px_rgba(255,255,255,0.22)] dark:[-webkit-text-stroke:1.5px_rgba(17,24,39,0.22)]',
+                                    index % 2 === 0 ? 'text-white' : 'text-transparent [-webkit-text-stroke:1.5px_rgba(255,255,255,0.22)]',
                                 ].join(' ')}
                             >
                                 {text}

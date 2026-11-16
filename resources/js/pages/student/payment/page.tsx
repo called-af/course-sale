@@ -74,11 +74,15 @@ export default function PaymentPage(props: PaymentProps) {
             <Head title={`Pembayaran — ${order?.order_number ?? ''}`} />
 
             <div className="mx-auto max-w-3xl space-y-6">
-                <Link
-                    href="/student/courses"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-purple-700 dark:text-slate-400 dark:hover:text-purple-400"
-                >
-                    <ArrowLeft size={16} /> Kembali ke pembelajaran saya
+                <Link href="/student/courses" className="inline-block">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        leftIcon={<ArrowLeft size={16} />}
+                        className="!rounded-none !text-slate-500 hover:!text-purple-700 dark:!text-slate-400 dark:hover:!text-purple-400"
+                    >
+                        Kembali ke pembelajaran saya
+                    </Button>
                 </Link>
 
                 <div className="border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
@@ -173,8 +177,10 @@ export default function PaymentPage(props: PaymentProps) {
                                     </p>
                                     <p className="mt-1 text-xs">Silakan buat order baru untuk melanjutkan pembelian.</p>
                                     {course ? (
-                                        <Link href={`/student/courses/${course.slug}/checkout`} className="mt-3 inline-block font-semibold underline">
-                                            Ulangi checkout
+                                        <Link href={`/student/courses/${course.slug}/checkout`} className="mt-3 inline-block">
+                                            <Button variant="outline" size="sm" className="!rounded-none">
+                                                Ulangi checkout
+                                            </Button>
                                         </Link>
                                     ) : null}
                                 </div>

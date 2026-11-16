@@ -16,6 +16,18 @@ class CourseResourceService
      */
     protected const UPLOAD_DIRECTORY = 'course-resources';
 
+    /**
+     * Course resource origins shown in the UI.
+     */
+    public const SOURCE_MANUAL = 'manual';
+
+    public const SOURCE_MATERIAL = 'material';
+
+    /**
+     * Lesson content types that are automatically exposed as course resources.
+     */
+    protected const AUTOMATIC_CONTENT_TYPES = ['file', 'ppt'];
+
     public function create(Course $course, array $data): CourseResource
     {
         return DB::transaction(function () use ($course, $data) {
@@ -80,6 +92,86 @@ class CourseResourceService
             $this->deleteFile($resource->file_path);
             $resource->delete();
         });
+    }
+
+    /**
+     * Manual resources plus resources collected automatically from lesson
+     * materials (uploaded or linked files of type file/ppt).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function mergedForCourse(Course $course, bool $publishedOnly = false): array
+    {
+        $course->loadMissing(['resources', 'modules.materials.contents']);
+
+        $manual = $course->resources
+            ->when($publishedOnly, fn ($resources) => $resources->where('status', 'published'))
+            ->values()
+            ->map(fn (CourseResource $resource) => [
+                ...$resource->toArray(),
+                'source' => self::SOURCE_MANUAL,
+            ])
+            ->all();
+
+        return [
+            ...$manual,
+            ...$this->automaticResources($course, $publishedOnly),
+        ];
+    }
+
+    /**
+     * Build read-only resource entries from file-type lesson contents.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function automaticResources(Course $course, bool $publishedOnly): array
+    {
+        $resources = [];
+
+        foreach ($course->modules->sortBy('sort_order') as $module) {
+            foreach ($module->materials->sortBy('sort_order') as $material) {
+                foreach ($material->contents->sortBy('sort_order') as $content) {
+                    if (! in_array($content->type, self::AUTOMATIC_CONTENT_TYPES, true)) {
+                        continue;
+                    }
+
+                    if ($publishedOnly && ! $content->isPublished()) {
+                        continue;
+                    }
+
+                    if (blank($content->content_url)) {
+                        continue;
+                    }
+
+                    $url = $content->content_url;
+                    $path = parse_url($url, PHP_URL_PATH) ?: $url;
+                    $prefix = '/storage/';
+                    $filePath = str_starts_with($path, $prefix)
+                        ? substr($path, strlen($prefix))
+                        : null;
+                    $extension = strtoupper(pathinfo($path, PATHINFO_EXTENSION));
+
+                    $resources[] = [
+                        'id' => $content->id,
+                        'course_id' => $course->id,
+                        'title' => $content->title,
+                        'description' => null,
+                        'file_path' => $filePath,
+                        'external_url' => $filePath ? null : $url,
+                        'url' => $url,
+                        'status' => $content->status,
+                        'sort_order' => (int) $content->sort_order,
+                        'source' => self::SOURCE_MATERIAL,
+                        'material_content_id' => $content->id,
+                        'material_id' => $material->id,
+                        'material_title' => $material->title,
+                        'file_type' => $extension !== '' ? $extension : null,
+                    ];
+                }
+            }
+        }
+
+        return $resources;
     }
 
     protected function ensureSource(string $status, ?string $filePath, ?string $externalUrl): void

@@ -121,10 +121,10 @@ export default function AdminOrderShow({ order, refundable = false }: { order: O
                     <ArrowLeft size={16} /> Kembali ke orders
                 </Link>
 
-                <div className="border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
+                <div className="border border-slate-200 bg-white p-4 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="flex flex-wrap items-start justify-between gap-4">
-                        <div>
-                            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Order {order?.order_number}</h1>
+                        <div className="min-w-0">
+                            <h1 className="text-2xl font-bold break-words text-slate-900 dark:text-white">Order {order?.order_number}</h1>
                             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Status: {order?.status}</p>
                             <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{formatRupiah(order?.total_price)}</p>
                             {Number(order?.refunded_amount ?? 0) > 0 ? (
@@ -135,7 +135,7 @@ export default function AdminOrderShow({ order, refundable = false }: { order: O
                             ) : null}
                         </div>
 
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex w-full flex-wrap gap-2 sm:w-auto">
                             {order?.status === 'pending' ? (
                                 <>
                                     <Button onClick={markPaid} leftIcon={<CheckCircle2 size={16} />}>
@@ -162,8 +162,8 @@ export default function AdminOrderShow({ order, refundable = false }: { order: O
                     <div className="mt-6 grid gap-4 sm:grid-cols-2">
                         <div>
                             <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Siswa</p>
-                            <p className="mt-1 text-sm font-medium text-slate-900 dark:text-white">
-                                {order?.user?.name ?? '—'} <span className="text-slate-500">({order?.user?.email ?? '—'})</span>
+                            <p className="mt-1 text-sm font-medium break-words text-slate-900 dark:text-white">
+                                {order?.user?.name ?? '—'} <span className="break-all text-slate-500">({order?.user?.email ?? '—'})</span>
                             </p>
                         </div>
                         <div>
@@ -175,12 +175,15 @@ export default function AdminOrderShow({ order, refundable = false }: { order: O
                     <h2 className="mt-8 text-lg font-semibold text-slate-900 dark:text-white">Item</h2>
                     <div className="mt-4 space-y-3">
                         {(order?.items ?? []).map((item) => (
-                            <div key={item.id} className="flex items-center justify-between border border-slate-100 p-4 dark:border-slate-700">
-                                <div>
-                                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{item.course_title}</p>
+                            <div
+                                key={item.id}
+                                className="flex flex-wrap items-center justify-between gap-2 border border-slate-100 p-4 dark:border-slate-700"
+                            >
+                                <div className="min-w-0">
+                                    <p className="text-sm font-semibold break-words text-slate-900 dark:text-white">{item.course_title}</p>
                                     <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Course</p>
                                 </div>
-                                <p className="text-sm font-semibold text-slate-900 dark:text-white">{formatRupiah(item.course_price)}</p>
+                                <p className="shrink-0 text-sm font-semibold text-slate-900 dark:text-white">{formatRupiah(item.course_price)}</p>
                             </div>
                         ))}
                     </div>
@@ -274,13 +277,13 @@ export default function AdminOrderShow({ order, refundable = false }: { order: O
                                     key={payout.id}
                                     className="flex flex-wrap items-center justify-between gap-3 border border-slate-100 p-4 text-sm dark:border-slate-700"
                                 >
-                                    <div>
+                                    <div className="min-w-0">
                                         <p className="font-semibold text-slate-900 dark:text-white">{payout.instructor?.name ?? '—'}</p>
-                                        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                                        <p className="mt-0.5 text-xs break-all text-slate-500 dark:text-slate-400">
                                             {payout.instructor?.email ?? '—'} · {payout.status}
                                         </p>
                                     </div>
-                                    <div className="text-right">
+                                    <div className="shrink-0 text-right">
                                         <p className="font-semibold text-slate-900 dark:text-white">{formatRupiah(payout.net_amount)}</p>
                                         <p className="text-xs text-slate-500 dark:text-slate-400">
                                             Gross {formatRupiah(payout.gross_amount)} · fee {formatRupiah(payout.platform_fee)}

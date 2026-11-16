@@ -23,6 +23,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ToastContainer } from 'react-toastify';
 import Badge from '@/components/atoms/Badge';
+import Button from '@/components/atoms/Button';
 import PreviewFileViewer from '@/components/molecules/course-preview/PreviewFileViewer';
 import PreviewPptViewer from '@/components/molecules/course-preview/PreviewPptViewer';
 import PreviewTextViewer from '@/components/molecules/course-preview/PreviewTextViewer';
@@ -54,6 +55,7 @@ interface CourseLearningTemplateProps {
     currentContent?: LessonContent | null;
     resume?: { material_id: number; content_id?: number | null } | null;
     resources?: CourseResource[];
+    resourcesUnlocked?: boolean;
     refundPolicy?: RefundPolicy | null;
     mode?: 'learning' | 'preview';
 }
@@ -71,6 +73,7 @@ export default function CourseLearningTemplate({
     currentContent,
     resume,
     resources = [],
+    resourcesUnlocked = false,
     refundPolicy,
     mode = 'learning',
 }: CourseLearningTemplateProps) {
@@ -97,7 +100,8 @@ export default function CourseLearningTemplate({
     const [expandedModules, setExpandedModules] = useState<Record<number, boolean>>(() =>
         Object.fromEntries((course.modules ?? []).map((m) => [m.id, true])),
     );
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 1024 : true));
+    const [sidebarTab, setSidebarTab] = useState<'modules' | 'resources'>('modules');
     const [contentProgressState, setContentProgressState] = useState<Record<number, boolean>>(contentProgress ?? {});
     const [quizStatesState, setQuizStatesState] = useState<Record<number, QuizState>>(quizStates ?? {});
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -112,6 +116,10 @@ export default function CourseLearningTemplate({
     useEffect(() => {
         setQuizStatesState(quizStates ?? {});
     }, [quizStates]);
+
+    useEffect(() => {
+        setSidebarTab('modules');
+    }, [course.id]);
 
     useEffect(() => {
         scrollRef.current?.scrollTo({ top: 0 });
@@ -250,15 +258,16 @@ export default function CourseLearningTemplate({
 
             {/* Focused course bar: replaces the normal user navbar while learning. */}
             <header className="flex h-14 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 dark:border-slate-700 dark:bg-[#1e1f24]">
-                <button
+                <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => router.visit(exitHref)}
                     title={exitTitle}
                     aria-label={exitTitle}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center border border-slate-200 text-slate-500 transition-colors hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-slate-700 dark:text-slate-400 dark:hover:border-rose-900 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
-                >
-                    <X size={17} />
-                </button>
+                    leftIcon={<X size={17} />}
+                    className="!h-8 !w-8 shrink-0 !rounded-none !border-slate-200 !p-0 !text-slate-500 hover:!border-rose-300 hover:!bg-rose-50 hover:!text-rose-600 dark:!border-slate-700 dark:!text-slate-400 dark:hover:!border-rose-900 dark:hover:!bg-rose-950/40 dark:hover:!text-rose-400"
+                />
 
                 <div className="flex min-w-0 flex-1 items-center gap-2">
                     <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{course.title}</p>
@@ -277,15 +286,26 @@ export default function CourseLearningTemplate({
                     <span className="hidden text-xs text-slate-400 sm:inline dark:text-slate-500">
                         {completedContents}/{totalContents} done
                     </span>
-                    <button
+                    <Button
                         type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSidebarOpen((value) => !value)}
+                        title={sidebarOpen ? 'Hide course content' : 'Show course content'}
+                        aria-label={sidebarOpen ? 'Hide course content' : 'Show course content'}
+                        leftIcon={<PanelLeftOpen size={16} />}
+                        className="!h-8 !w-8 shrink-0 !rounded-none !border-slate-200 !p-0 !text-slate-500 hover:!border-purple-300 hover:!bg-purple-50 hover:!text-purple-600 lg:hidden dark:!border-slate-700 dark:!text-slate-400 dark:hover:!border-purple-600 dark:hover:!bg-purple-950/40 dark:hover:!text-purple-400"
+                    />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
                         onClick={toggleTheme}
                         title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
                         aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                        className="flex h-8 w-8 shrink-0 items-center justify-center border border-slate-200 text-slate-500 transition-colors hover:border-purple-300 hover:bg-purple-50 hover:text-purple-600 dark:border-slate-700 dark:text-slate-400 dark:hover:border-purple-600 dark:hover:bg-purple-950/40 dark:hover:text-purple-400"
-                    >
-                        {isDark ? <Sun size={16} /> : <Moon size={16} />}
-                    </button>
+                        leftIcon={isDark ? <Sun size={16} /> : <Moon size={16} />}
+                        className="!h-8 !w-8 shrink-0 !rounded-none !border-slate-200 !p-0 !text-slate-500 hover:!border-purple-300 hover:!bg-purple-50 hover:!text-purple-600 dark:!border-slate-700 dark:!text-slate-400 dark:hover:!border-purple-600 dark:hover:!bg-purple-950/40 dark:hover:!text-purple-400"
+                    />
                 </div>
             </header>
 
@@ -314,19 +334,24 @@ export default function CourseLearningTemplate({
                             </div>
                             <div className="flex shrink-0 gap-2">
                                 {certificate && (
-                                    <a
-                                        href={`/student/certificates/${certificate.id}/download`}
-                                        className="flex items-center gap-1.5 bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-amber-400"
-                                        download
-                                    >
-                                        <Download size={13} /> Download Certificate
+                                    <a href={`/student/certificates/${certificate.id}/download`} download>
+                                        <Button
+                                            size="sm"
+                                            leftIcon={<Download size={13} />}
+                                            className="!rounded-none !bg-amber-500 hover:!bg-amber-400"
+                                        >
+                                            Download Certificate
+                                        </Button>
                                     </a>
                                 )}
-                                <Link
-                                    href="/student/certificates"
-                                    className="flex items-center gap-1.5 border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-800 transition-colors hover:bg-amber-50 dark:border-amber-800 dark:bg-[#1e1f24] dark:text-amber-300 dark:hover:bg-amber-950/30"
-                                >
-                                    View All
+                                <Link href="/student/certificates">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="!rounded-none !border-amber-300 !bg-white !text-amber-800 hover:!bg-amber-50 dark:!border-amber-800 dark:!bg-[#1e1f24] dark:!text-amber-300 dark:hover:!bg-amber-950/30"
+                                    >
+                                        View All
+                                    </Button>
                                 </Link>
                             </div>
                         </div>
@@ -385,59 +410,30 @@ export default function CourseLearningTemplate({
 
                                 {/* Prev / Next */}
                                 <div className="flex shrink-0 items-center gap-2">
-                                    <button
+                                    <Button
                                         type="button"
+                                        variant="outline"
+                                        size="sm"
                                         disabled={activeIndex <= 0}
                                         onClick={() => activeIndex > 0 && setSelectedContentId(lessons[activeIndex - 1].content.id)}
-                                        className="flex items-center gap-1 border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-300 dark:hover:border-purple-600 dark:hover:bg-purple-950/40 dark:hover:text-purple-400"
+                                        leftIcon={<ChevronLeft size={14} />}
+                                        className="!rounded-none"
                                     >
-                                        <ChevronLeft size={14} /> Prev
-                                    </button>
-                                    <button
+                                        Prev
+                                    </Button>
+                                    <Button
                                         type="button"
+                                        variant="outline"
+                                        size="sm"
                                         disabled={activeIndex >= lessons.length - 1}
                                         onClick={() => activeIndex < lessons.length - 1 && setSelectedContentId(lessons[activeIndex + 1].content.id)}
-                                        className="flex items-center gap-1 border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-300 dark:hover:border-purple-600 dark:hover:bg-purple-950/40 dark:hover:text-purple-400"
+                                        rightIcon={<ChevronRight size={14} />}
+                                        className="!rounded-none"
                                     >
-                                        Next <ChevronRight size={14} />
-                                    </button>
+                                        Next
+                                    </Button>
                                 </div>
                             </div>
-
-                            {courseResources.length > 0 && (
-                                <div className="border border-emerald-200 bg-emerald-50/40 p-5 dark:border-emerald-900/50 dark:bg-emerald-950/20">
-                                    <div className="flex items-center gap-2">
-                                        <FolderDown size={16} className="text-emerald-600 dark:text-emerald-400" />
-                                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">Course Resources</h3>
-                                        <span className="border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
-                                            {courseResources.length}
-                                        </span>
-                                    </div>
-                                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                        You completed every material — these resources are now unlocked.
-                                    </p>
-                                    <ul className="mt-4 divide-y divide-emerald-100 dark:divide-emerald-900/40">
-                                        {courseResources.map((resource) => (
-                                            <li key={resource.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
-                                                <div className="min-w-0">
-                                                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{resource.title}</p>
-                                                    {resource.description && (
-                                                        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{resource.description}</p>
-                                                    )}
-                                                </div>
-                                                <a
-                                                    href={resource.download_url ?? resource.url ?? '#'}
-                                                    target={resource.download_url ? undefined : '_blank'}
-                                                    rel="noreferrer"
-                                                    className="inline-flex shrink-0 items-center gap-1.5 border border-emerald-300 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-800 dark:bg-[#1e1f24] dark:text-emerald-300 dark:hover:bg-emerald-950/40"
-                                                >
-                                                    <Download size={13} /> Download
-                                                </a>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
 
                             <p className="pb-4 text-center text-xs text-slate-400 dark:text-slate-500">
                                 Discussion & reviews on the{' '}
@@ -453,145 +449,251 @@ export default function CourseLearningTemplate({
                 {sidebarOpen ? (
                     <>
                         <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
-                        <aside className={clsx(
-                            'fixed inset-y-0 right-0 z-50 w-80 shrink-0 flex-col border-l border-slate-200 bg-white lg:static xl:w-80 dark:border-slate-700 dark:bg-[#1e1f24]',
-                            'transform transition-transform duration-300',
-                            sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-                            'lg:translate-x-0',
-                        )}>
+                        <aside
+                            className={clsx(
+                                'fixed inset-y-0 right-0 z-50 flex w-80 shrink-0 flex-col border-l border-slate-200 bg-white lg:static xl:w-80 dark:border-slate-700 dark:bg-[#1e1f24]',
+                                'transform transition-transform duration-300',
+                                sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+                                'lg:translate-x-0',
+                            )}
+                        >
                             {/* Sidebar header */}
                             <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-700">
                                 <div className="flex items-center gap-2">
                                     <BookOpen size={14} className="text-purple-600" />
-                                    <span className="text-xs font-bold tracking-wider text-slate-700 uppercase dark:text-slate-200">Course Content</span>
+                                    <span className="text-xs font-bold tracking-wider text-slate-700 uppercase dark:text-slate-200">
+                                        Course Content
+                                    </span>
                                 </div>
-                                <button
+                                <Button
                                     type="button"
+                                    variant="ghost"
+                                    size="sm"
                                     onClick={() => setSidebarOpen(false)}
                                     title="Hide sidebar"
-                                    className="rounded p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-white"
-                                >
-                                    <PanelLeftClose size={15} />
-                                </button>
+                                    aria-label="Hide sidebar"
+                                    leftIcon={<PanelLeftClose size={15} />}
+                                    className="!h-8 !w-8 !rounded-none !p-0"
+                                />
                             </div>
 
-                        {/* Progress */}
-                        <div className="shrink-0 border-b border-slate-100 px-4 py-3 dark:border-slate-700">
-                            <div className="mb-1.5 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                                <span>Progress</span>
-                                <span className="font-bold text-purple-600 dark:text-purple-400">{contentPercent}%</span>
+                            {/* Progress */}
+                            <div className="shrink-0 border-b border-slate-100 px-4 py-3 dark:border-slate-700">
+                                <div className="mb-1.5 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                                    <span>Progress</span>
+                                    <span className="font-bold text-purple-600 dark:text-purple-400">{contentPercent}%</span>
+                                </div>
+                                <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+                                    <div className="h-full rounded-full bg-purple-500 transition-all" style={{ width: `${contentPercent}%` }} />
+                                </div>
+                                <p className="mt-1.5 text-[11px] text-slate-400 dark:text-slate-500">
+                                    {completedContents} of {totalContents} done
+                                </p>
                             </div>
-                            <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
-                                <div className="h-full rounded-full bg-purple-500 transition-all" style={{ width: `${contentPercent}%` }} />
-                            </div>
-                            <p className="mt-1.5 text-[11px] text-slate-400 dark:text-slate-500">
-                                {completedContents} of {totalContents} done
-                            </p>
-                        </div>
 
-                        {/* Module list — takes all remaining height and scrolls */}
-                        <div className="flex-1 overflow-y-auto">
-                            {(course.modules ?? []).map((mod, modIdx) => {
-                                const expanded = expandedModules[mod.id] ?? true;
-
-                                return (
-                                    <div key={mod.id} className="border-b border-slate-100 last:border-b-0 dark:border-slate-700">
-                                        <button
-                                            type="button"
-                                            onClick={() => setExpandedModules((v) => ({ ...v, [mod.id]: !expanded }))}
-                                            className="flex w-full items-center justify-between gap-2 bg-slate-50 px-4 py-3 text-left transition-colors hover:bg-slate-100 dark:bg-[#1e1f24] dark:hover:bg-slate-700"
-                                        >
-                                            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
-                                                <span className="mr-1.5 text-[10px] font-semibold text-slate-400 dark:text-slate-500">
-                                                    {String(modIdx + 1).padStart(2, '0')}
-                                                </span>
-                                                {mod.title}
+                            {/* Sidebar tabs: Modules / Resources */}
+                            <div className="shrink-0 border-b border-slate-100 px-4 dark:border-slate-700">
+                                <div className="flex">
+                                    <button
+                                        type="button"
+                                        onClick={() => setSidebarTab('modules')}
+                                        className={clsx(
+                                            'flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold transition-colors',
+                                            sidebarTab === 'modules'
+                                                ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400'
+                                                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200',
+                                        )}
+                                    >
+                                        <BookOpen size={13} /> Modules
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setSidebarTab('resources')}
+                                        className={clsx(
+                                            'flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold transition-colors',
+                                            sidebarTab === 'resources'
+                                                ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400'
+                                                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200',
+                                        )}
+                                    >
+                                        <FolderDown size={13} /> Resources
+                                        {courseResources.length > 0 && (
+                                            <span className="border border-purple-300 bg-white px-1.5 py-0.5 text-[10px] font-bold text-purple-700 dark:border-purple-700 dark:bg-[#1e1f24] dark:text-purple-300">
+                                                {courseResources.length}
                                             </span>
-                                            <ChevronDown
-                                                size={13}
-                                                className={`shrink-0 text-slate-400 transition-transform dark:text-slate-500 ${
-                                                    expanded ? 'rotate-180' : ''
-                                                }`}
-                                            />
-                                        </button>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
 
-                                        {expanded && (
-                                            <div className="py-1">
-                                                {(mod.materials ?? []).map((mat) => {
-                                                    const done = Boolean(progress[mat.id]);
-                                                    const activeMat = activeLesson?.material.id === mat.id;
+                            {/* Module list — takes all remaining height and scrolls */}
+                            {sidebarTab === 'modules' && (
+                                <div className="flex-1 overflow-y-auto">
+                                    {(course.modules ?? []).map((mod, modIdx) => {
+                                        const expanded = expandedModules[mod.id] ?? true;
 
-                                                    return (
-                                                        <div key={mat.id}>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => selectMaterial(mat)}
-                                                                className={`flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-xs font-semibold transition-colors ${
-                                                                    activeMat
-                                                                        ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400'
-                                                                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
-                                                                }`}
-                                                            >
-                                                                {done ? (
-                                                                    <CheckCircle2 size={13} className="shrink-0 text-emerald-500" />
-                                                                ) : (
-                                                                    <Circle size={13} className="shrink-0 text-slate-300 dark:text-slate-600" />
-                                                                )}
-                                                                <span className="truncate">{mat.title}</span>
-                                                            </button>
+                                        return (
+                                            <div key={mod.id} className="border-b border-slate-100 last:border-b-0 dark:border-slate-700">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setExpandedModules((v) => ({ ...v, [mod.id]: !expanded }))}
+                                                    className="flex w-full items-center justify-between gap-2 bg-slate-50 px-4 py-3 text-left transition-colors hover:bg-slate-100 dark:bg-[#1e1f24] dark:hover:bg-slate-700"
+                                                >
+                                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                                                        <span className="mr-1.5 text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                                                            {String(modIdx + 1).padStart(2, '0')}
+                                                        </span>
+                                                        {mod.title}
+                                                    </span>
+                                                    <ChevronDown
+                                                        size={13}
+                                                        className={`shrink-0 text-slate-400 transition-transform dark:text-slate-500 ${
+                                                            expanded ? 'rotate-180' : ''
+                                                        }`}
+                                                    />
+                                                </button>
 
-                                                            {(mat.contents ?? []).length > 1 && (
-                                                                <div className="pr-4 pl-10">
-                                                                    {(mat.contents ?? []).map((con) => {
-                                                                        const activeCon = activeLesson?.content.id === con.id;
-                                                                        const contentDone = Boolean(contentProgressState[con.id]);
+                                                {expanded && (
+                                                    <div className="py-1">
+                                                        {(mod.materials ?? []).map((mat) => {
+                                                            const done = Boolean(progress[mat.id]);
+                                                            const activeMat = activeLesson?.material.id === mat.id;
 
-                                                                        return (
-                                                                            <button
-                                                                                key={con.id}
-                                                                                type="button"
-                                                                                onClick={() => selectContent(con.id)}
-                                                                                className={`flex w-full items-center gap-1.5 py-1.5 text-left text-[11px] transition-colors ${
-                                                                                    activeCon
-                                                                                        ? 'font-semibold text-purple-600 dark:text-purple-400'
-                                                                                        : 'text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200'
-                                                                                }`}
-                                                                            >
-                                                                                {contentDone ? (
-                                                                                    <CheckCircle2 size={11} className="shrink-0 text-emerald-500" />
-                                                                                ) : con.type === 'video' ? (
-                                                                                    <PlayCircle size={11} className="shrink-0" />
-                                                                                ) : (
-                                                                                    <FileText size={11} className="shrink-0" />
-                                                                                )}
-                                                                                <span className="truncate">{con.title}</span>
-                                                                            </button>
-                                                                        );
-                                                                    })}
+                                                            return (
+                                                                <div key={mat.id}>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => selectMaterial(mat)}
+                                                                        className={`flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-xs font-semibold transition-colors ${
+                                                                            activeMat
+                                                                                ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400'
+                                                                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
+                                                                        }`}
+                                                                    >
+                                                                        {done ? (
+                                                                            <CheckCircle2 size={13} className="shrink-0 text-emerald-500" />
+                                                                        ) : (
+                                                                            <Circle
+                                                                                size={13}
+                                                                                className="shrink-0 text-slate-300 dark:text-slate-600"
+                                                                            />
+                                                                        )}
+                                                                        <span className="truncate">{mat.title}</span>
+                                                                    </button>
+
+                                                                    {(mat.contents ?? []).length > 1 && (
+                                                                        <div className="pr-4 pl-10">
+                                                                            {(mat.contents ?? []).map((con) => {
+                                                                                const activeCon = activeLesson?.content.id === con.id;
+                                                                                const contentDone = Boolean(contentProgressState[con.id]);
+
+                                                                                return (
+                                                                                    <button
+                                                                                        key={con.id}
+                                                                                        type="button"
+                                                                                        onClick={() => selectContent(con.id)}
+                                                                                        className={`flex w-full items-center gap-1.5 py-1.5 text-left text-[11px] transition-colors ${
+                                                                                            activeCon
+                                                                                                ? 'font-semibold text-purple-600 dark:text-purple-400'
+                                                                                                : 'text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200'
+                                                                                        }`}
+                                                                                    >
+                                                                                        {contentDone ? (
+                                                                                            <CheckCircle2
+                                                                                                size={11}
+                                                                                                className="shrink-0 text-emerald-500"
+                                                                                            />
+                                                                                        ) : con.type === 'video' ? (
+                                                                                            <PlayCircle size={11} className="shrink-0" />
+                                                                                        ) : (
+                                                                                            <FileText size={11} className="shrink-0" />
+                                                                                        )}
+                                                                                        <span className="truncate">{con.title}</span>
+                                                                                    </button>
+                                                                                );
+                                                                            })}
+                                                                        </div>
+                                                                    )}
                                                                 </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* Resources tab */}
+                            {sidebarTab === 'resources' && (
+                                <div className="flex-1 overflow-y-auto px-4 py-3">
+                                    {courseResources.length > 0 ? (
+                                        <div className="border border-emerald-200 bg-emerald-50/40 p-4 dark:border-emerald-900/50 dark:bg-emerald-950/20">
+                                            <div className="flex items-center gap-2">
+                                                <FolderDown size={16} className="text-emerald-600 dark:text-emerald-400" />
+                                                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Course Resources</h3>
+                                                <span className="border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                                                    {courseResources.length}
+                                                </span>
+                                            </div>
+                                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                                                {resourcesUnlocked
+                                                    ? 'You completed every material — these resources are now unlocked.'
+                                                    : 'Resources from the lessons you have completed are available. Finish the rest to unlock everything.'}
+                                            </p>
+                                            <ul className="mt-4 divide-y divide-emerald-100 dark:divide-emerald-900/40">
+                                                {courseResources.map((resource) => (
+                                                    <li
+                                                        key={`${resource.source ?? 'manual'}-${resource.id}`}
+                                                        className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between"
+                                                    >
+                                                        <div className="min-w-0">
+                                                            <p className="text-sm font-semibold text-slate-900 dark:text-white">{resource.title}</p>
+                                                            {resource.description && (
+                                                                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                                                                    {resource.description}
+                                                                </p>
                                                             )}
                                                         </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </aside>
+                                                        <a
+                                                            href={resource.download_url ?? resource.url ?? '#'}
+                                                            target={resource.download_url ? undefined : '_blank'}
+                                                            rel="noreferrer"
+                                                            aria-label={`Download ${resource.title}`}
+                                                        >
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                leftIcon={<Download size={13} />}
+                                                                className="!rounded-none !border-emerald-300 !bg-white !text-emerald-700 hover:!bg-emerald-100 dark:!border-emerald-800 dark:!bg-[#1e1f24] dark:!text-emerald-300 dark:hover:!bg-emerald-950/40"
+                                                            />
+                                                        </a>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ) : (
+                                        <p className="py-8 text-center text-xs text-slate-400 dark:text-slate-500">No resources yet.</p>
+                                    )}
+                                </div>
+                            )}
+                        </aside>
                     </>
                 ) : (
                     /* Floating pill — visible on mobile too */
                     <div className="pointer-events-none fixed top-1/2 right-0 z-50 -translate-y-1/2 lg:block">
                         <button
                             type="button"
-                            onClick={() => setSidebarOpen(true)}
-                            title="Show course content"
+                            onClick={() => {
+                                setSidebarOpen(true);
+                                setSidebarTab('modules');
+                            }}
+                            title={sidebarTab === 'resources' ? 'Show course resources' : 'Show course content'}
                             className="group pointer-events-auto flex items-center gap-2 rounded-l-full border border-r-0 border-slate-200 bg-white py-3 pr-3 pl-4 text-slate-500 shadow-lg transition-all duration-200 hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400 dark:hover:border-purple-600 dark:hover:bg-purple-950/40 dark:hover:text-purple-400"
                         >
                             <span className="max-w-0 overflow-hidden text-xs font-semibold whitespace-nowrap transition-all duration-200 group-hover:max-w-[5rem] group-hover:pr-1">
-                                Contents
+                                {sidebarTab === 'resources' ? 'Resources' : 'Contents'}
                             </span>
                             <PanelLeftOpen size={15} className="shrink-0" />
                         </button>
@@ -666,7 +768,7 @@ function LessonViewer({
 /** Shared full-screen layout used by the student player and both preview pages. */
 export function CourseLearningLayout({ children }: { children: React.ReactNode }) {
     return (
-        <div className="flex h-screen flex-col overflow-hidden bg-gray-100 dark:bg-[#1e1f24]">
+        <div className="flex h-dvh flex-col overflow-hidden bg-gray-100 dark:bg-[#1e1f24]">
             {children}
             <ToastContainer position="top-right" autoClose={4000} newestOnTop pauseOnHover closeOnClick />
         </div>

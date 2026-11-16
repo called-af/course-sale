@@ -57,6 +57,10 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($request->user()?->id ?: $request->ip());
         });
 
+        RateLimiter::for('whatsapp-webhooks', function (Request $request) {
+            return Limit::perMinute(120)->by($request->ip());
+        });
+
         // Laravel's built-in notifications expect the conventional
         // `password.reset` / `verification.verify` route names. This app uses
         // its own names, so point the notifications at the real routes.

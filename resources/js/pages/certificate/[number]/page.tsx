@@ -29,7 +29,7 @@ export default function CertificateVerifyPage({ certificate, valid }: Props) {
 
             <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900">
                 {/* Minimal header */}
-                <header className="flex items-center justify-between border-b border-white/5 px-6 py-5">
+                <header className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 px-4 py-5 sm:px-6">
                     <Link href="/" className="text-sm font-bold tracking-widest text-purple-400 uppercase transition-colors hover:text-purple-300">
                         {name}
                     </Link>

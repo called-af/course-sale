@@ -1,6 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
 import { usePage } from '@inertiajs/react';
-import { Loader2 } from 'lucide-react';
 import Button from '@/components/atoms/Button';
 import Toggle from '@/components/atoms/Toggle';
 import UserLayout from '@/components/templates/UserLayout';
@@ -72,8 +71,8 @@ export default function StudentSettings() {
                     </div>
 
                     <div className="flex justify-end">
-                        <Button type="submit" disabled={processing}>
-                            {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Simpan'}
+                        <Button type="submit" disabled={processing} isLoading={processing}>
+                            Simpan
                         </Button>
                     </div>
                     {recentlySuccessful ? <p className="text-sm text-emerald-600 dark:text-emerald-400">Pengaturan berhasil disimpan.</p> : null}

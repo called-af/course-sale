@@ -5,6 +5,7 @@ namespace App\Services\WhatsApp;
 use App\Models\AppearanceSetting;
 use App\Models\Course;
 use App\Models\User;
+use App\Services\WhatsApp\DTO\WhatsAppMessageRequest;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -84,6 +85,12 @@ class WhatsAppService
      */
     public function isConfigured(): bool
     {
+        $manager = app(Manager::class);
+
+        if ($manager->hasDatabaseProviders()) {
+            return $manager->defaultProvider() !== null;
+        }
+
         if ($this->provider === 'infobip') {
             return ! empty($this->infobipApiKey) && ! empty($this->infobipBaseUrl);
         }
@@ -96,6 +103,12 @@ class WhatsAppService
      */
     public function getProvider(): string
     {
+        $manager = app(Manager::class);
+
+        if ($manager->hasDatabaseProviders()) {
+            return (string) ($manager->defaultProvider()?->driver ?? $this->provider);
+        }
+
         return $this->provider;
     }
 
@@ -273,11 +286,35 @@ class WhatsAppService
      */
     public function sendTextMessage(string $recipient, string $text): array
     {
+        $manager = app(Manager::class);
+
+        if ($manager->hasDatabaseProviders()) {
+            try {
+                $result = $manager->sendText(
+                    new WhatsAppMessageRequest($recipient, $text, $this->idempotencyKey($recipient, $text))
+                );
+
+                return $result->toArray();
+            } catch (\Throwable $exception) {
+                Log::error('WhatsApp provider send failed', [
+                    'recipient' => $this->maskPhoneNumber($recipient),
+                    'error' => $exception->getMessage(),
+                ]);
+
+                return ['success' => false, 'error' => $exception->getMessage()];
+            }
+        }
+
         if ($this->provider === 'infobip') {
             return $this->sendInfobipTextMessage($recipient, $text);
         }
 
         return $this->sendMetaTextMessage($recipient, $text);
+    }
+
+    protected function idempotencyKey(string $recipient, string $text): string
+    {
+        return 'notif-'.sha1($recipient.'|'.$text.'|'.now()->format('YmdHi'));
     }
 
     /**

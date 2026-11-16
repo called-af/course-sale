@@ -11,6 +11,8 @@ const menus = [
     { name: 'Home', href: '/' },
     { name: 'About', href: '/#about' },
     { name: 'Courses', href: '/course' },
+    { name: 'Instructors', href: '/#instructors' },
+    { name: 'FAQ', href: '/#faq' },
 ];
 
 export default function Navbar() {

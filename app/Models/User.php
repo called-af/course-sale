@@ -27,6 +27,7 @@ class User extends Authenticatable
         'password',
         'role',
         'avatar',
+        'bio',
         'whatsapp_number',
         'whatsapp_notification_enabled',
         'payout_bank_name',

@@ -10,7 +10,7 @@ export default function WelcomeLayout({
     withCta?: boolean;
 }) {
     return (
-        <div className="flex min-h-screen w-full flex-col bg-gray-100 dark:bg-[#141416]">
+        <div className="flex min-h-screen w-full flex-col overflow-x-hidden bg-gray-100 dark:bg-[#141416]">
             <Navbar />
             <main className="">{children}</main>
             <Footer withCta={withCta} />

@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { ArrowRight, Award, CalendarDays, Clock, GraduationCap, Sparkles } from 'lucide-react';
+import Button from '@/components/atoms/Button';
 import ActivityTimeline from '@/components/molecules/ActivityTimeline';
 import CertificateCard from '@/components/molecules/CertificateCard';
 import DashboardPanel from '@/components/molecules/DashboardPanel';
@@ -33,11 +34,10 @@ export default function StudentSidebar({
                 iconClassName="bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400"
                 action={
                     totalCertificates > 0 ? (
-                        <Link
-                            href="/student/certificates"
-                            className="text-xs font-semibold text-purple-700 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300"
-                        >
-                            View All ({totalCertificates})
+                        <Link href="/student/certificates">
+                            <Button variant="ghost" size="sm" className="!rounded-none">
+                                View All ({totalCertificates})
+                            </Button>
                         </Link>
                     ) : undefined
                 }

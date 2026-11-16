@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->validateCsrfTokens(except: [
             'payments/midtrans/webhook',
+            'webhooks/whatsapp/*',
         ]);
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,

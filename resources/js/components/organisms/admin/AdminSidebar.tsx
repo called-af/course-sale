@@ -13,6 +13,7 @@ import {
     LayoutTemplate,
     MessageSquare,
     CreditCard,
+    Plug,
     type LucideIcon,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -88,6 +89,14 @@ const systemMenus: MenuItem[] = [
         children: [
             { label: 'Landing Page', href: '/admin/landing', newTab: true },
             { label: 'Course Catalog', href: '/course', newTab: true },
+        ],
+    },
+    {
+        label: 'Integrations',
+        icon: Plug,
+        children: [
+            { label: 'AI Providers', href: '/admin/integrations/ai' },
+            { label: 'WhatsApp', href: '/admin/integrations/whatsapp' },
         ],
     },
     {
@@ -226,7 +235,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
             <aside
                 className={clsx(
-                    'fixed inset-y-0 left-0 z-50 flex h-screen w-64 transform flex-col transition-transform duration-300 lg:static',
+                    'fixed inset-y-0 left-0 z-50 flex h-dvh w-64 transform flex-col transition-transform duration-300 lg:static',
                     open ? 'translate-x-0' : '-translate-x-full',
                     'lg:translate-x-0',
                 )}

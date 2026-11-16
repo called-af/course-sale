@@ -27,12 +27,7 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
         $this->authorize('manage-settings');
 
         return Inertia::render('admin/settings/General', [
-            'ai' => app(AiSettings::class)->forDisplay(),
             'payment' => app(PaymentSettings::class)->forDisplay(),
-            'recommendation' => [
-                'enabled' => RecommendationSetting::isEnabled(),
-            ],
-            'whatsapp' => WhatsAppSetting::current()->forDisplay(),
         ]);
     }
 
@@ -41,12 +36,7 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
         $this->authorize('manage-settings');
 
         return Inertia::render('admin/settings/General', [
-            'ai' => app(AiSettings::class)->forDisplay(),
             'payment' => app(PaymentSettings::class)->forDisplay(),
-            'recommendation' => [
-                'enabled' => RecommendationSetting::isEnabled(),
-            ],
-            'whatsapp' => WhatsAppSetting::current()->forDisplay(),
         ]);
     }
 

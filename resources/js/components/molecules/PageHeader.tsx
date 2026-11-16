@@ -38,11 +38,11 @@ export default function PageHeader({ breadcrumbs, leading, title, description, t
 
             <div className="relative z-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
                 {/* ── Left side ── */}
-                <div className="flex items-center gap-4">
+                <div className="flex min-w-0 flex-1 items-center gap-4">
                     {/* Optional leading block (avatar, icon, etc.) */}
                     {leading && <div className="shrink-0">{leading}</div>}
 
-                    <div className="space-y-3">
+                    <div className="min-w-0 flex-1 space-y-3">
                         {/* Breadcrumb */}
                         {breadcrumbs && breadcrumbs.length > 0 && (
                             <div className="flex flex-wrap items-center gap-1.5 text-xs">
@@ -68,7 +68,7 @@ export default function PageHeader({ breadcrumbs, leading, title, description, t
 
                         {/* Title row */}
                         <div className="flex flex-wrap items-center gap-3">
-                            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">{title}</h1>
+                            <h1 className="text-2xl font-bold tracking-tight break-words text-white sm:text-3xl">{title}</h1>
                             {titleBadge && titleBadge}
                         </div>
 
@@ -79,7 +79,7 @@ export default function PageHeader({ breadcrumbs, leading, title, description, t
 
                 {/* ── Right side: stats OR actions ── */}
                 {(stats || actions) && (
-                    <div className="flex shrink-0 items-center gap-6">
+                    <div className="flex w-full shrink-0 flex-wrap items-center gap-4 sm:gap-6 md:w-auto md:justify-end">
                         {stats && stats.length > 0 ? (
                             <>
                                 {stats.map((stat, i) => (
@@ -102,7 +102,7 @@ export default function PageHeader({ breadcrumbs, leading, title, description, t
                                 )}
                             </>
                         ) : (
-                            <div>{actions}</div>
+                            <div className="w-full md:w-auto">{actions}</div>
                         )}
                     </div>
                 )}

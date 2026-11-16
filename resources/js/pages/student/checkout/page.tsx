@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
+import Button from '@/components/atoms/Button';
 import Title from '@/components/atoms/Title';
 import CheckoutPanel from '@/components/organisms/Payment/CheckoutPanel';
 import UserLayout from '@/components/templates/UserLayout';
@@ -19,11 +20,15 @@ export default function CheckoutPage({
             <Head title={`Checkout — ${course.title}`} />
 
             <div className="mx-auto max-w-3xl space-y-6">
-                <Link
-                    href={`/course/${course.slug}`}
-                    className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-purple-700 dark:text-slate-400 dark:hover:text-purple-400"
-                >
-                    <ArrowLeft size={16} /> Kembali ke course
+                <Link href={`/course/${course.slug}`} className="inline-block">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        leftIcon={<ArrowLeft size={16} />}
+                        className="!rounded-none !text-slate-500 hover:!text-purple-700 dark:!text-slate-400 dark:hover:!text-purple-400"
+                    >
+                        Kembali ke course
+                    </Button>
                 </Link>
 
                 <div>

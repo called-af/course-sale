@@ -216,30 +216,39 @@ function CommentItem({ comment, courseSlug, currentUserId, isReply = false }: Co
 
                     <div className="mt-2 flex items-center gap-3">
                         {!isReply && currentUserId && (
-                            <button
+                            <Button
                                 type="button"
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => setShowReplyForm((v) => !v)}
-                                className="flex items-center gap-1 text-xs font-medium text-slate-400 transition-colors hover:text-purple-600 dark:text-slate-500 dark:hover:text-purple-400"
+                                leftIcon={<Reply size={13} />}
+                                className="!rounded-none"
                             >
-                                <Reply size={13} /> Reply
-                            </button>
+                                Reply
+                            </Button>
                         )}
                         {isOwner && (
                             <>
-                                <button
+                                <Button
                                     type="button"
+                                    variant="ghost"
+                                    size="sm"
                                     onClick={() => setEditing((v) => !v)}
-                                    className="flex items-center gap-1 text-xs font-medium text-slate-400 transition-colors hover:text-purple-600 dark:text-slate-500 dark:hover:text-purple-400"
+                                    leftIcon={<Pencil size={12} />}
+                                    className="!rounded-none"
                                 >
-                                    <Pencil size={12} /> Edit
-                                </button>
-                                <button
+                                    Edit
+                                </Button>
+                                <Button
                                     type="button"
+                                    variant="ghost"
+                                    size="sm"
                                     onClick={handleDelete}
-                                    className="flex items-center gap-1 text-xs font-medium text-slate-400 transition-colors hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400"
+                                    leftIcon={<Trash2 size={12} />}
+                                    className="!rounded-none !text-red-500 hover:!bg-red-50 dark:hover:!bg-red-950/30"
                                 >
-                                    <Trash2 size={12} /> Delete
-                                </button>
+                                    Delete
+                                </Button>
                             </>
                         )}
                     </div>
