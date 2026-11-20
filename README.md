@@ -7,6 +7,8 @@ payouts, certificates, reviews/comments, AI chat, and WhatsApp notifications.
 
 > Source-code product. See [`LICENSE`](LICENSE) for proprietary licensing terms.
 > For a working setup, start with [`docs/QUICKSTART.md`](docs/QUICKSTART.md).
+> To understand how each feature works, use the
+> [Feature Documentation](docs/FEATURES.md).
 
 ---
 
@@ -49,7 +51,8 @@ payouts, certificates, reviews/comments, AI chat, and WhatsApp notifications.
 - AI assistant with read-only, role-aware course tools.
 - Encrypted AI/WhatsApp credentials and payout bank accounts.
 - Webhook signature verification, idempotency and payout account lock.
-- 268 automated tests covering critical flows.
+- 271 automated tests covering critical flows.
+- One English flow guide per feature in [`docs/features/`](docs/features).
 
 ---
 
@@ -84,6 +87,10 @@ Open `http://localhost:8000`.
 
 See [`docs/QUICKSTART.md`](docs/QUICKSTART.md) for production `.env` values,
 default accounts, rebranding steps, and Midtrans/Google configuration.
+
+After installation, open [`docs/FEATURES.md`](docs/FEATURES.md) to learn the
+step-by-step flow of every feature. Each feature has its own Markdown file in
+[`docs/features/`](docs/features).
 
 ---
 
@@ -168,13 +175,16 @@ guidelines. Confirm permitted use before commercial distribution.
 
 ## Documentation
 
+All documentation is written in English.
+
+- [`docs/FEATURES.md`](docs/FEATURES.md) — index of every feature flow guide
+- [`docs/features/`](docs/features) — one Markdown file per feature, with roles,
+  step-by-step flow, rules, routes, key files and edge cases
 - [`docs/QUICKSTART.md`](docs/QUICKSTART.md) — installation and first run
 - [`docs/production-deployment-readiness.md`](docs/production-deployment-readiness.md) — production checklist
 - [`docs/migration-reconciliation.md`](docs/migration-reconciliation.md) — existing DB migration baseline
 - [`docs/midtrans-e2e-validation-checklist.md`](docs/midtrans-e2e-validation-checklist.md) — payment E2E matrix
-- [`docs/README.id.md`](docs/README.id.md) — legacy Indonesian documentation
-
-Design/PRD documents in `docs/` are retained as historical reference.
+- [`docs/PRD.md`](docs/PRD.md) — product requirements reference
 
 ---
 

@@ -1,57 +1,67 @@
-# Product Requirements Document (PRD) — KursusIO
+# Product Requirements Document (PRD) — Course Sale Platform
 
-> Dokumen ini dibangun berdasarkan **README.md** sebagai source of truth fitur, dan menjadi acuan kebijakan produk (product policy) untuk pengembangan selanjutnya.
+> This document is based on the implementation and the
+> [feature documentation](FEATURES.md). For step-by-step usage, use the
+> [feature guides](FEATURES.md#feature-guides). This PRD describes product
+> policy and scope.
 
 ---
 
 ## 1. Overview
 
-| Item          | Keterangan                                 |
-| ------------- | ------------------------------------------ |
-| Produk        | KursusIO — platform course sale & learning |
-| Versi dokumen | 1.0                                        |
-| Status        | Aktif (berdasarkan implementasi saat ini)  |
-| Owner domain  | Product & Engineering                      |
+| Item | Description |
+| ---- | ----------- |
+| Product | Course Sale Platform — course selling and learning |
+| Document version | 1.0 |
+| Status | Active, based on the current implementation |
+| Owner domain | Product & Engineering |
 
-Platform menawarkan **empat peran utama** (**Guest, Student, Instructor, Admin**) dengan dukungan **AI Recommendation**, **AI Assistant**, **WhatsApp**, dan **Midtrans** sebagai komponen inti.
+The platform supports **four primary roles** (**Guest, Student, Instructor,
+Admin**) with **AI recommendations**, an **AI assistant**, **WhatsApp
+notifications** and **Midtrans payments** as core components.
 
 ---
 
 ## 2. Problem Statement
 
-1. **Pembeli tidak percaya pada kurikulum** — tanpa preview menyeluruh (syllabus, konten, progress), konversi beli rendah.
-2. **Pembelajar kehilangan momentum** — tanpa progress tracking terukur, drop-off tinggi.
-3. **Kurikulum tidak personal** — tanpa rekomendasi berbasis perilaku user, pengenalan kursus kurang relevan.
-4. **Komunikasi pembelajar-instruktur belum terintegrasi** — notifikasi manual via WhatsApp belum terhubung otomatis.
+1. **Buyers do not trust the curriculum** — without a full preview (syllabus,
+   content, progress), purchase conversion is low.
+2. **Learners lose momentum** — without measurable progress tracking, drop-off
+   is high.
+3. **The curriculum is not personal** — without behavior-based recommendations,
+   course discovery is less relevant.
+4. **Learner–instructor communication is not integrated** — manual WhatsApp
+   notifications are not automated.
 
 ---
 
 ## 3. Goals
 
-- Menyediakan alur beli → belajar → selesai → sertifikat yang lengkap.
-- Menyediakan rekomendasi kursus personal (hybrid ML + native fallback).
-- Menyediakan asisten AI yang membantu pembelajar & instruktur berinteraksi dengan fitur platform.
-- Menyediakan notifikasi bisnis via WhatsApp (enrollment & payout).
-- Menyediakan operasional admin yang lengkap (approval, order, payout, moderation).
+- Provide a complete buy → learn → complete → certificate flow.
+- Provide personalized course recommendations using a native engine.
+- Provide an AI assistant that helps learners and instructors interact with the
+  platform.
+- Provide business notifications over WhatsApp (enrollment and payout).
+- Provide complete admin operations (approval, orders, payouts, moderation).
 
-## 4. Non-Goals (saat ini)
+## 4. Non-Goals (current scope)
 
-- Alur kursus dengan multi-instructor / marketplace.
-- Multi-currency selain IDR.
-- Multiple payment gateway (hanya Midtrans).
-- Subscription / membership model.
+- Multi-instructor or marketplace course flow.
+- Currencies other than IDR.
+- Multiple payment gateways (Midtrans only).
+- Subscription or membership model.
 - Native mobile app.
 
 ---
 
 ## 5. Personas
 
-| Persona    | Deskripsi                                                                                               |
-| ---------- | ------------------------------------------------------------------------------------------------------- |
-| Guest      | Pengunjung publik yang ingin melihat landing, kursus, sertifikat, dan AI.                               |
-| Student    | End user yang belajar; dapat enroll, belajar, quiz, dapat sertifikat, review, komentar.                 |
-| Instructor | Penyusun kursus; dapat membuat kurikulum, submit review, kelola payout, WhatsApp, AI tools.             |
-| Admin      | Pengelola platform; approval, user, order, payout, moderation, konfigurasi AI/WhatsApp/payment/landing. |
+| Persona | Description |
+| ------- | ----------- |
+| Guest | Public visitor who views the landing page, courses, certificates and AI. |
+| Student | Learner who enrolls, studies, takes quizzes, earns certificates, reviews and comments. |
+| Instructor | Course author who builds the curriculum, submits courses, manages payouts, WhatsApp and AI tools. |
+| Admin | Platform operator who approves courses and manages users, orders, payouts, moderation and configuration. |
 
 ---
 
@@ -59,122 +69,157 @@ Platform menawarkan **empat peran utama** (**Guest, Student, Instructor, Admin**
 
 ### 6.1 Student
 
-| ID    | Story                                                    | Acceptance Criteria                                                                                                          |
-| ----- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| US-01 | Sebagai student, saya bisa melihat katalog kursus.       | Landing, `/course`, `/courses/recommended` menampilkan course published; search & filter bekerja; AI toggle tersedia.        |
-| US-02 | Sebagai student, saya bisa mendaftar dan membeli course. | Register/login; free → enroll langsung; paid → checkout → payment → order paid; Midtrans flow.                               |
-| US-03 | Sebagai student, saya bisa belajar.                      | Learning page menampilkan konten published; progress auto; resources unlock sesuai rule.                                     |
-| US-04 | Sebagai student, saya bisa mengerjakan quiz.             | Start/draft/reset/submit; MC auto-grade; essay → needs_review; manual grade admin/instructor; quiz content auto-complete.    |
-| US-05 | Sebagai student, saya bisa dapat sertifikat.             | Completion → auto-generate `KRSIO-YYYYMM-XXXXXXXX`; download PDF; public verify.                                             |
-| US-06 | Sebagai student, saya bisa review & komentar.            | Review setelah eligible (completed); 1 review/user/course; admin approve/reject; comment thread w/ replies; edit/delete own. |
-| US-07 | Sebagai student, saya bisa pakai AI assistant.           | Max 5 sessions/user; msg max 1000 char; context 20 msgs; tool loop 5; rate 10/min; 503 saat AI nonaktif.                     |
+| ID | Story | Acceptance criteria |
+| -- | ----- | ------------------- |
+| US-01 | As a student, I can browse the course catalogue. | Landing, `/course` and `/courses/recommended` show published courses; search and filters work; the AI toggle is available. |
+| US-02 | As a student, I can register and buy a course. | Register/login; free → immediate enrollment; paid → checkout → payment → paid order; Midtrans flow. |
+| US-03 | As a student, I can learn. | Learning page shows published content; progress is recorded; resources unlock by rule. |
+| US-04 | As a student, I can take quizzes. | Start/draft/reset/submit; multiple-choice auto-grading; essay → `needs_review`; manual grading by admin/instructor; quiz content auto-completes. |
+| US-05 | As a student, I can earn a certificate. | Completion generates `KRSIO-YYYYMM-XXXXXXXX`; PDF download; public verification. |
+| US-06 | As a student, I can review and comment. | Review after 100% completion; one review per user per course; admin approve/reject; comment thread with one reply level; owner can edit/delete. |
+| US-07 | As a student, I can use the AI assistant. | Max 5 sessions per user; message max 1000 chars; 20-message context; tool loop of 5; 10 requests/minute; 503 when AI is disabled. |
 
 ### 6.2 Instructor
 
-| ID    | Story                                                 | Acceptance Criteria                                                                       |
-| ----- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| US-08 | Sebagai instructor, saya bisa membuat kursus.         | Course harus lolos `canBePublished` sebelum submit.                                       |
-| US-09 | Sebagai instructor, saya bisa mengelola kurikulum.    | Modul/materi/konten CRUD + publish gates + reorder + resources.                           |
-| US-10 | Sebagai instructor, saya bisa submit & admin approve. | Status `draft → review`; admin `review → published`.                                      |
-| US-11 | Sebagai instructor, saya bisa kelola payout.          | Bank fields, fee, hold, minimum, lock; readiness; payout paid notification.               |
-| US-12 | Sebagai instructor, saya bisa grade essay.            | `needs_review` attempts; grade all essay answers; recompute score; mark content complete. |
+| ID | Story | Acceptance criteria |
+| -- | ----- | ------------------- |
+| US-08 | As an instructor, I can create a course. | Course must pass `canBePublished()` before submit. |
+| US-09 | As an instructor, I can manage the curriculum. | Module/material/content CRUD, publish gates, reorder and resources. |
+| US-10 | As an instructor, I can submit a course for admin approval. | Status `draft → review`; admin changes `review → published`. |
+| US-11 | As an instructor, I can manage payouts. | Bank fields, fee, hold period, minimum, account lock, readiness and paid notification. |
+| US-12 | As an instructor, I can grade essays. | `needs_review` attempts; grade every essay answer; recompute score; mark content complete. |
 
 ### 6.3 Admin
 
-| ID    | Story                                                             | Acceptance Criteria                                                          |
-| ----- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| US-13 | Sebagai admin, saya bisa approve kursus.                          | Approve membutuhkan `canBePublished`; set published_at/approved_at.          |
-| US-14 | Sebagai admin, saya bisa mengelola user.                          | CRUD, export, soft delete (revoke enrollments), bio/avatar edit via profile. |
-| US-15 | Sebagai admin, saya bisa mengelola order/payment/refund/payout.   | Midtrans webhook, manual confirm, refund, chargeback, payout batch, exports. |
-| US-16 | Sebagai admin, saya bisa moderate konten.                         | Reviews/comments approve/reject/delete; quiz grading.                        |
-| US-17 | Sebagai admin, saya bisa konfigurasi AI/WhatsApp/payment/landing. | Provider CRUD, toggles, settings, landing sections.                          |
+| ID | Story | Acceptance criteria |
+| -- | ----- | ------------------- |
+| US-13 | As an admin, I can approve courses. | Approval requires `canBePublished()`; sets `published_at` and `approved_at`. |
+| US-14 | As an admin, I can manage users. | CRUD, CSV export, soft delete with enrollment revocation, bio/avatar edits via profile. |
+| US-15 | As an admin, I can manage orders, payments, refunds and payouts. | Midtrans webhook, manual confirmation, refund, chargeback, batch payout and exports. |
+| US-16 | As an admin, I can moderate content. | Approve/reject/delete reviews and comments; grade quizzes. |
+| US-17 | As an admin, I can configure AI, WhatsApp, payment and landing. | Provider CRUD, toggles, settings and landing sections. |
 
 ---
 
 ## 7. Functional Requirements
 
-### FR-01 — Authentication & Account
+### FR-01 — Authentication and account
 
-- Register dengan role nullable → pilih role via `/choose-role` (student/instructor; admin self-service dilarang).
-- Login throttle 6/min; email verification & password reset w/ throttle.
-- Profile: name/email/bio/avatar/password/whatsapp_number.
-- Admin user CRUD + soft delete + enrollments revoke.
+- Registration creates a user with a nullable role → choose role at
+  `/choose-role` (student/instructor; admin self-service is forbidden).
+- Login throttled to 6/minute; email verification and password reset are throttled.
+- Profile fields: name, email, bio, avatar, password and WhatsApp number.
+- Admin user CRUD, soft delete and enrollment revocation.
 
-### FR-02 — Course Lifecycle
+### FR-02 — Course lifecycle
 
-- Status `draft → review → published`.
-- Publish gate: title, description, level, thumbnail, category, modul→material→konten published.
-- Instructor submit; admin approve; publish sets `published_at`/`approved_at`.
+- Status flow: `draft → review → published`.
+- Publish gate: title, description, level, thumbnail, category and at least one
+  published module → material → content path.
+- Instructor submits; admin approves; publishing sets `published_at` and
+  `approved_at`.
 
-### FR-03 — Course Structure & Content
+### FR-03 — Course structure and content
 
-- Modul/materi/konten CRUD + publish gate + move/reorder.
-- Content types: video/text/quiz/file/ppt; upload limits; publish gate per level.
-- Quiz authoring (MC/essay), submit rules, auto/manual grading.
+- Module/material/content CRUD with publish gates and reordering.
+- Content types: `video`, `text`, `quiz`, `file`, `ppt`; upload limits; publish
+  gate at each level.
+- Quiz authoring (multiple choice/essay), submit rules and auto/manual grading.
 
-### FR-04 — Enrollment, Progress, Quiz, Certificate
+### FR-04 — Enrollment, progress, quiz and certificate
 
-- Free enroll; paid → checkout → payment → activate.
-- Progress: content-based (player) + material-based (completion); auto material-complete when all contents done.
-- Certificate auto-generate on completion; number format; PDF template; public verify; download owner-only.
+- Free enrollment; paid → checkout → payment → activation.
+- Progress is content-based in the player and material-based for completion;
+  material completion is derived when all published contents are complete.
+- Certificate is generated on completion, with a unique number, PDF template,
+  public verification and owner-only download.
 
-### FR-05 — Payment, Order, Refund, Payout
+### FR-05 — Payment, order, refund and payout
 
-- Midtrans only; IDR; methods CC/QRIS/VA/GoPay.
-- Order pending + 24h expiry; scheduler `orders:expire`; webhook signature verify; manual confirm; refund full/partial; chargeback handling.
-- Payout: fee 20%, hold 7d, min 100k, lock 24h; single/batch payout; readiness; cancel pending on refund/chargeback.
+- Midtrans only; IDR; methods include credit card, QRIS, virtual account and GoPay.
+- Pending order with 24-hour expiry; `orders:expire` scheduler; webhook signature
+  verification; manual confirmation; full/partial refund; chargeback handling.
+- Payout defaults: 20% fee, 7-day hold, minimum 100000, 24-hour account lock;
+  single and batch payout; readiness checks; pending payouts cancelled on refund
+  or chargeback.
 
-### FR-06 — Reviews & Comments
+### FR-06 — Reviews and comments
 
-- Review eligible after completion; 1 per user/course; rating recalc on delete.
-- Comments thread; own edit/delete; admin moderate.
+- Review available after completion; one per user per course; rating recalculated
+  on delete.
+- Comment threads with one reply level; owner edit/delete; admin moderation.
 
-### FR-07 — AI Recommendation
+### FR-07 — AI recommendation
 
-- Event tracking + weights + throttle; cache TTL; native fallback; admin toggle; ML pipeline export/train/status/evaluate; surfaces in dashboard/catalog/recommended.
+- Event tracking with weights, throttling, cache TTL and popular fallback.
+- Admin toggle and status command.
+- Surfaced on the dashboard, catalogue and recommended endpoint.
+- No external Python service is required for the current implementation.
 
-### FR-08 — AI Assistant
+### FR-08 — AI assistant
 
-- Provider adapter registry; admin provider/model management; chat session management; tools; rate limits; global disable; 503 fallback.
+- Provider adapter registry; admin provider/model management; chat session
+  management; read-only tools; rate limits; global disable; 503 fallback.
 
 ### FR-09 — WhatsApp
 
-- Provider adapter registry; webhook verify/HMAC; delivery logs; templates; test; global toggle; enrollment & payout notifications.
+- Provider adapter registry; webhook verification/HMAC; delivery logs;
+  templates; test send; global toggle; enrollment and payout notifications.
 
-### FR-10 — Landing CMS & Settings
+### FR-10 — Landing CMS and settings
 
-- Landing sections CMS; testimonials from approved reviews; featured courses; general/appearance/identity/logo/payment settings.
+- Editable landing sections; testimonials from approved reviews; featured
+  courses; general, appearance, identity, logo and payment settings.
 
-### FR-11 — Analytics & Ops
+### FR-11 — Analytics and operations
 
-- Admin dashboard KPIs; instructor KPIs; exports (orders/users/payouts/students CSV).
+- Admin dashboard KPIs; instructor KPIs; CSV exports for orders, users, payouts
+  and enrolled students.
 
 ---
 
 ## 8. Non-Functional Requirements
 
-- Keamanan: password hashed; API credential encrypted; payout account encrypted+masked; webhook signature verification; rate limits (auth 6/min, AI 10/min, whatsapp webhook 120/min, AI settings 5/min).
-- Performa: recommendation cache TTL 2 jam; view throttle 5 min; ML fallback.
-- Auditability: ai_setting_audits, ai_provider_logs, payout_account_audits, payment_logs, refunds, chargeback audit.
+- **Security:** hashed passwords, encrypted API credentials, encrypted and
+  masked payout accounts, webhook signature verification and rate limits
+  (auth 6/minute, AI messages 10/minute, WhatsApp webhooks 120/minute).
+- **Performance:** recommendation cache TTL of 2 hours, view throttling and
+  queued background work.
+- **Auditability:** AI setting audits, AI provider logs, payout account audits,
+  payment logs, refunds and chargeback records.
+- **Operations:** queue worker and scheduler are mandatory in production; Redis
+  is recommended for higher traffic.
 
 ---
 
 ## 9. MVP Scope
 
-Sudah diimplementasikan: auth, course lifecycle, kurikulum, enrollment/progress/quiz/certificate, midtrans orders/payouts/refunds, reviews/comments, AI recommendation + assistant, WhatsApp (partial), landing CMS, admin ops, analytics.
+Implemented: authentication, course lifecycle, curriculum, enrollment, progress,
+quizzes, certificates, Midtrans orders/payouts/refunds, reviews/comments, AI
+recommendations, AI assistant, WhatsApp notifications, landing CMS, admin
+operations and analytics.
 
 ## 10. Future Enhancements
 
-- Reject course flow.
-- AI streaming chat.
-- WhatsApp notifikasi order/certificate.
-- PDF exports.
-- Impersonation.
-- Multi-gateway/multi-currency.
-- Marketplace multi-instructor.
+- Course rejection flow.
+- Public AI streaming chat.
+- WhatsApp order and certificate notifications.
+- PDF exports for analytics.
+- Admin impersonation.
+- Multiple gateways and currencies.
+- Multi-instructor marketplace.
 
 ## 11. Open Questions / Assumptions
 
-- Refund policy student-facing (7 hari, ≤25% progress) — belum ada endpoint permintaan refund.
-- AI streaming belum public.
-- Progress systems consolidation.
+- The student-facing refund notice (7 days, ≤25% progress) does not provide a
+  self-service refund request endpoint.
+- AI streaming is not public.
+- Progress systems are kept in sync by scheduled reconciliation.
+
+---
+
+## Related documentation
+
+- [Feature documentation](FEATURES.md)
+- [Quickstart](QUICKSTART.md)
+- [Production deployment readiness](production-deployment-readiness.md)
