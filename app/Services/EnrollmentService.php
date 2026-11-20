@@ -157,13 +157,9 @@ class EnrollmentService
             ->values();
         $contentIds = $leafContents->pluck('id');
 
-        if ($currentMaterial) {
-            app(EventTrackingService::class)->trackMaterialView($user, $course, $currentMaterial, [
-                'content_id' => $currentContent?->id,
-                'content_title' => $currentContent?->title,
-                'content_type' => $currentContent?->type,
-            ]);
-        }
+        // This method powers a GET request: keep it strictly read-only.
+        // Material views and progress reconciliation are handled by explicit
+        // POST endpoints / the `progress:sync-materials` command instead.
 
         $progress = MaterialProgress::where('user_id', $user->id)
             ->whereIn('material_id', $materialIds)
@@ -177,28 +173,9 @@ class EnrollmentService
             ->pluck('is_completed', 'material_content_id')
             ->toArray();
 
-        // Heal/sync derived material completion cache from content completion.
+        // Derive the effective progress in memory only. Writes here used to
+        // create per-lesson query storms on every page view.
         $progress = $this->effectiveMaterialProgress($course, $progress, $contentProgress);
-        $this->syncCompletedMaterials($user, $course, $progress);
-
-        $allCourseMaterialIds = Material::query()
-            ->whereHas('module', fn ($query) => $query->where('course_id', $course->id))
-            ->pluck('id');
-
-        if ($allCourseMaterialIds->isNotEmpty()) {
-            $staleIds = $allCourseMaterialIds->reject(fn ($id) => ! empty($progress[$id]))->values();
-
-            if ($staleIds->isNotEmpty()) {
-                MaterialProgress::query()
-                    ->where('user_id', $user->id)
-                    ->whereIn('material_id', $staleIds)
-                    ->where('is_completed', true)
-                    ->update([
-                        'is_completed' => false,
-                        'completed_at' => null,
-                    ]);
-            }
-        }
 
         $quizContents = $leafContents->where('type', 'quiz')->values();
 

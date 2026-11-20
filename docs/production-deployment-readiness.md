@@ -263,6 +263,24 @@ No deploy shell script is included; use the standard Laravel commands in
 - `storage/` and `bootstrap/cache/` must be writable by the web/queue user.
 - Set `FILESYSTEM_DISK=public` if certificates/uploads are served from `/storage`.
 
+### Runtime hardening (small VPS)
+
+- Certificate regeneration after template/signature edits is queued through
+  `RegenerateCertificatePdfJob`. **Do not** use `QUEUE_CONNECTION=sync` in
+  production, or the old synchronous PDF storm returns.
+- `config/queue.php` uses `retry_after=150s` while `deploy/supervisor.conf` uses
+  `--timeout=120s`. Keep `retry_after` greater than the worker timeout so a slow
+  job is not retried while still running.
+- The scheduler prunes stale sessions/cache rows, queue metadata and old logs
+  daily (`system:prune-data`) and reconciles derived progress weekly
+  (`progress:sync-materials`). Tune retention via the `*_RETENTION_DAYS` env vars
+  in `.env.example`.
+- Course detail pages paginate enrolled students (15 per page) and CSV export is
+  streamed. Lesson GET requests are read-only; progress writes happen through
+  explicit completion endpoints.
+- For ~500+ concurrent active users, prefer Redis for cache/session/queue:
+  `CACHE_STORE=redis`, `SESSION_DRIVER=redis`, `QUEUE_CONNECTION=redis`.
+
 ### Docker config (optional, for handoff)
 
 - Services: `app` (PHP-FPM), `nginx`, `queue` (same image, different command),

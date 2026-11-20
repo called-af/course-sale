@@ -13,10 +13,8 @@ class CourseStudentsExportController extends Controller
     {
         $this->authorize('update', $course);
 
-        $students = $courseService->enrolledStudents($course);
-
-        $rows = (function () use ($students) {
-            foreach ($students as $student) {
+        $rows = (function () use ($courseService, $course) {
+            foreach ($courseService->enrolledStudentRows($course) as $student) {
                 yield [
                     $student['name'],
                     $student['email'],

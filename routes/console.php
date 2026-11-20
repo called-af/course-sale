@@ -28,3 +28,15 @@ Schedule::command('orders:expire')
 Schedule::command('queue:prune-failed --hours=168')
     ->daily()
     ->onOneServer();
+
+// Prune stale sessions/cache rows, queue metadata and old operational logs.
+Schedule::command('system:prune-data')
+    ->dailyAt('03:15')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+// Reconcile derived material progress out of the request path.
+Schedule::command('progress:sync-materials')
+    ->weeklyOn(0, '03:30')
+    ->withoutOverlapping()
+    ->onOneServer();

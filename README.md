@@ -104,6 +104,7 @@ php artisan queue:work
 php artisan schedule:run
 php artisan orders:expire
 php artisan progress:sync-materials
+php artisan system:prune-data
 ```
 
 ---

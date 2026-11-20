@@ -14,6 +14,13 @@ export interface EnrolledStudent {
     total_contents?: number;
 }
 
+export interface EnrolledStudentsSummary {
+    total: number;
+    completed: number;
+    in_progress: number;
+    not_started: number;
+}
+
 export interface Enrollment {
     id: number;
     user_id: number;

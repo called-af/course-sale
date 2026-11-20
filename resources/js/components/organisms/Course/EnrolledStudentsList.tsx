@@ -1,29 +1,53 @@
-import { Users, Search, Calendar, CheckCircle2, Clock, UserX, X, Download } from 'lucide-react';
+import { router } from '@inertiajs/react';
+import { Users, Search, Calendar, CheckCircle2, Clock, UserX, X, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useState, useMemo } from 'react';
 import Button from '@/components/atoms/Button';
-import type { EnrolledStudent } from '@/types';
+import type { EnrolledStudent, EnrolledStudentsSummary, Paginator } from '@/types';
 
 interface EnrolledStudentsListProps {
-    students?: EnrolledStudent[];
+    students?: Paginator<EnrolledStudent>;
+    summary?: EnrolledStudentsSummary;
     exportUrl?: string;
 }
 
-export default function EnrolledStudentsList({ students = [], exportUrl }: EnrolledStudentsListProps) {
+const emptyPaginator: Paginator<EnrolledStudent> = {
+    data: [],
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+};
+
+const changePage = (page: number) => {
+    router.get(
+        window.location.pathname,
+        { page },
+        {
+            only: ['enrolled_students', 'enrolled_students_summary'],
+            preserveState: true,
+            preserveScroll: true,
+        },
+    );
+};
+
+export default function EnrolledStudentsList({ students = emptyPaginator, summary, exportUrl }: EnrolledStudentsListProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'in_progress' | 'not_started'>('all');
+    const studentItems = useMemo(() => students.data ?? [], [students.data]);
+    const perPage = students.per_page ?? 15;
 
-    // Metrics
+    // Metrics (server-side totals stay accurate across paginated pages).
     const metrics = useMemo(() => {
-        const total = students.length;
-        const completed = students.filter((s) => s.progress_percent === 100).length;
-        const inProgress = students.filter((s) => s.progress_percent > 0 && s.progress_percent < 100).length;
-        const notStarted = students.filter((s) => s.progress_percent === 0).length;
-        return { total, completed, inProgress, notStarted };
-    }, [students]);
+        return {
+            total: summary?.total ?? students.total,
+            completed: summary?.completed ?? studentItems.filter((s) => s.progress_percent === 100).length,
+            inProgress: summary?.in_progress ?? studentItems.filter((s) => s.progress_percent > 0 && s.progress_percent < 100).length,
+            notStarted: summary?.not_started ?? studentItems.filter((s) => s.progress_percent === 0).length,
+        };
+    }, [summary, students.total, studentItems]);
 
-    // Filtered students
+    // Filtered students on the current page.
     const filteredStudents = useMemo(() => {
-        return students.filter((student) => {
+        return studentItems.filter((student) => {
             const matchesSearch =
                 student.name.toLowerCase().includes(searchQuery.toLowerCase()) || student.email.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -35,7 +59,7 @@ export default function EnrolledStudentsList({ students = [], exportUrl }: Enrol
 
             return true;
         });
-    }, [students, searchQuery, statusFilter]);
+    }, [studentItems, searchQuery, statusFilter]);
 
     // Format enrollment date
     const formatDate = (dateString: string) => {
@@ -166,7 +190,7 @@ export default function EnrolledStudentsList({ students = [], exportUrl }: Enrol
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search student name or email..."
+                        placeholder="Search this page by name or email..."
                         className="w-full border border-slate-200 bg-white py-2.5 pr-10 pl-10 text-sm text-slate-900 placeholder-slate-400 transition-colors focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-[#1e1f24] dark:text-white dark:placeholder-slate-500"
                     />
                     {searchQuery && (
@@ -403,6 +427,40 @@ export default function EnrolledStudentsList({ students = [], exportUrl }: Enrol
                         </table>
                     </div>
                 </>
+            )}
+
+            {students.last_page > 1 && (
+                <div className="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between dark:border-slate-700">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Showing {studentItems.length === 0 ? 0 : (students.current_page - 1) * perPage + 1}–
+                        {Math.min(students.current_page * perPage, metrics.total)} of {metrics.total} students
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={students.current_page === 1}
+                            onClick={() => changePage(students.current_page - 1)}
+                            leftIcon={<ChevronLeft className="h-4 w-4" />}
+                            className="flex-1 justify-center sm:flex-none"
+                        >
+                            Previous
+                        </Button>
+                        <span className="px-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+                            Page {students.current_page} of {students.last_page}
+                        </span>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={students.current_page === students.last_page}
+                            onClick={() => changePage(students.current_page + 1)}
+                            rightIcon={<ChevronRight className="h-4 w-4" />}
+                            className="flex-1 justify-center sm:flex-none"
+                        >
+                            Next
+                        </Button>
+                    </div>
+                </div>
             )}
         </div>
     );

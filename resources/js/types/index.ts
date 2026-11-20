@@ -12,3 +12,4 @@ export * from '@/types/enrollment';
 export * from '@/types/dashboard';
 export * from '@/types/landing';
 export * from '@/types/seo';
+export * from '@/types/pagination';

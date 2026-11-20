@@ -165,7 +165,9 @@ php artisan migrate --force     # fresh DB / after reconciliation only
 php artisan optimize
 ```
 
-Run `queue:work` under Supervisor and `schedule:run` from cron.
+Run `queue:work` under Supervisor and `schedule:run` from cron. Certificate
+regeneration, pruning and progress reconciliation depend on these running.
+Never use `QUEUE_CONNECTION=sync` in production.
 
 For an existing database, follow [`migration-reconciliation.md`](migration-reconciliation.md)
 instead of running create-only migrations.

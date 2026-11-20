@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\RegenerateCertificatePdfJob;
 use App\Models\AppearanceSetting;
 use App\Models\Certificate;
 use App\Models\Course;
@@ -126,17 +127,18 @@ class CertificateTemplateController extends Controller
 
         $setting->update(['certificate_template' => $template]);
 
-        // Regenerate all issued certificates since global template changed.
-        $certificates = Certificate::query()->whereNotNull('pdf_path')->get();
-        foreach ($certificates as $certificate) {
-            try {
-                $this->certificateService->regenerate($certificate);
-            } catch (\Throwable $e) {
-                report($e);
-            }
-        }
+        // Regenerate issued certificates in the background; rendering every PDF
+        // inside this request can exhaust CPU/memory on a small VPS.
+        Certificate::query()
+            ->whereNotNull('pdf_path')
+            ->select('id')
+            ->chunkById(100, function ($certificates): void {
+                foreach ($certificates as $certificate) {
+                    RegenerateCertificatePdfJob::dispatch($certificate->id);
+                }
+            });
 
-        return back()->with('success', 'Certificate template saved successfully.');
+        return back()->with('success', 'Certificate template saved. Issued certificates are being regenerated in the background.');
     }
 
     /**
@@ -177,16 +179,16 @@ class CertificateTemplateController extends Controller
 
         $course->update(['certificate_template' => $current]);
 
-        $certificates = Certificate::where('course_id', $course->id)->get();
-        foreach ($certificates as $certificate) {
-            try {
-                $this->certificateService->regenerate($certificate);
-            } catch (\Throwable $e) {
-                report($e);
-            }
-        }
+        Certificate::query()
+            ->where('course_id', $course->id)
+            ->select('id')
+            ->chunkById(100, function ($certificates): void {
+                foreach ($certificates as $certificate) {
+                    RegenerateCertificatePdfJob::dispatch($certificate->id);
+                }
+            });
 
-        return back()->with('success', 'Signature updated successfully.');
+        return back()->with('success', 'Signature updated. Course certificates are being regenerated in the background.');
     }
 
     private function authorizeAdmin(Request $request): void

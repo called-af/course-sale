@@ -4,10 +4,13 @@ namespace App\Services;
 
 use App\Models\Category;
 use App\Models\Course;
+use App\Models\Enrollment;
 use App\Models\MaterialContentProgress;
 use App\Models\Tag;
 use App\Models\User;
 use DomainException;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -47,21 +50,92 @@ class CourseService
         $course->setRelation('resources', collect(app(CourseResourceService::class)->mergedForCourse($course)));
         $course->setAttribute('certificate_template', app(CertificateService::class)->templatePayload($course));
 
+        $progressContext = $this->enrollmentProgressContext($course);
+
         return [
             'course' => $course,
             'categories' => Category::select('id', 'name', 'img', 'desc')->get(),
             'tags' => Tag::select('id', 'name')->get(),
-            'enrolled_students' => $this->enrolledStudents($course),
+            'enrolled_students' => $this->enrolledStudents($course, 15, $progressContext),
+            'enrolled_students_summary' => $this->enrolledStudentsSummary($course, $progressContext),
         ];
     }
 
     /**
-     * Enrolled students with their progress — shared by the course detail page
-     * and the CSV export.
+     * Enrolled students with progress, paginated for the course detail page.
+     * Progress for all students is fetched in a single grouped query instead of
+     * one query per student.
      *
-     * @return array<int, array<string, mixed>>
+     * @param  array{content_ids: Collection, total_contents: int, progress_counts: Collection}|null  $progressContext
      */
-    public function enrolledStudents(Course $course): array
+    public function enrolledStudents(Course $course, int $perPage = 15, ?array $progressContext = null): LengthAwarePaginator
+    {
+        $context = $progressContext ?? $this->enrollmentProgressContext($course);
+
+        return $this->enrollmentQuery($course)
+            ->paginate(max(1, $perPage))
+            ->withQueryString()
+            ->through(fn ($enrollment) => $this->formatEnrolledStudent(
+                $enrollment,
+                $context['progress_counts'],
+                $context['total_contents'],
+            ));
+    }
+
+    /**
+     * Stream every enrolled student row for CSV export without loading the
+     * entire list into memory or issuing one progress query per student.
+     *
+     * @return \Generator<int, array<string, mixed>>
+     */
+    public function enrolledStudentRows(Course $course): \Generator
+    {
+        $context = $this->enrollmentProgressContext($course);
+
+        foreach ($this->enrollmentQuery($course)->cursor() as $enrollment) {
+            yield $this->formatEnrolledStudent(
+                $enrollment,
+                $context['progress_counts'],
+                $context['total_contents'],
+            );
+        }
+    }
+
+    /**
+     * @param  array{content_ids: Collection, total_contents: int, progress_counts: Collection}|null  $progressContext
+     * @return array{total: int, completed: int, in_progress: int, not_started: int}
+     */
+    public function enrolledStudentsSummary(Course $course, ?array $progressContext = null): array
+    {
+        $context = $progressContext ?? $this->enrollmentProgressContext($course);
+        $userIds = $this->enrollmentQuery($course)->pluck('enrollments.user_id');
+
+        $summary = [
+            'total' => $userIds->count(),
+            'completed' => 0,
+            'in_progress' => 0,
+            'not_started' => 0,
+        ];
+
+        foreach ($userIds as $userId) {
+            $completed = (int) ($context['progress_counts'][$userId] ?? 0);
+
+            if ($completed >= $context['total_contents'] && $context['total_contents'] > 0) {
+                $summary['completed']++;
+            } elseif ($completed > 0) {
+                $summary['in_progress']++;
+            } else {
+                $summary['not_started']++;
+            }
+        }
+
+        return $summary;
+    }
+
+    /**
+     * @return array{content_ids: Collection, total_contents: int, progress_counts: Collection}
+     */
+    protected function enrollmentProgressContext(Course $course): array
     {
         $course->loadMissing([
             'modules:id,course_id',
@@ -69,58 +143,91 @@ class CourseService
             'modules.materials.contents',
         ]);
 
-        $enrollments = $course->enrollments()
-            ->whereHas('user', fn ($query) => $query->withoutTrashed())
-            ->with(['user' => fn ($query) => $query->withoutTrashed()->select('id', 'name', 'email', 'avatar')])
-            ->latest('enrolled_at')
-            ->get();
-
-        // Progress is tracked per content block — the same basis the course
-        // detail page uses — instead of per material or module.
         $contentIds = $course->modules
             ->flatMap(fn ($module) => $module->materials)
             ->flatMap(fn ($material) => $material->contents)
-            ->pluck('id');
-        $totalContents = $contentIds->count();
+            ->pluck('id')
+            ->values();
 
-        return $enrollments
-            ->filter(fn ($enrollment) => $enrollment->user !== null)
-            ->map(function ($enrollment) use ($contentIds, $totalContents) {
-                $user = $enrollment->user;
+        return [
+            'content_ids' => $contentIds,
+            'total_contents' => $contentIds->count(),
+            'progress_counts' => $this->completedContentCounts($contentIds),
+        ];
+    }
 
-                $completedContentIds = MaterialContentProgress::where('user_id', $enrollment->user_id)
-                    ->whereIn('material_content_id', $contentIds)
-                    ->where('is_completed', true)
-                    ->pluck('material_content_id');
-                $completed = $completedContentIds->count();
-                $percent = $totalContents > 0 ? (int) round(($completed / $totalContents) * 100) : 0;
+    protected function completedContentCounts(Collection $contentIds): Collection
+    {
+        if ($contentIds->isEmpty()) {
+            return collect();
+        }
 
-                $enrolledAt = $enrollment->enrolled_at;
-                if ($enrolledAt) {
-                    if (is_numeric($enrolledAt)) {
-                        $formattedDate = date('Y-m-d H:i:s', (int) $enrolledAt);
-                    } elseif ($enrolledAt instanceof \DateTimeInterface) {
-                        $formattedDate = $enrolledAt->format('Y-m-d H:i:s');
-                    } else {
-                        $formattedDate = (string) $enrolledAt;
-                    }
-                } else {
-                    $formattedDate = (string) $enrollment->created_at;
-                }
+        return DB::table((new MaterialContentProgress)->getTable())
+            ->select('user_id', DB::raw('COUNT(DISTINCT material_content_id) as completed_contents'))
+            ->where('is_completed', true)
+            ->whereIn('material_content_id', $contentIds)
+            ->groupBy('user_id')
+            ->pluck('completed_contents', 'user_id');
+    }
 
-                return [
-                    'id' => $enrollment->id,
-                    'user_id' => $user?->id,
-                    'name' => $user?->name ?? 'Unknown Student',
-                    'email' => $user?->email ?? '',
-                    'avatar_url' => $user?->avatar_url,
-                    'status' => $enrollment->status,
-                    'enrolled_at' => $formattedDate,
-                    'progress_percent' => $percent,
-                    'completed_contents' => $completed,
-                    'total_contents' => $totalContents,
-                ];
-            })->values()->all();
+    protected function enrollmentQuery(Course $course)
+    {
+        return Enrollment::query()
+            ->join('users', 'users.id', '=', 'enrollments.user_id')
+            ->where('enrollments.course_id', $course->id)
+            ->whereNull('users.deleted_at')
+            ->select([
+                'enrollments.id',
+                'enrollments.user_id',
+                'enrollments.status',
+                'enrollments.enrolled_at',
+                'enrollments.created_at',
+                'users.name',
+                'users.email',
+                'users.avatar as student_avatar',
+            ])
+            ->orderByDesc('enrollments.enrolled_at');
+    }
+
+    /**
+     * @param  \App\Models\Enrollment  $enrollment
+     * @return array<string, mixed>
+     */
+    protected function formatEnrolledStudent($enrollment, Collection $progressCounts, int $totalContents): array
+    {
+        $completed = min((int) ($progressCounts[$enrollment->user_id] ?? 0), $totalContents);
+        $percent = $totalContents > 0 ? (int) round(($completed / $totalContents) * 100) : 0;
+
+        $avatar = $enrollment->student_avatar;
+        if ($avatar && ! str_starts_with($avatar, 'http://') && ! str_starts_with($avatar, 'https://')) {
+            $avatar = asset('storage/'.$avatar);
+        }
+
+        return [
+            'id' => $enrollment->id,
+            'user_id' => $enrollment->user_id,
+            'name' => $enrollment->name ?: 'Unknown Student',
+            'email' => $enrollment->email ?: '',
+            'avatar_url' => $avatar,
+            'status' => $enrollment->status,
+            'enrolled_at' => $this->formatEnrolledAt($enrollment->enrolled_at, $enrollment->created_at),
+            'progress_percent' => $percent,
+            'completed_contents' => $completed,
+            'total_contents' => $totalContents,
+        ];
+    }
+
+    protected function formatEnrolledAt(mixed $value, mixed $fallback = null): string
+    {
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format('Y-m-d H:i:s');
+        }
+
+        if (is_numeric($value)) {
+            return date('Y-m-d H:i:s', (int) $value);
+        }
+
+        return (string) ($value ?: $fallback ?: '');
     }
 
     public function previewData(Course $course, User $user): array

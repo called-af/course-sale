@@ -16,17 +16,18 @@ import EnrolledStudentsList from '@/components/organisms/Course/EnrolledStudents
 import UserLayout from '@/components/templates/UserLayout';
 import { useCourse } from '@/hooks/useCourse';
 import { validateTransparentPng } from '@/lib/transparent-png';
-import type { Course, EnrolledStudent } from '@/types';
+import type { Course, EnrolledStudent, EnrolledStudentsSummary, Paginator } from '@/types';
 import type { SharedPageProps } from '@/types/shared';
 
 interface CourseSlugProps {
     course: Course;
     categories: { id: number; name: string }[];
     tags?: { id: number; name: string }[];
-    enrolled_students?: EnrolledStudent[];
+    enrolled_students?: Paginator<EnrolledStudent>;
+    enrolled_students_summary?: EnrolledStudentsSummary;
 }
 
-export default function CourseSlug({ course, categories, tags, enrolled_students }: CourseSlugProps) {
+export default function CourseSlug({ course, categories, tags, enrolled_students, enrolled_students_summary }: CourseSlugProps) {
     const { auth } = usePage<SharedPageProps>().props;
     const rolePrefix = auth?.user?.role ?? 'instructor';
     const [isSubmittingReview, setIsSubmittingReview] = useState(false);
@@ -307,7 +308,11 @@ export default function CourseSlug({ course, categories, tags, enrolled_students
                 <CourseResourcesSection courseSlug={course.slug} resources={course.resources ?? []} routePrefix="instructor" />
 
                 {/* Enrolled Students List */}
-                <EnrolledStudentsList students={enrolled_students ?? []} exportUrl={`/instructor/courses/${course.slug}/students/export`} />
+                <EnrolledStudentsList
+                    students={enrolled_students}
+                    summary={enrolled_students_summary}
+                    exportUrl={`/instructor/courses/${course.slug}/students/export`}
+                />
 
                 {/* Certificate Signature (instructor-limited) */}
                 <div className="space-y-4 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">

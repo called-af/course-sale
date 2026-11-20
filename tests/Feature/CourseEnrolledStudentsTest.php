@@ -53,12 +53,42 @@ class CourseEnrolledStudentsTest extends TestCase
         $service = app(CourseService::class);
         $data = $service->detailData($course);
 
-        $enrolledStudents = $data['enrolled_students'];
+        $enrolledStudents = $data['enrolled_students']->items();
 
         $this->assertCount(2, $enrolledStudents);
+        $this->assertSame(2, $data['enrolled_students_summary']['total']);
         $names = array_column($enrolledStudents, 'name');
         $this->assertContains('Active Student 1', $names);
         $this->assertContains('Active Student 2', $names);
         $this->assertNotContains('Deleted Student', $names);
+    }
+
+    public function test_enrolled_students_are_paginated_and_export_rows_are_streamed(): void
+    {
+        /** @var User $instructor */
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        /** @var Course $course */
+        $course = Course::factory()->create(['creator_id' => $instructor->id]);
+
+        for ($i = 1; $i <= 20; $i++) {
+            $student = User::factory()->create(['role' => 'student']);
+
+            Enrollment::create([
+                'user_id' => $student->id,
+                'course_id' => $course->id,
+                'status' => 'active',
+                'enrolled_at' => now()->subMinutes($i),
+            ]);
+        }
+
+        $service = app(CourseService::class);
+        $data = $service->detailData($course);
+        $paginator = $data['enrolled_students'];
+
+        $this->assertSame(15, $paginator->perPage());
+        $this->assertSame(2, $paginator->lastPage());
+        $this->assertSame(20, $paginator->total());
+        $this->assertSame(20, $data['enrolled_students_summary']['total']);
+        $this->assertCount(20, iterator_to_array($service->enrolledStudentRows($course)));
     }
 }
