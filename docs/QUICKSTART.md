@@ -176,8 +176,8 @@ instead of running create-only migrations.
 
 ## 8) Handoff checklist for a source-code sale
 
-- [ ] Fill in `[BUSINESS NAME]` and `[CONTACT EMAIL]` in `LICENSE`.
-- [ ] Replace demo emails, seed password and contact email.
+- [ ] Confirm `LICENSE` shows Working String and workingstring@gmail.com.
+- [ ] Replace demo account emails and the seed password.
 - [ ] Remove the original git remote: `git remote remove origin`.
 - [ ] Remove local `.env` from the delivered folder (only `.env.example` should remain).
 - [ ] Confirm payment logos are allowed for the buyer's use case.
