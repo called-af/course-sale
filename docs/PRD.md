@@ -222,4 +222,3 @@ operations and analytics.
 
 - [Feature documentation](FEATURES.md)
 - [Quickstart](QUICKSTART.md)
-- [Production deployment readiness](production-deployment-readiness.md)

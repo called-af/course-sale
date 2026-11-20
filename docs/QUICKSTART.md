@@ -11,9 +11,7 @@ before selling or delivering a copy.
 - Composer 2
 - MySQL 8 or MariaDB 10.6+
 - Node 20.19+ / 22 LTS
-- Nginx + PHP-FPM + Supervisor + cron for native VPS deployment
-
-Docker is not required. A native VPS setup is provided in [`deploy/`](../deploy).
+- In production, a persistent queue worker and a scheduler (cron or equivalent)
 
 ---
 
@@ -87,7 +85,7 @@ PAYMENT_GATEWAY=midtrans
 PAYMENT_CURRENCY=IDR
 ```
 
-Full reference: [`production-deployment-readiness.md`](production-deployment-readiness.md).
+Deployment is handled by the client; keep these values environment-specific.
 
 ---
 
@@ -150,12 +148,17 @@ before taking real payments.
 
 ---
 
-## 7) Deployment
+## 7) Runtime requirements
 
-Use the native VPS config in [`deploy/`](../deploy) and the checklist in
-[`production-deployment-readiness.md`](production-deployment-readiness.md).
+Deployment is handled by the client. The application requires:
 
-Key commands:
+- A persistent queue worker (`php artisan queue:work`) for certificates,
+  notifications and other queued jobs.
+- A scheduler running `php artisan schedule:run` every minute (cron or equivalent).
+- `QUEUE_CONNECTION=database` or `redis` in production. Never use
+  `QUEUE_CONNECTION=sync`.
+
+Preparation commands after installing dependencies:
 
 ```bash
 composer install --no-dev --optimize-autoloader
@@ -165,9 +168,8 @@ php artisan migrate --force     # fresh DB / after reconciliation only
 php artisan optimize
 ```
 
-Run `queue:work` under Supervisor and `schedule:run` from cron. Certificate
-regeneration, pruning and progress reconciliation depend on these running.
-Never use `QUEUE_CONNECTION=sync` in production.
+Certificate regeneration, pruning and progress reconciliation depend on the
+worker and scheduler running.
 
 For an existing database, follow [`migration-reconciliation.md`](migration-reconciliation.md)
 instead of running create-only migrations.
@@ -181,5 +183,5 @@ instead of running create-only migrations.
 - [ ] Remove the original git remote: `git remote remove origin`.
 - [ ] Remove local `.env` from the delivered folder (only `.env.example` should remain).
 - [ ] Confirm payment logos are allowed for the buyer's use case.
-- [ ] Deliver this README, `LICENSE`, `deploy/` and the docs folder together.
+- [ ] Deliver this README, `LICENSE` and the docs folder together.
 - [ ] State clearly what support/updates are included in the sale.

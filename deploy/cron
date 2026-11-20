@@ -1,5 +1,0 @@
-# Install with: crontab -e (as the web/Deployment user, normally www-data)
-# Laravel 12 schedules orders:expire every 10 minutes and daily failed-job pruning.
-# Keep this single entry; the schedule itself lives in routes/console.php.
-
-* * * * * cd /var/www/course-sale && php artisan schedule:run >> /dev/null 2>&1

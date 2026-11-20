@@ -6,12 +6,12 @@
 
 Several features depend on background work: certificate regeneration, WhatsApp
 notifications, order expiry, failed-job cleanup, data pruning and progress
-reconciliation. Cron runs the Laravel scheduler every minute; Supervisor runs a
+reconciliation. The client runs the Laravel scheduler every minute and a
 persistent queue worker. `QUEUE_CONNECTION=sync` must not be used in production.
 
 ## Roles
 
-- **Operations** — installs cron and Supervisor and monitors jobs.
+- **Operations** — runs the scheduler and queue worker and monitors jobs.
 - **System** — runs scheduled commands and queued jobs.
 - No web UI is involved.
 
@@ -38,10 +38,10 @@ Queued work includes:
 - `SendPayoutPaidNotificationJob` after payout payment.
 - Event tracking and other provider jobs.
 
-Recommended Supervisor command:
+Typical queue worker command:
 
 ```bash
-php /var/www/course-sale/artisan queue:work database \
+php /path/to/project/artisan queue:work database \
   --queue=default --sleep=3 --tries=3 --timeout=120 --max-time=3600
 ```
 
@@ -80,9 +80,8 @@ for database tables and logs not stored in Redis.
 
 ## Rules and guards
 
-- Cron entry:
+- Scheduler entry (cron example):
   `* * * * * cd /path/to/project && php artisan schedule:run >> /dev/null 2>&1`
-- Production deployment path in `deploy/cron` is `/var/www/course-sale`.
 - Worker timeout must be lower than `retry_after` to avoid duplicate processing.
 - `progress:sync-materials` supports `--user`, `--course` and `--dry-run`.
 - `system:prune-data` supports `--days`.
@@ -90,8 +89,8 @@ for database tables and logs not stored in Redis.
 
 ## Where to find it
 
-- **Files:** `routes/console.php`, `deploy/cron`, `deploy/supervisor.conf`,
-  `config/queue.php`, `config/cache.php`, `config/maintenance.php`.
+- **Files:** `routes/console.php`, `config/queue.php`, `config/cache.php`,
+  `config/maintenance.php`.
 - **Commands:** `php artisan schedule:list`, `php artisan queue:work`,
   `php artisan system:prune-data`, `php artisan progress:sync-materials`.
 
@@ -109,8 +108,8 @@ for database tables and logs not stored in Redis.
 ## Edge cases
 
 - Without a worker, certificate PDFs are not regenerated after template changes.
-- Without cron, pending orders never expire automatically and material progress
-  is not reconciled.
+- Without a running scheduler, pending orders never expire automatically and
+  material progress is not reconciled.
 - Missing `storage:link` prevents PDF and upload downloads from `/storage`.
 - Overlapping scheduled runs are prevented where configured.
 
@@ -119,4 +118,3 @@ for database tables and logs not stored in Redis.
 - [Certificates](certificates.md)
 - [Orders, refunds and chargebacks](orders-refunds-and-chargebacks.md)
 - [Learning and progress](learning-and-progress.md)
-- [`production-deployment-readiness.md`](../production-deployment-readiness.md)

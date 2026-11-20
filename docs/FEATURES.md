@@ -63,10 +63,10 @@ Terminology used across guides:
 
 ## Operational references
 
-These documents are not feature flows, but they are required to run the system:
+These documents are not feature flows, but they support setup and verification.
+Deployment is handled by the client.
 
-- [`QUICKSTART.md`](QUICKSTART.md) — local installation and first run.
-- [`production-deployment-readiness.md`](production-deployment-readiness.md) — production go-live checklist.
+- [`QUICKSTART.md`](QUICKSTART.md) — local installation, first run and runtime requirements.
 - [`migration-reconciliation.md`](migration-reconciliation.md) — existing database baseline.
 - [`midtrans-e2e-validation-checklist.md`](midtrans-e2e-validation-checklist.md) — payment test matrix.
 - [`PRD.md`](PRD.md) — product requirements reference.

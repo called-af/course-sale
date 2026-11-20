@@ -67,7 +67,7 @@ payouts, certificates, reviews/comments, AI chat, and WhatsApp notifications.
 | Payments            | Midtrans Snap (sandbox and production)                            |
 | PDF                 | dompdf                                                            |
 | Queue/cache/session | Database (Redis optional)                                         |
-| Deploy              | Native VPS (Nginx + PHP-FPM + Supervisor + cron); Docker optional |
+| Runtime             | Queue worker and scheduler required; deployment is client-managed  |
 
 ---
 
@@ -116,17 +116,15 @@ php artisan system:prune-data
 
 ---
 
-## Deployment
+## Runtime requirements
 
-Native VPS configuration is in [`deploy/`](deploy):
+Deployment is managed by the client. The application itself requires:
 
-- `nginx.conf`
-- `supervisor.conf`
-- `cron`
-- short setup notes in [`deploy/README.md`](deploy/README.md)
-
-Deployment guide and go-live checklist:
-[`docs/production-deployment-readiness.md`](docs/production-deployment-readiness.md).
+- A persistent queue worker for certificates, notifications and other queued work.
+- A scheduler running `php artisan schedule:run` every minute (cron or equivalent)
+  for order expiry, data pruning and progress reconciliation.
+- `QUEUE_CONNECTION=database` or `redis` in production. Never use
+  `QUEUE_CONNECTION=sync`.
 
 For an existing database, **do not** run `migrate:fresh` or the consolidated
 create-only migrations. Follow
@@ -181,7 +179,6 @@ All documentation is written in English.
 - [`docs/features/`](docs/features) — one Markdown file per feature, with roles,
   step-by-step flow, rules, routes, key files and edge cases
 - [`docs/QUICKSTART.md`](docs/QUICKSTART.md) — installation and first run
-- [`docs/production-deployment-readiness.md`](docs/production-deployment-readiness.md) — production checklist
 - [`docs/migration-reconciliation.md`](docs/migration-reconciliation.md) — existing DB migration baseline
 - [`docs/midtrans-e2e-validation-checklist.md`](docs/midtrans-e2e-validation-checklist.md) — payment E2E matrix
 - [`docs/PRD.md`](docs/PRD.md) — product requirements reference

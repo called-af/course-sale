@@ -40,7 +40,7 @@ return [
             'connection' => env('DB_QUEUE_CONNECTION'),
             'table' => env('DB_QUEUE_TABLE', 'jobs'),
             'queue' => env('DB_QUEUE', 'default'),
-            // Must be greater than the Supervisor worker --timeout (120s).
+            // Must be greater than the worker --timeout (120s).
             'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 150),
             'after_commit' => false,
         ],
@@ -69,7 +69,7 @@ return [
             'driver' => 'redis',
             'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
             'queue' => env('REDIS_QUEUE', 'default'),
-            // Must be greater than the Supervisor worker --timeout (120s).
+            // Must be greater than the worker --timeout (120s).
             'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 150),
             'block_for' => null,
             'after_commit' => false,
