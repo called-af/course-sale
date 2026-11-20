@@ -1,0 +1,50 @@
+PROPRIETARY SOFTWARE LICENSE
+
+Copyright (c) 2026 [BUSINESS NAME]. All rights reserved.
+
+This software, including its source code, templates, configuration files and
+documentation (the "Software"), is licensed, not sold. A purchase grants the
+named licensee ("Licensee") a non-exclusive, non-transferable license to use,
+modify and deploy the Software under the terms below.
+
+PERMITTED
+- Install and operate the Software for Licensee's own business.
+- Modify the source code, branding, content and configuration.
+- Deploy the Software on infrastructure controlled by Licensee.
+- Make private backups and copies reasonably necessary for operation.
+
+NOT PERMITTED
+- Redistribute, resell, sublicense, lease, or publish the Software or its
+  source code, in whole or in part.
+- Remove or alter this license or copyright notices.
+- Use the Software to provide a competing hosted service to third parties
+  without written permission.
+- Publish the source code in a public repository or package registry.
+
+OWNERSHIP
+All rights not expressly granted are reserved by the copyright holder. The
+Software remains the property of the copyright holder.
+
+WARRANTY
+The Software is provided "as is", without warranty of any kind, express or
+implied, including but not limited to merchantability, fitness for a
+particular purpose and non-infringement. The copyright holder is not liable
+for any claim, damages or other liability arising from use of the Software.
+
+THIRD-PARTY ASSETS
+Payment method logos and third-party trademarks (including Midtrans, Visa,
+Mastercard and others) remain the property of their respective owners. They
+are included only to illustrate payment options and may be subject to separate
+brand guidelines. Licensee is responsible for confirming permitted use.
+
+UPDATES AND SUPPORT
+Updates and support, if any, are governed by the separate agreement between
+the copyright holder and Licensee. Unless stated otherwise, no support or
+update obligation is included with this license.
+
+CONTACT
+For licensing questions, contact: [CONTACT EMAIL].
+
+---
+
+Replace [BUSINESS NAME] and [CONTACT EMAIL] before distributing this license.

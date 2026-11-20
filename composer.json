@@ -1,13 +1,16 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/blank-react-starter-kit",
+    "name": "course-sale/course-sale",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Course sale and learning platform built with Laravel 12 and Inertia React.",
     "keywords": [
         "laravel",
-        "framework"
+        "inertia",
+        "react",
+        "course",
+        "lms"
     ],
-    "license": "MIT",
+    "license": "proprietary",
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",

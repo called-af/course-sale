@@ -1,97 +1,140 @@
-# Rekonsiliasi Migrasi (DB Existing → Set Migrasi Konsolidasi)
+# Migration Reconciliation (Existing DB → Consolidated Migration Set)
 
-Dokumen ini untuk environment yang **sudah punya database dengan riwayat migrasi lama**, sementara kode saat ini memakai **set migrasi create-only yang terkonsolidasi** (`database/migrations/2026_01_01_000001_*` s.d. `000064_*`) yang merepresentasikan skema final.
+This document is for environments that **already have a database with an old
+migration history**, while the current code uses a **consolidated create-only
+migration set** (`database/migrations/2026_01_01_000001_*` to `000064_*`)
+representing the final schema.
 
-> Tujuan: skema DB == skema final kode, dan tabel `migrations` selaras dengan set konsolidasi, **tanpa kehilangan data**.
+> Goal: the database schema matches the final code schema, and the `migrations`
+> table matches the consolidated set, **without losing data**.
 
-## Kenapa ini perlu
+## Why this is needed
 
-- Tabel `migrations` pada DB lama berisi nama/batch file migrasi lama yang **tidak ada** di set baru.
-- Banyak file konsolidasi melakukan `dropIfExists` + `CREATE TABLE`. Jika dijalankan ulang terhadap DB berisi data, ini **destruktif**.
-- Karena itu, untuk DB berdata kita **tidak** mengeksekusi ulang file-file konsolidasi tersebut; kita menyelaraskan skema bila perlu lalu **menandai (baseline)** riwayatnya.
+- The `migrations` table on an old database contains names/batches of legacy
+  migration files that no longer exist in the new set.
+- Many consolidated files call `dropIfExists` followed by `CREATE TABLE`.
+  Re-running them against a database with data is **destructive**.
+- Therefore, for a database that already contains data, we do **not** re-run
+  those consolidated files. We align the schema if needed and then **baseline**
+  the migration history.
 
-Migrasi rekonsiliasi yang diketahui:
-- `2026_11_18_000001_add_google_auth_columns_to_users_table.php` — idempotent (aman dijalankan berulang / no-op bila skema sudah sesuai) untuk kolom/indeks Google auth di `users`.
+Known reconciliation migration:
+
+- `2026_11_18_000001_add_google_auth_columns_to_users_table.php` — idempotent
+  (safe to run repeatedly; no-op if the schema already matches) for Google auth
+  columns/indexes on `users`.
 
 ---
 
-## Prinsip wajib (semua opsi)
+## Mandatory principles (all options)
 
-1. **Backup penuh** (database + `storage/` file upload/sertifikat/dokumen) dan **uji restore**.
-2. **Latihan dulu di staging** yang merupakan salinan/clone data produksi.
-3. Jalankan pada **maintenance window** bila memungkinkan; siapkan rencana rollback.
-4. Setelah selesai: cek `php artisan migrate:status`, jalankan smoke test aplikasi (auth/Google login, belajar & progress, kuis, pembayaran/webhook, sertifikat, resource, dashboard).
+1. Take a **full backup** (database plus `storage/` uploads, certificates and
+   documents) and **test the restore**.
+2. Rehearse first on **staging** using a clone of production data.
+3. Run inside a **maintenance window** where possible; prepare a rollback plan.
+4. Afterwards: check `php artisan migrate:status` and run smoke tests (auth/Google
+   login, learning and progress, quizzes, payments/webhook, certificates,
+   resources, dashboards).
 
 ---
 
-## Opsi A — DB baru / data boleh di-reset (paling sederhana)
+## Option A — New DB / data can be reset (simplest)
 
-Cocok untuk local/dev/staging kosong atau instalasi baru.
+Suitable for empty local/dev/staging environments or fresh installs.
 
 ```bash
-# pastikan backup bila ada data penting
+# take a backup first if any important data exists
 php artisan migrate:fresh --seed
 ```
 
-- Membuat ulang skema dari 64 migrasi final.
-- Migrasi rekonsiliasi idempotent akan no-op bila tidak diperlukan.
+- Recreates the schema from the 64 final migrations.
+- The idempotent reconciliation migration becomes a no-op if not needed.
 
 ---
 
-## Opsi B — DB existing, skema sudah (hampir) sama dengan final (baseline riwayat)
+## Option B — Existing DB, schema already (nearly) matches final (baseline history)
 
-Cocok bila struktur tabel/kolom/index/FK di DB produksi sudah mencerminkan skema final dan hanya riwayat `migrations` yang tidak selaras.
+Suitable when the production table/column/index/FK structure already reflects
+the final schema and only the `migrations` history is out of sync.
 
-1. **Backup + staging clone** (wajib).
-2. **Bandingkan skema** staging vs skema final kode (tabel, kolom, tipe, nullable/default, index/unique, FK).
-   - Perhatikan perubahan yang diketahui: `users.google_id` (nullable, unique), `users.password` nullable, `users.remember_token`, serta tabel/kolom fitur yang ada di set final.
-3. **Perbaiki selisih skema secara aditif/idempotent** (tanpa drop data). Contoh:
-   ```bash
-   php artisan migrate --path=database/migrations/2026_11_18_000001_add_google_auth_columns_to_users_table.php
-   ```
-   Tambahkan migrasi idempotent baru bila ditemukan drift lain (cek `Schema::hasTable/hasColumn`, cek index sebelum membuat).
-4. **Selaraskan tabel `migrations` (baseline)** agar file konsolidasi yang skemanya sudah ada dianggap *sudah dijalankan*:
-   - Simpan/catat isi `migrations` lama untuk audit.
-   - Pastikan setiap file dari `2026_01_01_000001_*` s.d. `000064_*` yang merepresentasikan skema yang sudah ada di DB tercatat di `migrations` (batch sesuai kebijakan tim), **tanpa** mengeksekusi DDL create/drop file-file tersebut.
-   - Tandai juga migrasi rekonsiliasi sebagai ran bila sudah diterapkan/diperlukan.
-   - Lakukan dengan hati-hati (transaction/maintenance window bila memungkinkan). Jangan jalankan `php artisan migrate` yang akan menjalankan ulang create-only pada tabel berdata.
-5. **Verifikasi**:
-   ```bash
-   php artisan migrate:status
-   php artisan migrate
-   ```
-   `migrate` berikutnya seharusnya tidak menjalankan DDL destruktif; hanya migrasi baru ke depan.
-6. **Rekonsiliasi data turunan progress (disarankan)**:
-   ```bash
-   php artisan progress:sync-materials --dry-run
-   php artisan progress:sync-materials
-   ```
-   (Idempotent; menyelaraskan cache `material_progress` dari `material_content_progress`.)
+1. **Backup + staging clone** (mandatory).
+2. **Compare the staging schema** with the final code schema (tables, columns,
+   types, nullable/default, indexes/uniques, FKs).
+    - Known changes to check: `users.google_id` (nullable, unique),
+      `users.password` nullable, `users.remember_token`, plus tables/columns from
+      newer features in the final set.
+3. **Fix schema differences additively/idempotently** (never drop data).
+   Example:
+
+    ```bash
+    php artisan migrate --path=database/migrations/2026_11_18_000001_add_google_auth_columns_to_users_table.php
+    ```
+
+    Add new idempotent migrations if other drift is found (check
+    `Schema::hasTable` / `hasColumn` and check indexes before creating them).
+
+4. **Baseline the `migrations` table** so consolidated files whose schema is
+   already present are marked as run:
+    - Save the old `migrations` contents for audit.
+    - Ensure every file from `2026_01_01_000001_*` to `000064_*` representing
+      an existing schema is recorded in `migrations` (choose a batch according to
+      team policy), **without executing its create/drop DDL**.
+    - Also mark the reconciliation migration as run if it was applied or needed.
+    - Do this carefully, in a transaction/maintenance window where possible.
+      Do **not** run plain `php artisan migrate`, which would re-run create-only
+      migrations on populated tables.
+5. **Verify**:
+
+    ```bash
+    php artisan migrate:status
+    php artisan migrate
+    ```
+
+    The next `migrate` should not execute destructive DDL; only new future
+    migrations should run.
+
+6. **Reconcile derived progress data (recommended)**:
+
+    ```bash
+    php artisan progress:sync-materials --dry-run
+    php artisan progress:sync-materials
+    ```
+
+    (Idempotent; resynchronizes the `material_progress` cache from
+    `material_content_progress`.)
 
 ---
 
-## Opsi C — DB existing, skema berbeda/unknown (diff → migrasi forward-only)
+## Option C — Existing DB, schema unknown/different (diff → forward-only migration)
 
-Cocok bila tidak yakin skema sudah sama dengan final.
+Suitable when you are not sure the schema already matches the final one.
 
 1. **Backup + staging clone**.
-2. Inventaris perbedaan skema aktual vs final.
-3. Tulis migrasi **forward-only & idempotent** untuk membawa DB ke skema final **tanpa drop data** (pola seperti migrasi rekonsiliasi `users`).
-4. Setelah skema match, lakukan **baseline riwayat** seperti Opsi B langkah 4–6.
-5. Hindari `migrate:fresh` pada data produksi.
+2. Inventory differences between the actual schema and the final schema.
+3. Write **forward-only, idempotent** migrations to bring the DB to the final
+   schema **without dropping data** (follow the `users` reconciliation pattern).
+4. Once the schema matches, baseline the history as in Option B steps 4–6.
+5. Never run `migrate:fresh` on production data.
 
 ---
 
-## Checklist pasca-rekonsiliasi
+## Post-reconciliation checklist
 
-- [ ] `php artisan migrate:status` bersih/sesuai harapan
-- [ ] `php artisan progress:sync-materials` (bila ada data belajar)
-- [ ] `php artisan storage:link` & permission storage benar
-- [ ] Queue/scheduler berjalan (jika dipakai)
-- [ ] Smoke test: login/Google OAuth, enrollment & learning, progress/resume, kuis, checkout & webhook pembayaran, sertifikat, resource, dashboard
-- [ ] Monitoring/log bebas error migrasi & query skema
+- [ ] `php artisan migrate:status` is clean/as expected
+- [ ] `php artisan progress:sync-materials` (if learning data exists)
+- [ ] `php artisan storage:link` and storage permissions are correct
+- [ ] Queue worker and scheduler are running (if used)
+- [ ] Smoke test: login/Google OAuth, enrollment and learning, progress/resume,
+      quizzes, checkout and payment webhook, certificates, resources, dashboards
+- [ ] Monitoring/logs are free of migration and schema errors
 
-## Catatan
+---
 
-- Baseline riwayat migrasi adalah tindakan operasional; pastikan dicatat (siapa/kapan/DB mana/batch apa) untuk audit.
-- Untuk perbaikan progress ganda (material vs content), sistem kini memperlakukan `material_content_progress` sebagai sumber kebenaran dan `material_progress` sebagai cache turunan yang disinkronkan/direvokasi oleh backend; gunakan `progress:sync-materials` untuk backfill/pemulihan konsistensi data.
+## Notes
+
+- Baseline migration history is an operational action. Record who/when/which DB/
+  which batch for audit.
+- For the previous dual-progress issue (material vs content), the system now
+  treats `material_content_progress` as the source of truth and
+  `material_progress` as a derived cache synchronized/revoked by the backend.
+  Use `progress:sync-materials` for backfill and recovery.
