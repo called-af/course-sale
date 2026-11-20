@@ -155,11 +155,11 @@ class InstructorSettingsController extends Controller
 
             $lockedUntil = $user->payoutAccountLockedUntil();
 
-            return back()->with('success', 'Rekening payout berhasil diubah. Rekening dikunci hingga '
-                .($lockedUntil?->translatedFormat('d M Y H:i') ?? '-').' untuk alasan keamanan.');
+            return back()->with('success', 'Payout account updated. The account is locked until '
+                .($lockedUntil?->translatedFormat('d M Y H:i') ?? '-').' for security reasons.');
         }
 
-        return back()->with('success', 'Rekening payout instruktur berhasil disimpan.');
+        return back()->with('success', 'Instructor payout account saved successfully.');
     }
 
     /**
@@ -181,7 +181,7 @@ class InstructorSettingsController extends Controller
             'whatsapp_notification_enabled' => (bool) $validated['whatsapp_notification_enabled'],
         ]);
 
-        return back()->with('success', 'Pengaturan notifikasi WhatsApp berhasil disimpan.');
+        return back()->with('success', 'WhatsApp notification settings saved successfully.');
     }
 
     /**
@@ -194,28 +194,28 @@ class InstructorSettingsController extends Controller
         $targetNumber = ! empty($inputNumber) ? $inputNumber : $user->whatsapp_number;
 
         if (empty($targetNumber)) {
-            return back()->with('error', 'Nomor WhatsApp belum diisi. Masukkan nomor WhatsApp yang valid terlebih dahulu.');
+            return back()->with('error', 'WhatsApp number is empty. Please enter a valid WhatsApp number first.');
         }
 
         $formattedNumber = $this->whatsAppService->formatPhoneNumber($targetNumber);
         if (strlen($formattedNumber) < 9 || strlen($formattedNumber) > 16) {
-            return back()->with('error', 'Format nomor WhatsApp tidak valid. Gunakan format yang valid (contoh: 081234567890 atau +6281234567890).');
+            return back()->with('error', 'Invalid WhatsApp number format. Use a valid format (e.g. 081234567890 or +6281234567890).');
         }
 
         $result = $this->whatsAppService->sendTestNotification($user, $formattedNumber);
 
         if ($result['success']) {
             if (! empty($result['is_simulated'])) {
-                return back()->with('success', 'Mode Simulasi: '.($result['message'] ?? 'Pesan uji coba berhasil disimulasikan.'));
+                return back()->with('success', 'Simulation mode: '.($result['message'] ?? 'Test message simulated successfully.'));
             }
 
             if (! empty($result['notice'])) {
-                return back()->with('success', 'Pesan uji coba berhasil dikirim ke '.$formattedNumber.'. '.$result['notice']);
+                return back()->with('success', 'Test message sent to '.$formattedNumber.'. '.$result['notice']);
             }
 
-            return back()->with('success', 'Pesan uji coba WhatsApp berhasil dikirim ke '.$formattedNumber.'!');
+            return back()->with('success', 'WhatsApp test message sent to '.$formattedNumber.'!');
         }
 
-        return back()->with('error', 'Gagal mengirim pesan uji coba: '.($result['error'] ?? 'Terjadi kesalahan pada Meta Cloud API.'));
+        return back()->with('error', 'Failed to send test message: '.($result['error'] ?? 'An error occurred with the Meta Cloud API.'));
     }
 }

@@ -5,10 +5,9 @@ import Badge from '@/components/atoms/Badge';
 import Button from '@/components/atoms/Button';
 import Title from '@/components/atoms/Title';
 import { useLanding } from '@/hooks/useLanding';
+import { EASE, SOFT_SPRING, entrance } from '@/lib/motion';
 
 import type { CategorySectionProps } from '@/types/category';
-
-const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
 
 export default function CategorySection({ categories }: CategorySectionProps) {
     const reduceMotion = useReducedMotion();
@@ -56,14 +55,19 @@ export default function CategorySection({ categories }: CategorySectionProps) {
                             className="group relative z-0 hover:z-10"
                         >
                             <motion.article
-                                whileHover={reduceMotion ? undefined : { y: -6 }}
-                                transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+                                initial={entrance(reduceMotion, 'rest')}
+                                animate="rest"
+                                whileHover={reduceMotion ? undefined : 'hover'}
+                                variants={{ rest: { y: 0 }, hover: { y: -6 } }}
+                                transition={SOFT_SPRING}
                                 className="relative flex h-full flex-col gap-5 border border-slate-200/80 bg-white p-8 transition-colors duration-300 focus-within:border-purple-300 hover:border-purple-200 hover:bg-gray-50 dark:border-slate-700 dark:bg-[#141416] dark:focus-within:border-purple-600 dark:hover:border-purple-800 dark:hover:bg-[#1e1f24]"
                             >
                                 {/* Accent line that grows on hover */}
-                                <span
+                                <motion.span
                                     aria-hidden
-                                    className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-purple-500 transition-transform duration-500 group-hover:scale-x-100"
+                                    variants={{ rest: { scaleX: 0 }, hover: { scaleX: 1 } }}
+                                    transition={{ duration: 0.5, ease: EASE }}
+                                    className="absolute inset-x-0 top-0 h-0.5 origin-left bg-purple-500"
                                 />
 
                                 {/* Icon */}

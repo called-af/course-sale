@@ -42,7 +42,7 @@ export default function EnrolledStudentsList({ students = [], exportUrl }: Enrol
         try {
             const d = new Date(dateString);
             if (isNaN(d.getTime())) return dateString;
-            return d.toLocaleDateString('id-ID', {
+            return d.toLocaleDateString('en-US', {
                 day: 'numeric',
                 month: 'short',
                 year: 'numeric',
@@ -66,11 +66,11 @@ export default function EnrolledStudentsList({ students = [], exportUrl }: Enrol
                         <div className="flex items-center gap-2">
                             <h2 className="text-base font-bold text-slate-900 dark:text-white">Enrolled Students</h2>
                             <span className="border border-purple-500/30 bg-purple-500/10 px-2.5 py-0.5 text-xs font-bold text-purple-600 dark:text-purple-400">
-                                {metrics.total} Siswa
+                                {metrics.total} Students
                             </span>
                         </div>
                         <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                            Daftar siswa yang telah mendaftar di course ini beserta progress belajarnya.
+                            A list of students enrolled in this course along with their learning progress.
                         </p>
                     </div>
                 </div>
@@ -86,7 +86,7 @@ export default function EnrolledStudentsList({ students = [], exportUrl }: Enrol
                                 onClick={() => setStatusFilter('all')}
                                 className="!rounded-none"
                             >
-                                Semua ({metrics.total})
+                                All ({metrics.total})
                             </Button>
                             <Button
                                 type="button"
@@ -95,7 +95,7 @@ export default function EnrolledStudentsList({ students = [], exportUrl }: Enrol
                                 onClick={() => setStatusFilter('in_progress')}
                                 className="!rounded-none"
                             >
-                                Sedang Belajar ({metrics.inProgress})
+                                In Progress ({metrics.inProgress})
                             </Button>
                             <Button
                                 type="button"
@@ -104,7 +104,7 @@ export default function EnrolledStudentsList({ students = [], exportUrl }: Enrol
                                 onClick={() => setStatusFilter('completed')}
                                 className="!rounded-none"
                             >
-                                Selesai ({metrics.completed})
+                                Completed ({metrics.completed})
                             </Button>
                         </div>
                     )}
@@ -128,28 +128,28 @@ export default function EnrolledStudentsList({ students = [], exportUrl }: Enrol
             {metrics.total > 0 && (
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                     <div className="border border-slate-100 bg-slate-50/60 p-4 dark:border-slate-700/60 dark:bg-[#1e1f24]">
-                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Total Pendaftar</span>
+                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Total Enrolled</span>
                         <div className="mt-1 flex items-baseline gap-2">
                             <span className="text-2xl font-bold text-slate-900 dark:text-white">{metrics.total}</span>
-                            <span className="text-xs text-slate-400">Siswa</span>
+                            <span className="text-xs text-slate-400">Students</span>
                         </div>
                     </div>
                     <div className="border border-purple-100 bg-purple-50/30 p-4 dark:border-purple-900/30 dark:bg-purple-950/20">
-                        <span className="text-xs font-medium text-purple-700 dark:text-purple-300">Sedang Berjalan</span>
+                        <span className="text-xs font-medium text-purple-700 dark:text-purple-300">In Progress</span>
                         <div className="mt-1 flex items-baseline gap-2">
                             <span className="text-2xl font-bold text-purple-700 dark:text-purple-300">{metrics.inProgress}</span>
-                            <span className="text-xs text-purple-500/70">Aktif</span>
+                            <span className="text-xs text-purple-500/70">Active</span>
                         </div>
                     </div>
                     <div className="border border-emerald-100 bg-emerald-50/30 p-4 dark:border-emerald-900/30 dark:bg-emerald-950/20">
-                        <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Tamat 100%</span>
+                        <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">100% Complete</span>
                         <div className="mt-1 flex items-baseline gap-2">
                             <span className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">{metrics.completed}</span>
-                            <span className="text-xs text-emerald-500/70">Lulus</span>
+                            <span className="text-xs text-emerald-500/70">Passed</span>
                         </div>
                     </div>
                     <div className="border border-slate-100 bg-slate-50/60 p-4 dark:border-slate-700/60 dark:bg-[#1e1f24]">
-                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Belum Mulai</span>
+                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Not Started</span>
                         <div className="mt-1 flex items-baseline gap-2">
                             <span className="text-2xl font-bold text-slate-900 dark:text-white">{metrics.notStarted}</span>
                             <span className="text-xs text-slate-400">0%</span>
@@ -166,7 +166,7 @@ export default function EnrolledStudentsList({ students = [], exportUrl }: Enrol
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Cari nama atau email siswa..."
+                        placeholder="Search student name or email..."
                         className="w-full border border-slate-200 bg-white py-2.5 pr-10 pl-10 text-sm text-slate-900 placeholder-slate-400 transition-colors focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-[#1e1f24] dark:text-white dark:placeholder-slate-500"
                     />
                     {searchQuery && (
@@ -187,17 +187,15 @@ export default function EnrolledStudentsList({ students = [], exportUrl }: Enrol
                     <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400 dark:bg-[#1e1f24] dark:text-slate-500">
                         <Users className="h-7 w-7" />
                     </div>
-                    <h3 className="mt-4 text-sm font-bold text-slate-800 dark:text-slate-200">Belum Ada Siswa yang Terdaftar</h3>
+                    <h3 className="mt-4 text-sm font-bold text-slate-800 dark:text-slate-200">No Students Enrolled Yet</h3>
                     <p className="mt-1 max-w-sm text-xs text-slate-500 dark:text-slate-400">
-                        Ketika ada siswa yang mendaftar pada course ini, data dan progress belajar mereka akan otomatis ditampilkan di sini.
+                        When students enroll in this course, their data and learning progress will appear here automatically.
                     </p>
                 </div>
             ) : filteredStudents.length === 0 ? (
                 <div className="flex flex-col items-center justify-center border border-dashed border-slate-200 py-10 text-center dark:border-slate-700">
                     <UserX className="h-8 w-8 text-slate-400" />
-                    <p className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-400">
-                        Tidak ada siswa yang cocok dengan pencarian "{searchQuery}"
-                    </p>
+                    <p className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-400">No students match the search "{searchQuery}"</p>
                     <Button
                         type="button"
                         variant="ghost"
@@ -275,16 +273,16 @@ export default function EnrolledStudentsList({ students = [], exportUrl }: Enrol
                                         {student.progress_percent === 100 ? (
                                             <span className="inline-flex items-center gap-1 border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                                                 <CheckCircle2 className="h-3 w-3" />
-                                                Selesai
+                                                Completed
                                             </span>
                                         ) : student.progress_percent > 0 ? (
                                             <span className="inline-flex items-center gap-1 border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-600 dark:text-purple-400">
                                                 <Clock className="h-3 w-3" />
-                                                Aktif
+                                                Active
                                             </span>
                                         ) : (
                                             <span className="inline-flex items-center gap-1 border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400">
-                                                Belum Mulai
+                                                Not Started
                                             </span>
                                         )}
                                     </div>
@@ -299,13 +297,13 @@ export default function EnrolledStudentsList({ students = [], exportUrl }: Enrol
                             <thead className="border-b border-slate-200 bg-slate-50 text-xs font-bold tracking-wider text-slate-600 uppercase dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400">
                                 <tr>
                                     <th scope="col" className="px-5 py-3.5">
-                                        Siswa
+                                        Students
                                     </th>
                                     <th scope="col" className="px-5 py-3.5">
-                                        Tanggal Mendaftar
+                                        Enrolled Date
                                     </th>
                                     <th scope="col" className="px-5 py-3.5">
-                                        Progress Belajar
+                                        Learning Progress
                                     </th>
                                     <th scope="col" className="px-5 py-3.5 text-right">
                                         Status
@@ -385,16 +383,16 @@ export default function EnrolledStudentsList({ students = [], exportUrl }: Enrol
                                                 {student.progress_percent === 100 ? (
                                                     <span className="inline-flex items-center gap-1 border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                                                         <CheckCircle2 className="h-3 w-3" />
-                                                        Selesai
+                                                        Completed
                                                     </span>
                                                 ) : student.progress_percent > 0 ? (
                                                     <span className="inline-flex items-center gap-1 border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-600 dark:text-purple-400">
                                                         <Clock className="h-3 w-3" />
-                                                        Aktif
+                                                        Active
                                                     </span>
                                                 ) : (
                                                     <span className="inline-flex items-center gap-1 border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400">
-                                                        Belum Mulai
+                                                        Not Started
                                                     </span>
                                                 )}
                                             </td>

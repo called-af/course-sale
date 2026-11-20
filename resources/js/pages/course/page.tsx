@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { Filter, Sparkles, X } from 'lucide-react';
-import { motion, useReducedMotion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useMemo, useState } from 'react';
 import Badge from '@/components/atoms/Badge';
 import Button from '@/components/atoms/Button';
@@ -8,6 +8,7 @@ import Title from '@/components/atoms/Title';
 import InputField from '@/components/molecules/InputField';
 import CourseResults from '@/components/organisms/Course/CourseResults';
 import WelcomeLayout from '@/components/templates/WelcomeLayout';
+import { EASE, entrance, staggerContainer } from '@/lib/motion';
 import type { Course as CourseType } from '@/types';
 
 type RecommendedCourse = CourseType & {
@@ -21,7 +22,10 @@ interface CoursePageProps {
     recommendedCourses?: RecommendedCourse[];
 }
 
-const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
+const fadeUp = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: EASE } },
+};
 
 const selectClassName =
     'border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-purple-700 focus:ring-1 focus:ring-purple-700 dark:border-slate-600 dark:bg-[#141416] dark:text-slate-200 dark:focus:border-purple-500 dark:focus:ring-purple-500';
@@ -72,40 +76,44 @@ export default function CoursePage({ courses = [], recommendedCourses = [] }: Co
                 <div className="relative mx-auto max-w-7xl px-4 sm:px-8">
                     {/* Header */}
                     <motion.div
-                        initial={reduceMotion ? false : { opacity: 0, y: 24 }}
-                        whileInView={{ opacity: 1, y: 0 }}
+                        variants={staggerContainer(0.08)}
+                        initial={entrance(reduceMotion, 'hidden')}
+                        whileInView="show"
                         viewport={{ once: true, amount: 0.3 }}
-                        transition={{ duration: 0.6, ease: EASE }}
                         className="mb-10 flex flex-col justify-between gap-8 lg:flex-row lg:items-end"
                     >
                         <div className="flex flex-col gap-4">
-                            <Badge variant="purple" dot>
-                                Explore Courses
-                            </Badge>
-                            <Title as="h1" className="leading-tight" style={{ fontSize: 'clamp(1.8rem,4vw,2.8rem)' }}>
-                                Find the Course That's
-                                <span className="relative isolate ml-2 inline-block bg-purple-400 px-2">
-                                    <span
-                                        aria-hidden
-                                        className="pointer-events-none absolute -inset-x-8 -inset-y-6 -z-10 rounded-full bg-purple-400/25 blur-2xl dark:bg-purple-500/25"
-                                    />
-                                    Right for You
-                                </span>
-                            </Title>
-                            <p className="max-w-md text-sm leading-relaxed text-gray-500 dark:text-slate-400">
+                            <motion.div variants={fadeUp}>
+                                <Badge variant="purple" dot>
+                                    Explore Courses
+                                </Badge>
+                            </motion.div>
+                            <motion.div variants={fadeUp}>
+                                <Title as="h1" className="leading-tight" style={{ fontSize: 'clamp(1.8rem,4vw,2.8rem)' }}>
+                                    Find the Course That's
+                                    <span className="relative isolate ml-2 inline-block bg-purple-400 px-2">
+                                        <span
+                                            aria-hidden
+                                            className="pointer-events-none absolute -inset-x-8 -inset-y-6 -z-10 rounded-full bg-purple-400/25 blur-2xl dark:bg-purple-500/25"
+                                        />
+                                        Right for You
+                                    </span>
+                                </Title>
+                            </motion.div>
+                            <motion.p variants={fadeUp} className="max-w-md text-sm leading-relaxed text-gray-500 dark:text-slate-400">
                                 Browse top-rated courses taught by industry practitioners — filter by level, access type, or your personalized
                                 recommendations.
-                            </p>
+                            </motion.p>
                         </div>
 
-                        <div className="w-full bg-white p-4 shadow-sm lg:w-80 dark:bg-[#1e1f24]">
+                        <motion.div variants={fadeUp} className="w-full bg-white p-4 shadow-sm lg:w-80 dark:bg-[#1e1f24]">
                             <InputField
                                 label="Search Courses"
                                 placeholder="Search title or instructor..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
-                        </div>
+                        </motion.div>
                     </motion.div>
 
                     {/* Filters */}
@@ -191,32 +199,35 @@ export default function CoursePage({ courses = [], recommendedCourses = [] }: Co
                     </motion.div>
 
                     {/* Recommended notice */}
-                    {onlyRecommended && (
-                        <motion.div
-                            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.35, ease: EASE }}
-                            className="mb-6 flex items-center justify-between gap-3 border border-purple-200 bg-purple-50 p-4 text-xs text-purple-900 dark:border-purple-900/50 dark:bg-purple-950/40 dark:text-purple-200"
-                        >
-                            <div className="flex items-center gap-2">
-                                <Sparkles size={16} className="shrink-0 text-purple-600 dark:text-purple-400" />
-                                <span>
-                                    Showing <strong>{filteredCourses.length} personalized recommendations</strong> based on your learning activity and
-                                    interests.
-                                </span>
-                            </div>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setOnlyRecommended(false)}
-                                leftIcon={<X size={14} />}
-                                className="!rounded-none !text-purple-700 hover:!text-purple-900 dark:!text-purple-300 dark:hover:!text-purple-100"
+                    <AnimatePresence initial={false}>
+                        {onlyRecommended && (
+                            <motion.div
+                                initial={entrance(reduceMotion, { opacity: 0, y: 12 })}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                                transition={{ duration: 0.35, ease: EASE }}
+                                className="mb-6 flex items-center justify-between gap-3 border border-purple-200 bg-purple-50 p-4 text-xs text-purple-900 dark:border-purple-900/50 dark:bg-purple-950/40 dark:text-purple-200"
                             >
-                                Clear
-                            </Button>
-                        </motion.div>
-                    )}
+                                <div className="flex items-center gap-2">
+                                    <Sparkles size={16} className="shrink-0 text-purple-600 dark:text-purple-400" />
+                                    <span>
+                                        Showing <strong>{filteredCourses.length} personalized recommendations</strong> based on your learning activity
+                                        and interests.
+                                    </span>
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setOnlyRecommended(false)}
+                                    leftIcon={<X size={14} />}
+                                    className="!rounded-none !text-purple-700 hover:!text-purple-900 dark:!text-purple-300 dark:hover:!text-purple-100"
+                                >
+                                    Clear
+                                </Button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     {/* Course Grid — shared with the landing Course section */}
                     <CourseResults

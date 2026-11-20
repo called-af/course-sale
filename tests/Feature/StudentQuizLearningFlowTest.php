@@ -144,7 +144,7 @@ it('saves quiz drafts, shows the score after submit, and resets the attempt', fu
         ->assertJsonPath('state.answered', 0);
 });
 
-it('marks a material complete without requiring every lesson to be finished', function () {
+it('does not force material completion unless all published contents are completed', function () {
     ['student' => $student, 'course' => $course, 'material' => $material] = makeStudentQuizCourse();
 
     $this->actingAs($student)
@@ -154,7 +154,7 @@ it('marks a material complete without requiring every lesson to be finished', fu
     expect(MaterialProgress::where('user_id', $student->id)
         ->where('material_id', $material->id)
         ->where('is_completed', true)
-        ->exists())->toBeTrue();
+        ->exists())->toBeFalse();
 });
 
 it('rejects quiz submission when a question is still unanswered', function () {

@@ -23,12 +23,14 @@ export default function InstructorGeneralSettings() {
 
     return (
         <>
-            <Head title="Pengaturan Umum Instruktur" />
+            <Head title="Instructor General Settings" />
 
             <div className="space-y-6">
                 <div>
-                    <Title as="h3">Pengaturan Instruktur</Title>
-                    <p className="mt-1 text-sm text-neutral-500">Kelola rekening payout, integrasi WhatsApp Business, dan preferensi akun Anda.</p>
+                    <Title as="h3">Instructor Settings</Title>
+                    <p className="mt-1 text-sm text-neutral-500">
+                        Manage payout account details, WhatsApp Business integration, and your account preferences.
+                    </p>
                 </div>
 
                 <PayoutSettingsPanel

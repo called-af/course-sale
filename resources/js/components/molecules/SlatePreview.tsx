@@ -28,7 +28,7 @@ const renderElement = ({ children, element }: ElementProps) => {
             return (
                 <blockquote className="my-3 rounded-r-md border-l-4 border-violet-400 bg-violet-50/40 py-2 pr-3 pl-4 text-gray-500 italic dark:bg-purple-950/20 dark:text-slate-400">
                     {children}
-                </blockquote>   
+                </blockquote>
             );
         case 'code':
             return (

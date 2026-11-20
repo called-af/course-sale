@@ -11,8 +11,8 @@ export default function StudentProfile({ user }: { user: User }) {
 
             <div className="space-y-8">
                 <div>
-                    <Title as="h3">Profil Saya</Title>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Kelola informasi akun, keamanan, dan avatar Anda.</p>
+                    <Title as="h3">My Profile</Title>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Manage your account information, security, and avatar.</p>
                 </div>
 
                 <UserProfile user={user} submitUrl="/student/profile" canChangeRole={false} />

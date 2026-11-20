@@ -34,7 +34,7 @@ class CloudflareAdapter extends AbstractAdapter
             $models = $this->listModels();
 
             return ConnectionResult::ok(
-                'Koneksi Cloudflare Workers AI berhasil. '.count($models).' model terdeteksi.',
+                'Cloudflare Workers AI connection successful. '.count($models).' models detected.',
                 (int) ((microtime(true) - $start) * 1000),
                 ['models_count' => count($models)],
             );

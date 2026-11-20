@@ -1,72 +1,112 @@
-import { motion, useAnimationFrame, useMotionValue, useReducedMotion, useScroll } from 'motion/react';
+import { motion, useAnimationFrame, useMotionValue, useReducedMotion, useScroll, useSpring, useVelocity } from 'motion/react';
 import { useEffect, useRef } from 'react';
 
 interface MarqueeLineProps {
     text: string;
     repeat?: number;
-    /** Pixels the line travels for every pixel scrolled. */
+    /** How strongly scroll velocity pushes the line. */
     speed?: number;
     reverse?: boolean;
+    /** Constant drift in px/s when the page is still. */
+    drift?: number;
     /** Rotation in degrees, so the line can follow a slanted section edge. */
     tilt?: number;
     className?: string;
 }
 
-export default function MarqueeLine({ text, repeat = 20, speed = 0.6, reverse = false, tilt = 0, className }: MarqueeLineProps) {
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+/**
+ * Time-driven marquee with scroll inertia and a soft hover slowdown.
+ * Uses two identical sets and wraps inside one set width, so the loop is seamless.
+ */
+export default function MarqueeLine({ text, repeat = 20, speed = 0.6, reverse = false, drift = 24, tilt = 0, className }: MarqueeLineProps) {
     const reduceMotion = useReducedMotion();
     const { scrollY } = useScroll();
+
+    const scrollVelocity = useVelocity(scrollY);
+    const smoothScrollVelocity = useSpring(scrollVelocity, {
+        stiffness: 140,
+        damping: 26,
+        restDelta: 1,
+    });
+
     const x = useMotionValue(0);
     const trackRef = useRef<HTMLDivElement>(null);
     const setWidth = useRef(0);
-    const lastScroll = useRef<number | null>(null);
+    const initialized = useRef(false);
+    const velocity = useRef(0);
+    const hovered = useRef(false);
+    const direction = reverse ? 1 : -1;
 
     useEffect(() => {
         const firstSet = trackRef.current?.firstElementChild;
 
         const measure = () => {
-            setWidth.current = firstSet instanceof HTMLElement ? firstSet.clientWidth : 0;
+            const next = firstSet instanceof HTMLElement ? firstSet.clientWidth : 0;
+            if (!next) return;
+
+            const previous = setWidth.current;
+
+            if (previous > 0 && initialized.current) {
+                // Preserve the visual phase when the text width changes (font load / resize).
+                const phase = ((((x.get() + previous) % previous) + previous) % previous) / previous;
+                x.set(-next + phase * next);
+            } else {
+                x.set(reduceMotion ? 0 : -next);
+                initialized.current = true;
+            }
+
+            setWidth.current = next;
         };
 
         measure();
         document.fonts?.ready.then(measure).catch(() => undefined);
 
         const observer = firstSet ? new ResizeObserver(measure) : null;
-        if (firstSet) {
-            observer?.observe(firstSet);
-        }
+        if (firstSet) observer?.observe(firstSet);
 
         window.addEventListener('resize', measure);
         return () => {
             observer?.disconnect();
             window.removeEventListener('resize', measure);
         };
-    }, []);
+    }, [reduceMotion, x]);
 
-    useAnimationFrame(() => {
-        const current = scrollY.get();
-        const previous = lastScroll.current;
-        lastScroll.current = current;
+    useAnimationFrame((_, delta) => {
+        if (reduceMotion || !setWidth.current || delta <= 0) return;
 
-        if (reduceMotion || previous === null || !setWidth.current) {
-            return;
-        }
+        // Cap dt so returning to a background tab doesn't teleport the line.
+        const dt = Math.min(delta, 50) / 1000;
+        const scrollBoost = clamp(smoothScrollVelocity.get() * speed, -1800, 1800);
+        const target = (drift + scrollBoost) * direction * (hovered.current ? 0.18 : 1);
 
-        const delta = current - previous;
+        // Frame-rate independent easing towards the target velocity.
+        const blend = 1 - Math.exp(-dt / 0.16);
+        velocity.current += (target - velocity.current) * blend;
 
-        if (!delta) {
-            return;
-        }
-
-        const direction = reverse ? 1 : -1;
-        const raw = x.get() + delta * speed * direction;
-        const wrapped = ((raw % setWidth.current) + setWidth.current) % setWidth.current;
-
-        x.set(wrapped - setWidth.current);
+        const raw = x.get() + velocity.current * dt;
+        const width = setWidth.current;
+        x.set((((raw % width) + width) % width) - width);
     });
 
     return (
-        <div aria-hidden className={['relative flex overflow-hidden select-none', className].join(' ')} style={{ transform: `rotate(${tilt}deg)` }}>
-            <motion.div ref={trackRef} className="flex w-max shrink-0" style={{ x }}>
+        <div
+            aria-hidden
+            className={['relative flex overflow-hidden select-none', className].join(' ')}
+            onPointerEnter={() => {
+                hovered.current = true;
+            }}
+            onPointerLeave={() => {
+                hovered.current = false;
+            }}
+            style={{
+                transform: `rotate(${tilt}deg)`,
+                maskImage: 'linear-gradient(to right, transparent, black 8%, black 92%, transparent)',
+                WebkitMaskImage: 'linear-gradient(to right, transparent, black 8%, black 92%, transparent)',
+            }}
+        >
+            <motion.div ref={trackRef} className="flex w-max shrink-0" style={{ x, willChange: 'transform' }}>
                 {[0, 1].map((set) => (
                     <div key={set} className="flex shrink-0 items-center">
                         {Array.from({ length: repeat }).map((_, index) => (

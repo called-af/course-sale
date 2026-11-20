@@ -3,13 +3,16 @@
 namespace App\Services\AI\Tool;
 
 use App\Models\Enrollment;
-use Illuminate\Support\Facades\DB;
+use App\Models\Material;
+use App\Models\MaterialContent;
+use App\Models\MaterialContentProgress;
+use App\Models\MaterialProgress;
 
 class UserProgressTool
 {
     protected ?int $userId = null;
 
-    public function setUserId($userId)
+    public function setUserId($userId): void
     {
         $this->userId = $userId;
     }
@@ -31,7 +34,21 @@ class UserProgressTool
             return ['error' => 'User context not available'];
         }
 
-        $enrollments = Enrollment::with('course:id,title,level')
+        $enrollments = Enrollment::query()
+            ->with([
+                'course:id,title,level,status',
+                'course.modules' => fn ($query) => $query
+                    ->where('status', 'published')
+                    ->with([
+                        'materials' => fn ($materialQuery) => $materialQuery
+                            ->where('status', 'published')
+                            ->with([
+                                'contents' => fn ($contentQuery) => $contentQuery
+                                    ->where('status', 'published')
+                                    ->select('id', 'material_id', 'status'),
+                            ]),
+                    ]),
+            ])
             ->where('user_id', $this->userId)
             ->get();
 
@@ -44,24 +61,47 @@ class UserProgressTool
                 continue;
             }
 
-            // Calculate progress from material_progress table
-            // Count total materials in the course (across all modules)
-            $totalMaterials = DB::table('materials')
-                ->join('modules', 'materials.module_id', '=', 'modules.id')
-                ->where('modules.course_id', $enrollment->course_id)
-                ->count();
+            $materials = $course->modules
+                ->flatMap(fn ($module) => $module->materials)
+                ->filter(fn (Material $material) => $material->contents->isNotEmpty())
+                ->values();
 
-            // Count completed materials by this user for this course
-            $completedMaterials = DB::table('material_progress')
-                ->join('materials', 'material_progress.material_id', '=', 'materials.id')
-                ->join('modules', 'materials.module_id', '=', 'modules.id')
-                ->where('modules.course_id', $enrollment->course_id)
-                ->where('material_progress.user_id', $this->userId)
-                ->where('material_progress.is_completed', true)
-                ->count();
+            $totalMaterials = $materials->count();
+
+            $materialIds = $materials->pluck('id');
+            $contentIds = $materials->flatMap(fn (Material $material) => $material->contents->pluck('id'));
+
+            $completedMaterialIds = $materialIds->isEmpty()
+                ? collect()
+                : MaterialProgress::query()
+                    ->where('user_id', $this->userId)
+                    ->whereIn('material_id', $materialIds)
+                    ->where('is_completed', true)
+                    ->pluck('material_id')
+                    ->flip();
+
+            $completedContentIds = $contentIds->isEmpty()
+                ? collect()
+                : MaterialContentProgress::query()
+                    ->where('user_id', $this->userId)
+                    ->whereIn('material_content_id', $contentIds)
+                    ->where('is_completed', true)
+                    ->pluck('material_content_id')
+                    ->flip();
+
+            $completedMaterials = $materials->filter(function (Material $material) use ($completedMaterialIds, $completedContentIds) {
+                if (isset($completedMaterialIds[$material->id])) {
+                    return true;
+                }
+
+                return $material->contents->isNotEmpty()
+                    && $material->contents->every(
+                        fn (MaterialContent $content) => isset($completedContentIds[$content->id])
+                    );
+            })->count();
 
             $progress = $totalMaterials > 0
-                ? round(($completedMaterials / $totalMaterials) * 100)
+                ? (int) round(($completedMaterials / $totalMaterials) * 100)
                 : 0;
 
             $courseData = [
@@ -71,7 +111,7 @@ class UserProgressTool
                 'progress' => $progress,
                 'completed_materials' => $completedMaterials,
                 'total_materials' => $totalMaterials,
-                'completed' => $progress >= 100,
+                'completed' => $totalMaterials > 0 && $completedMaterials >= $totalMaterials,
             ];
 
             if ($courseData['completed']) {

@@ -1,22 +1,105 @@
-import { Link } from '@inertiajs/react';
 import { ArrowRight, Award, Check } from 'lucide-react';
-import { motion, useReducedMotion } from 'motion/react';
+import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring, type Variants } from 'motion/react';
+import { useEffect, useRef, useState } from 'react';
+import type { PointerEvent } from 'react';
 
 import Button from '@/components/atoms/Button';
+import CertificateTemplateCard from '@/components/molecules/CertificateTemplateCard';
 import LandingSectionHeader from '@/components/molecules/LandingSectionHeader';
+import SectionLink from '@/components/molecules/SectionLink';
 import { useBranding } from '@/hooks/useBranding';
+import { useLanding } from '@/hooks/useLanding';
 
-const POINTS = [
-    'Downloadable PDF, ready for LinkedIn',
-    'Unique certificate number anyone can verify',
-    'Recognised by our hiring and industry partners',
-];
+import type { CertificateTemplateData, LandingCertificate } from '@/types';
+
+interface Props {
+    certificates: LandingCertificate[];
+    certificateTemplate: CertificateTemplateData;
+}
+
+type DisplayCertificate = LandingCertificate & { isSample?: boolean };
 
 const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
 
-export default function CertificateSection() {
+const cardVariants: Variants = {
+    enter: (direction: number) => ({ opacity: 0, x: direction >= 0 ? 36 : -36, scale: 0.985 }),
+    center: { opacity: 1, x: 0, scale: 1 },
+    exit: (direction: number) => ({ opacity: 0, x: direction >= 0 ? -36 : 36, scale: 0.985 }),
+};
+
+function sampleCertificate(name: string, template: CertificateTemplateData): DisplayCertificate {
+    return {
+        id: -1,
+        certificate_number: 'SAMPLE-0000',
+        student_name: 'Dimas Aditya',
+        course_title: 'Digital Marketing Fundamentals',
+        instructor_name: name,
+        issued_at: '12 November 2026',
+        verify_url: '',
+        template,
+        isSample: true,
+    };
+}
+
+export default function CertificateSection({ certificates, certificateTemplate }: Props) {
+    const cardRef = useRef<HTMLDivElement>(null);
     const reduceMotion = useReducedMotion();
-    const { name, domain } = useBranding();
+    const { name } = useBranding();
+    const { certificate: copy } = useLanding();
+
+    const [[activeIndex, direction], setPage] = useState<[number, number]>([0, 0]);
+    const [paused, setPaused] = useState(false);
+
+    const showcase: DisplayCertificate[] = certificates.length
+        ? certificates
+        : copy.show_sample_when_empty
+          ? [sampleCertificate(name, certificateTemplate)]
+          : [];
+    const count = showcase.length;
+    const canRotate = copy.rotate && count > 1;
+
+    const tiltXTarget = useMotionValue(0);
+    const tiltYTarget = useMotionValue(0);
+    const tiltX = useSpring(tiltXTarget, { stiffness: 180, damping: 22 });
+    const tiltY = useSpring(tiltYTarget, { stiffness: 180, damping: 22 });
+
+    const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+        if (reduceMotion) return;
+        const rect = event.currentTarget.getBoundingClientRect();
+        const px = (event.clientX - rect.left) / rect.width - 0.5;
+        const py = (event.clientY - rect.top) / rect.height - 0.5;
+        tiltYTarget.set(px * 10);
+        tiltXTarget.set(-py * 8);
+    };
+
+    const resetTilt = () => {
+        tiltXTarget.set(0);
+        tiltYTarget.set(0);
+        setPaused(false);
+    };
+
+    useEffect(() => {
+        if (count > 0 && activeIndex >= count) {
+            setPage([0, 0]);
+        }
+    }, [activeIndex, count]);
+
+    useEffect(() => {
+        if (reduceMotion || paused || !canRotate) {
+            return;
+        }
+
+        const timer = window.setInterval(
+            () => {
+                setPage(([index]) => [(index + 1) % count, 1]);
+            },
+            Math.max(2, copy.rotate_seconds) * 1000,
+        );
+
+        return () => window.clearInterval(timer);
+    }, [reduceMotion, paused, canRotate, count, copy.rotate_seconds]);
+
+    const certificate = showcase[activeIndex] ?? showcase[0];
 
     return (
         <section id="certificate" className="relative overflow-hidden bg-[#141416] py-24 text-white dark:bg-[#0F0F11]">
@@ -31,18 +114,18 @@ export default function CertificateSection() {
                     className="flex flex-col gap-7"
                 >
                     <LandingSectionHeader
-                        badge="Certificate"
-                        titleLead="Proof of Work, "
-                        titleHighlight="Not Just Points"
+                        badge={copy.badge}
+                        titleLead={copy.title_lead}
+                        titleHighlight={copy.title_highlight}
                         titleClassName="text-white"
-                        description="Every completed course ends with a certificate you can actually use — share it, print it, or let employers verify it in seconds."
+                        description={copy.description}
                         descriptionClassName="text-white/45"
                     />
 
                     <ul className="flex flex-col gap-3">
-                        {POINTS.map((point, index) => (
+                        {copy.points.map((point, index) => (
                             <motion.li
-                                key={point}
+                                key={`${point}-${index}`}
                                 initial={reduceMotion ? false : { opacity: 0, x: -16 }}
                                 whileInView={{ opacity: 1, x: 0 }}
                                 viewport={{ once: true, amount: 0.8 }}
@@ -58,11 +141,11 @@ export default function CertificateSection() {
                     </ul>
 
                     <div className="pt-2">
-                        <Link href="/course">
+                        <SectionLink href={copy.cta_href}>
                             <Button rightIcon={<ArrowRight size={16} />} className="px-8 py-3 text-base">
-                                Start learning
+                                {copy.cta_label}
                             </Button>
-                        </Link>
+                        </SectionLink>
                     </div>
                 </motion.div>
 
@@ -75,43 +158,81 @@ export default function CertificateSection() {
                 >
                     <div
                         aria-hidden
-                        className="pointer-events-none absolute -inset-6 -z-10 bg-[radial-gradient(60%_60%_at_50%_50%,color-mix(in_srgb,var(--color-purple-500)_18%,transparent),transparent_75%)] blur-2xl"
+                        className="pointer-events-none absolute -inset-8 -z-10 rounded-[2rem] bg-[radial-gradient(60%_60%_at_50%_50%,color-mix(in_srgb,var(--color-purple-500)_28%,transparent),transparent_75%)] blur-3xl"
                     />
 
-                    <div className="border border-white/10 bg-white p-2 shadow-2xl">
-                        <div className="border border-neutral-200 px-6 py-8 text-center text-neutral-900 sm:px-10 sm:py-10">
-                            <div className="flex items-center justify-between text-[9px] font-semibold tracking-[0.2em] text-neutral-400 uppercase">
-                                <span>{name}</span>
-                                <span>Certificate</span>
+                    <motion.div
+                        ref={cardRef}
+                        onPointerMove={handlePointerMove}
+                        onPointerEnter={() => setPaused(true)}
+                        onPointerLeave={resetTilt}
+                        style={{ rotateX: tiltX, rotateY: tiltY, transformPerspective: 1000 }}
+                        className="relative"
+                    >
+                        {certificate ? (
+                            <AnimatePresence mode="wait" initial={false} custom={direction}>
+                                <motion.div
+                                    key={certificate.id}
+                                    custom={direction}
+                                    variants={cardVariants}
+                                    initial={reduceMotion ? false : 'enter'}
+                                    animate="center"
+                                    exit={reduceMotion ? undefined : 'exit'}
+                                    transition={{ type: 'spring', visualDuration: 0.5, bounce: 0.08 }}
+                                >
+                                    <div className="relative">
+                                        <CertificateTemplateCard
+                                            className="shadow-[0_28px_80px_-28px_rgba(124,58,237,0.65)]"
+                                            template={certificate.template ?? certificateTemplate}
+                                            values={{
+                                                studentName: certificate.student_name,
+                                                courseTitle: certificate.course_title,
+                                                certificateNumber: certificate.certificate_number,
+                                                issuedAt: certificate.issued_at,
+                                                instructorName: certificate.instructor_name,
+                                                brandName: name,
+                                                signatureName: certificate.instructor_name,
+                                                verifyUrl: certificate.isSample ? undefined : certificate.verify_url,
+                                            }}
+                                        />
+
+                                        {certificate.isSample && (
+                                            <>
+                                                <span className="absolute top-4 right-4 z-20 flex items-center gap-1.5 rounded-full bg-black/70 px-2.5 py-1 text-[9px] font-semibold tracking-[0.12em] text-white uppercase backdrop-blur-sm">
+                                                    <Award size={11} />
+                                                    Sample preview
+                                                </span>
+                                                <span className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 text-center text-[8px] font-medium tracking-[0.12em] text-white/70 uppercase drop-shadow">
+                                                    Illustrative preview · no real certificate issued
+                                                </span>
+                                            </>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            </AnimatePresence>
+                        ) : (
+                            <div className="border border-dashed border-white/20 bg-white/5 p-10 text-center text-sm text-white/50">
+                                No certificates have been issued yet.
                             </div>
+                        )}
 
-                            <Award className="mx-auto mt-7 h-10 w-10 text-purple-600" strokeWidth={1.5} />
-
-                            <p className="mt-5 text-[9px] font-semibold tracking-[0.3em] text-purple-600 uppercase">Certificate of completion</p>
-                            <p className="mt-3 font-display text-3xl leading-none">Jane Doe</p>
-                            <p className="mt-3 text-[11px] text-neutral-500">has successfully completed</p>
-                            <p className="mt-1 text-sm font-semibold">Digital Marketing Fundamentals</p>
-
-                            <div className="mt-9 flex items-end justify-between gap-4 text-left">
-                                <div className="min-w-0">
-                                    <p className="text-[9px] tracking-[0.15em] text-neutral-400 uppercase">Issued</p>
-                                    <p className="mt-1 truncate border-t border-neutral-300 pt-1 text-[11px]">12 November 2026</p>
-                                </div>
-
-                                <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-full border-2 border-purple-200 text-center text-[7px] font-bold tracking-[0.08em] text-purple-600 uppercase">
-                                    <Award size={14} />
-                                    Verified
-                                </div>
-
-                                <div className="min-w-0 text-right">
-                                    <p className="text-[9px] tracking-[0.15em] text-neutral-400 uppercase">Instructor</p>
-                                    <p className="mt-1 truncate border-t border-neutral-300 pt-1 text-[11px]">A. Prameswari</p>
-                                </div>
+                        {canRotate && (
+                            <div className="mt-5 flex items-center justify-center gap-2">
+                                {showcase.map((item, index) => (
+                                    <button
+                                        key={item.id}
+                                        type="button"
+                                        onClick={() => setPage([index, index >= activeIndex ? 1 : -1])}
+                                        aria-label={`Show certificate ${index + 1}`}
+                                        aria-current={index === activeIndex}
+                                        className={`h-1.5 rounded-full transition-colors duration-300 ${
+                                            index === activeIndex ? 'w-6 bg-purple-400' : 'w-1.5 bg-white/25 hover:bg-white/60'
+                                        }`}
+                                    />
+                                ))}
                             </div>
-
-                            <p className="mt-8 truncate text-[8px] tracking-[0.15em] text-neutral-400 uppercase">Verify at {domain}/certificate</p>
-                        </div>
-                    </div>
+                        )}
+                    </motion.div>
                 </motion.div>
             </div>
         </section>

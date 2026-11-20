@@ -38,7 +38,7 @@ class MaterialService
                 Gate::authorize('publish', $material);
 
                 if (! $material->canBePublished()) {
-                    throw new DomainException('This material is incomplete and cannot be published. Publish at least one lesson first.');
+                    throw new DomainException('This material is incomplete and cannot be published. Publish at least one content first.');
                 }
             }
 

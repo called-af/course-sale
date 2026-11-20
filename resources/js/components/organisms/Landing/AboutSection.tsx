@@ -7,9 +7,8 @@ import Title from '@/components/atoms/Title';
 import MarqueeLine from '@/components/molecules/MarqueeLine';
 import { useBranding } from '@/hooks/useBranding';
 import { useLanding } from '@/hooks/useLanding';
+import { EASE, SOFT_SPRING, entrance } from '@/lib/motion';
 import { withBrand } from '@/types';
-
-const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
 
 const SCRAMBLE_INTERVAL = 70;
 const SCRAMBLE_TICKS = 14;
@@ -85,7 +84,7 @@ export default function AboutSection() {
                 <div className="grid items-center gap-12 px-6 pt-14 pb-14 sm:px-10 sm:pt-16 sm:pb-16 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16 lg:px-14 lg:pt-20 lg:pb-20">
                     {/* Story */}
                     <motion.div
-                        initial={reduceMotion ? false : { opacity: 0, x: -32 }}
+                        initial={entrance(reduceMotion, { opacity: 0, x: -32 })}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true, amount: 0.3 }}
                         transition={{ duration: 0.7, ease: EASE }}
@@ -111,7 +110,7 @@ export default function AboutSection() {
                             {highlights.map((item, index) => (
                                 <motion.li
                                     key={item}
-                                    initial={reduceMotion ? false : { opacity: 0, x: -16 }}
+                                    initial={entrance(reduceMotion, { opacity: 0, x: -16 })}
                                     whileInView={{ opacity: 1, x: 0 }}
                                     viewport={{ once: true, amount: 0.8 }}
                                     transition={{ duration: 0.45, delay: 0.25 + index * 0.1, ease: EASE }}
@@ -128,7 +127,7 @@ export default function AboutSection() {
 
                     {/* Numbers */}
                     <motion.div
-                        initial={reduceMotion ? false : { opacity: 0, x: 32 }}
+                        initial={entrance(reduceMotion, { opacity: 0, x: 32 })}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true, amount: 0.3 }}
                         transition={{ duration: 0.7, delay: 0.1, ease: EASE }}
@@ -146,8 +145,9 @@ export default function AboutSection() {
                             {stats.map((stat, index) => (
                                 <motion.div
                                     key={stat.label}
-                                    initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+                                    initial={entrance(reduceMotion, { opacity: 0, y: 16 })}
                                     whileInView={{ opacity: 1, y: 0 }}
+                                    whileHover={reduceMotion ? undefined : { y: -5 }}
                                     viewport={{ once: true, amount: 0.5 }}
                                     transition={{ duration: 0.45, delay: 0.2 + index * 0.08, ease: EASE }}
                                     className={[
@@ -168,13 +168,21 @@ export default function AboutSection() {
                         </div>
 
                         <div className="border-t border-white/[0.06] px-6 py-5 sm:px-8">
-                            <Link
-                                href={about.cta_href}
-                                className="group inline-flex items-center gap-2 text-[13px] font-medium text-white/55 transition-colors hover:text-white"
-                            >
-                                {about.cta_label}
-                                <ArrowUpRight size={14} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                            </Link>
+                            <motion.div initial="rest" animate="rest" whileHover={reduceMotion ? undefined : 'hover'} className="inline-flex">
+                                <Link
+                                    href={about.cta_href}
+                                    className="group inline-flex items-center gap-2 text-[13px] font-medium text-white/55 transition-colors hover:text-white"
+                                >
+                                    {about.cta_label}
+                                    <motion.span
+                                        variants={{ rest: { x: 0, y: 0 }, hover: { x: 3, y: -3 } }}
+                                        transition={SOFT_SPRING}
+                                        className="flex text-purple-300 transition-colors group-hover:text-white"
+                                    >
+                                        <ArrowUpRight size={14} />
+                                    </motion.span>
+                                </Link>
+                            </motion.div>
                         </div>
                     </motion.div>
                 </div>

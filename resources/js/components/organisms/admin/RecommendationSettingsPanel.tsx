@@ -22,7 +22,7 @@ export default function RecommendationSettingsPanel({ initialRecommendation }: R
 
     return (
         <section className="space-y-6">
-            <Head title="Rekomendasi Python" />
+            <Head title="Recommendations" />
 
             <Card className="overflow-hidden rounded-none">
                 <div className="flex flex-col gap-5 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
@@ -31,15 +31,17 @@ export default function RecommendationSettingsPanel({ initialRecommendation }: R
                             <Bot size={21} />
                         </span>
                         <div>
-                            <h2 className="font-semibold text-slate-900 dark:text-white">Rekomendasi Python AI</h2>
-                            <p className="mt-1 text-sm text-neutral-500">Aktifkan atau nonaktifkan layanan rekomendasi dari microservice Python.</p>
+                            <h2 className="font-semibold text-slate-900 dark:text-white">Recommendation System</h2>
+                            <p className="mt-1 text-sm text-neutral-500">
+                                Enable or disable course recommendations powered by the native Laravel engine.
+                            </p>
                         </div>
                     </div>
 
                     <Toggle
                         checked={initialRecommendation.enabled}
                         onCheckedChange={toggleRecommendation}
-                        label="Aktifkan atau nonaktifkan rekomendasi Python AI"
+                        label="Enable or disable the recommendation system"
                     />
                 </div>
 
@@ -47,11 +49,11 @@ export default function RecommendationSettingsPanel({ initialRecommendation }: R
                     <div className="flex items-start gap-4">
                         <Sparkles className="mt-0.5 h-5 w-5 text-blue-600 dark:text-blue-400" />
                         <div className="space-y-2">
-                            <h3 className="font-semibold text-slate-900 dark:text-white">Status layanan</h3>
+                            <h3 className="font-semibold text-slate-900 dark:text-white">Service status</h3>
                             <p className="text-sm leading-6 text-neutral-500">
                                 {initialRecommendation.enabled
-                                    ? 'Kayanan aktif. Sistem akan mengambil rekomendasi dari Python microservice.'
-                                    : 'Layanan sedang dimatikan. Rekomendasi tidak akan ditampilkan.'}
+                                    ? 'Service active. The system shows personalized course recommendations using the native Laravel engine.'
+                                    : 'Service is disabled. Course recommendations will not be shown.'}
                             </p>
                         </div>
                     </div>

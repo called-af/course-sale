@@ -81,7 +81,7 @@ export default function AdminReviewsPage({ reviews }: Props) {
                 />
 
                 {/* Stats */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <StatCard label="Total Reviews" value={reviews.length} />
                     <StatCard label="Approved" value={reviews.filter((r) => r.is_approved).length} color="emerald" />
                     <StatCard label="Pending" value={pending} color={pending > 0 ? 'amber' : 'slate'} />
@@ -127,18 +127,10 @@ export default function AdminReviewsPage({ reviews }: Props) {
                                 >
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0">
-                                            <p className="truncate text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                                {review.user.name}
-                                            </p>
-                                            <p className="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">
-                                                {formatDate(review.created_at)}
-                                            </p>
+                                            <p className="truncate text-sm font-semibold text-slate-700 dark:text-slate-200">{review.user.name}</p>
+                                            <p className="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">{formatDate(review.created_at)}</p>
                                         </div>
-                                        {review.is_approved ? (
-                                            <Badge variant="success">Approved</Badge>
-                                        ) : (
-                                            <Badge variant="warning">Pending</Badge>
-                                        )}
+                                        {review.is_approved ? <Badge variant="success">Approved</Badge> : <Badge variant="warning">Pending</Badge>}
                                     </div>
 
                                     <div className="mt-3 flex items-center gap-1.5">
@@ -205,112 +197,112 @@ export default function AdminReviewsPage({ reviews }: Props) {
 
                         {/* Desktop: table */}
                         <div className="hidden overflow-x-auto border border-slate-200 bg-white shadow-sm lg:block dark:border-slate-700 dark:bg-[#1e1f24]">
-                        <table className="w-full min-w-[820px] text-sm">
-                            <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-[#1e1f24]">
-                                <tr>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
-                                        Student
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
-                                        Course
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
-                                        Rating
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
-                                        Comment
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
-                                        Status
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
-                                        Date
-                                    </th>
-                                    <th className="px-4 py-3 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {filtered.map((review) => (
-                                    <tr key={review.id} className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800">
-                                        <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-200">{review.user.name}</td>
-                                        <td className="px-4 py-3">
-                                            {review.course.slug ? (
-                                                <Link
-                                                    href={`/admin/courses/${review.course.slug}`}
-                                                    className="line-clamp-1 font-medium text-purple-600 hover:underline dark:text-purple-400"
-                                                >
-                                                    {review.course.title}
-                                                </Link>
-                                            ) : (
-                                                <span className="line-clamp-1 font-medium text-slate-500 dark:text-slate-400">
-                                                    {review.course.title}
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center gap-1.5">
-                                                <StarRating value={review.rating} readonly size="sm" />
-                                                <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{review.rating}</span>
-                                            </div>
-                                        </td>
-                                        <td className="max-w-xs px-4 py-3">
-                                            <p className="line-clamp-2 text-slate-600 dark:text-slate-300">
-                                                {review.comment || <span className="text-slate-400 italic dark:text-slate-500">No comment</span>}
-                                            </p>
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            {review.is_approved ? (
-                                                <Badge variant="success">Approved</Badge>
-                                            ) : (
-                                                <Badge variant="warning">Pending</Badge>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3 text-xs whitespace-nowrap text-slate-400 dark:text-slate-500">
-                                            {formatDate(review.created_at)}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center justify-end gap-1.5">
-                                                {!review.is_approved ? (
-                                                    <Button
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        onClick={() => approve(review.id)}
-                                                        isLoading={processingId === review.id}
-                                                        leftIcon={<CheckCircle2 size={13} />}
-                                                        className="!text-emerald-600 hover:!bg-emerald-50 dark:hover:!bg-emerald-950/30"
-                                                    >
-                                                        Approve
-                                                    </Button>
-                                                ) : (
-                                                    <Button
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        onClick={() => reject(review.id)}
-                                                        isLoading={processingId === review.id}
-                                                        leftIcon={<XCircle size={13} />}
-                                                        className="!text-amber-600 hover:!bg-amber-50 dark:hover:!bg-amber-950/30"
-                                                    >
-                                                        Hide
-                                                    </Button>
-                                                )}
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    onClick={() => destroy(review.id)}
-                                                    isLoading={processingId === review.id}
-                                                    leftIcon={<Trash2 size={13} />}
-                                                    className="!text-red-500 hover:!bg-red-50 dark:hover:!bg-red-950/30"
-                                                >
-                                                    Delete
-                                                </Button>
-                                            </div>
-                                        </td>
+                            <table className="w-full min-w-[820px] text-sm">
+                                <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-[#1e1f24]">
+                                    <tr>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                            Student
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                            Course
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                            Rating
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                            Comment
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                            Status
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                            Date
+                                        </th>
+                                        <th className="px-4 py-3 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                                            Actions
+                                        </th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                    {filtered.map((review) => (
+                                        <tr key={review.id} className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800">
+                                            <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-200">{review.user.name}</td>
+                                            <td className="px-4 py-3">
+                                                {review.course.slug ? (
+                                                    <Link
+                                                        href={`/admin/courses/${review.course.slug}`}
+                                                        className="line-clamp-1 font-medium text-purple-600 hover:underline dark:text-purple-400"
+                                                    >
+                                                        {review.course.title}
+                                                    </Link>
+                                                ) : (
+                                                    <span className="line-clamp-1 font-medium text-slate-500 dark:text-slate-400">
+                                                        {review.course.title}
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-1.5">
+                                                    <StarRating value={review.rating} readonly size="sm" />
+                                                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{review.rating}</span>
+                                                </div>
+                                            </td>
+                                            <td className="max-w-xs px-4 py-3">
+                                                <p className="line-clamp-2 text-slate-600 dark:text-slate-300">
+                                                    {review.comment || <span className="text-slate-400 italic dark:text-slate-500">No comment</span>}
+                                                </p>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                {review.is_approved ? (
+                                                    <Badge variant="success">Approved</Badge>
+                                                ) : (
+                                                    <Badge variant="warning">Pending</Badge>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3 text-xs whitespace-nowrap text-slate-400 dark:text-slate-500">
+                                                {formatDate(review.created_at)}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center justify-end gap-1.5">
+                                                    {!review.is_approved ? (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            onClick={() => approve(review.id)}
+                                                            isLoading={processingId === review.id}
+                                                            leftIcon={<CheckCircle2 size={13} />}
+                                                            className="!text-emerald-600 hover:!bg-emerald-50 dark:hover:!bg-emerald-950/30"
+                                                        >
+                                                            Approve
+                                                        </Button>
+                                                    ) : (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            onClick={() => reject(review.id)}
+                                                            isLoading={processingId === review.id}
+                                                            leftIcon={<XCircle size={13} />}
+                                                            className="!text-amber-600 hover:!bg-amber-50 dark:hover:!bg-amber-950/30"
+                                                        >
+                                                            Hide
+                                                        </Button>
+                                                    )}
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        onClick={() => destroy(review.id)}
+                                                        isLoading={processingId === review.id}
+                                                        leftIcon={<Trash2 size={13} />}
+                                                        className="!text-red-500 hover:!bg-red-50 dark:hover:!bg-red-950/30"
+                                                    >
+                                                        Delete
+                                                    </Button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     </>
                 )}

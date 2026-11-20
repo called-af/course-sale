@@ -41,6 +41,12 @@ return [
         'url' => env('RECOMMENDATION_SERVICE_URL', 'http://127.0.0.1:8001'),
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI', env('APP_URL').'/auth/google/callback'),
+    ],
+
     'libreoffice' => [
         // Used to convert uploaded Word/PowerPoint files into a PDF that can
         // be rendered inline in the lesson. Set to null to disable.

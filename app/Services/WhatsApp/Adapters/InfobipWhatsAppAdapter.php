@@ -29,7 +29,7 @@ class InfobipWhatsAppAdapter extends AbstractAdapter
         $base = $this->config->baseUrl();
 
         if ($base === '') {
-            throw ProviderException::configuration($this->name(), 'Base URL Infobip wajib diisi.');
+            throw ProviderException::configuration($this->name(), 'Infobip Base URL is required.');
         }
 
         return $base.'/'.ltrim($path, '/');
@@ -40,7 +40,7 @@ class InfobipWhatsAppAdapter extends AbstractAdapter
         $from = (string) $this->config->configValue('from', '');
 
         if ($from === '') {
-            throw ProviderException::configuration($this->name(), 'Sender number Infobip wajib diisi.');
+            throw ProviderException::configuration($this->name(), 'Infobip sender number is required.');
         }
 
         return $from;
@@ -54,14 +54,14 @@ class InfobipWhatsAppAdapter extends AbstractAdapter
             $json = $this->get($this->endpoint('whatsapp/1/senders'), $this->headers())->json() ?? [];
 
             return ConnectionResult::ok(
-                'Koneksi Infobip berhasil.',
+                'Infobip connection successful.',
                 (int) ((microtime(true) - $start) * 1000),
                 ['senders' => count($json['senders'] ?? $json ?? [])],
             );
         } catch (ProviderException $exception) {
             if (in_array($exception->statusCode, [404, 405], true)) {
                 return ConnectionResult::ok(
-                    'Base URL dan kredensial tersimpan. Endpoint daftar sender tidak tersedia pada tenant ini.',
+                    'Base URL and credentials are saved. The sender list endpoint is not available on this tenant.',
                     (int) ((microtime(true) - $start) * 1000),
                 );
             }
@@ -90,7 +90,7 @@ class InfobipWhatsAppAdapter extends AbstractAdapter
         };
 
         if ($path === null) {
-            return $this->failure('Tipe media tidak didukung Infobip.', 'unsupported_media_type');
+            return $this->failure('Media type is not supported by Infobip.', 'unsupported_media_type');
         }
 
         $content = ['mediaUrl' => $request->url];
@@ -170,7 +170,7 @@ class InfobipWhatsAppAdapter extends AbstractAdapter
 
             if ($statusGroup === 'REJECTED') {
                 return $this->failure(
-                    (string) (data_get($json, 'status.description') ?? 'Infobip menolak pesan.'),
+                    (string) (data_get($json, 'status.description') ?? 'Infobip rejected the message.'),
                     (string) data_get($json, 'status.name', 'rejected'),
                     false,
                     $json,

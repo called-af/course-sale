@@ -20,8 +20,21 @@ class StoreMaterialContentRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
+    protected function prepareForValidation(): void
+    {
+        if ($this->input('type') !== 'quiz') {
+            $this->merge(['duration' => null]);
+        }
+
+        if ($this->input('type') === 'quiz' && ($this->input('duration') === '' || $this->input('duration') === 'null')) {
+            $this->merge(['duration' => null]);
+        }
+    }
+
     public function rules(): array
     {
+        $isQuiz = $this->input('type') === 'quiz';
+
         return [
             'title' => ['required', 'string', 'max:255'],
             'sort_order' => ['nullable', 'integer', 'min:1'],
@@ -35,7 +48,9 @@ class StoreMaterialContentRequest extends FormRequest
 
             'content_url' => ['nullable', 'string', 'max:2048'],
             'content_text' => ['nullable'],
-            'duration' => ['nullable', 'integer', 'min:1'],
+            'duration' => $isQuiz
+                ? ['nullable', 'integer', 'min:1']
+                : ['nullable'],
 
             // Uploaded files are stored on the public disk and their URL is
             // written to content_url by the service.

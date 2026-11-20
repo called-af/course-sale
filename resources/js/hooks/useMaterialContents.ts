@@ -29,7 +29,7 @@ export function useMaterialContents(
     const [open, setOpen] = useState(false);
 
     const [title, setTitle] = useState('');
-    const [type, setType] = useState<MaterialContent['type']>('text');
+    const [type, setType] = useState<MaterialContent['type']>('video');
     const [status, setStatus] = useState<'draft' | 'published'>('draft');
     const [contentUrl, setContentUrl] = useState('');
     const [contentText, setContentText] = useState<unknown>([]);
@@ -63,7 +63,7 @@ export function useMaterialContents(
 
     function reset() {
         setTitle('');
-        setType('text');
+        setType('video');
         setContentUrl('');
         setContentText([]);
         setDuration('');
@@ -88,11 +88,15 @@ export function useMaterialContents(
         data.append('type', type);
         data.append('status', status);
 
+        if (contentUrl.trim()) {
+            data.append('content_url', contentUrl.trim());
+        }
+
         if (file) {
             data.append('file', file);
         }
 
-        if (duration) {
+        if (duration !== '') {
             data.append('duration', String(duration));
         }
 
@@ -106,7 +110,7 @@ export function useMaterialContents(
     function create() {
         if (!title.trim()) return;
 
-        if (supportsUpload(type) && sourceMode === 'upload') {
+        if (supportsUpload(type) && sourceMode === 'upload' && file) {
             router.post(baseUrl, uploadPayload(), {
                 forceFormData: true,
                 onSuccess: () => {
@@ -125,7 +129,7 @@ export function useMaterialContents(
                 type,
                 content_url: contentUrl.trim() || null,
                 content_text: (contentText as FormDataConvertible) || null,
-                duration: duration || null,
+                duration: type === 'quiz' ? duration || null : null,
                 status,
             },
             {
@@ -137,7 +141,7 @@ export function useMaterialContents(
     function update() {
         if (!editing) return;
 
-        if (supportsUpload(type) && sourceMode === 'upload') {
+        if (supportsUpload(type) && sourceMode === 'upload' && file) {
             router.post(`${baseUrl}/${editing.id}`, uploadPayload('PUT'), {
                 forceFormData: true,
                 onSuccess: () => setFile(null),
@@ -151,7 +155,7 @@ export function useMaterialContents(
             type,
             content_url: contentUrl.trim() || null,
             content_text: (contentText as FormDataConvertible) || null,
-            duration: duration || null,
+            duration: type === 'quiz' ? duration || null : null,
             status,
         });
     }

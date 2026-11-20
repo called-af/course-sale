@@ -19,7 +19,7 @@ class BedrockAdapter extends AbstractAdapter
             $models = $this->listModels();
 
             return ConnectionResult::ok(
-                'Koneksi Amazon Bedrock berhasil. '.count($models).' model terdeteksi.',
+                'Amazon Bedrock connection successful. '.count($models).' models detected.',
                 (int) ((microtime(true) - $start) * 1000),
                 ['models_count' => count($models)],
             );
@@ -212,7 +212,7 @@ class BedrockAdapter extends AbstractAdapter
         $sessionToken = (string) $this->config->credential('session_token', '');
 
         if ($accessKey === '' || $secretKey === '') {
-            throw ProviderException::configuration($this->name(), 'AWS Access Key dan Secret Access Key wajib diisi.');
+            throw ProviderException::configuration($this->name(), 'AWS Access Key and Secret Access Key are required.');
         }
 
         $body = $payload === null ? '' : json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -282,7 +282,7 @@ class BedrockAdapter extends AbstractAdapter
                 ->withBody($body, 'application/json')
                 ->send(strtoupper($method), $url);
         } catch (ConnectionException $exception) {
-            throw new ProviderException('Tidak dapat terhubung ke Amazon Bedrock.', $this->name(), null, true, 'connection_error', $exception);
+            throw new ProviderException('Unable to connect to Amazon Bedrock.', $this->name(), null, true, 'connection_error', $exception);
         }
 
         if ($response->failed()) {

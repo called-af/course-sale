@@ -34,7 +34,7 @@ class MetaWhatsAppAdapter extends AbstractAdapter
         $id = (string) $this->config->configValue('phone_number_id', '');
 
         if ($id === '') {
-            throw ProviderException::configuration($this->name(), 'Phone Number ID wajib diisi untuk Meta WhatsApp Cloud API.');
+            throw ProviderException::configuration($this->name(), 'Phone Number ID is required for the Meta WhatsApp Cloud API.');
         }
 
         return $id;
@@ -56,7 +56,7 @@ class MetaWhatsAppAdapter extends AbstractAdapter
             $json = $this->get($url, $this->headers())->json();
 
             return ConnectionResult::ok(
-                'Koneksi Meta WhatsApp berhasil untuk '.($json['display_phone_number'] ?? $this->phoneNumberId()).'.',
+                'Meta WhatsApp connection successful for '.($json['display_phone_number'] ?? $this->phoneNumberId()).'.',
                 (int) ((microtime(true) - $start) * 1000),
                 [
                     'verified_name' => $json['verified_name'] ?? null,
@@ -87,7 +87,7 @@ class MetaWhatsAppAdapter extends AbstractAdapter
     {
         $type = $request->type;
         if (! in_array($type, ['image', 'document', 'video', 'audio'], true)) {
-            return $this->failure('Tipe media tidak didukung Meta Cloud API.', 'unsupported_media_type');
+            return $this->failure('Media type is not supported by the Meta Cloud API.', 'unsupported_media_type');
         }
 
         $media = ['link' => $request->url];

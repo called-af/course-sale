@@ -80,7 +80,7 @@ export default function StudentDashboardTemplate({
             {orders.length > 0 && (
                 <DashboardPanel
                     title="Transaction History"
-                    description="Riwayat transaksi pembayaran kursus Anda."
+                    description="Your course payment transaction history."
                     icon={<Receipt className="h-4 w-4" />}
                 >
                     <div className="space-y-3">
@@ -93,7 +93,7 @@ export default function StudentDashboardTemplate({
                                     <p className="text-sm font-semibold text-slate-900 dark:text-white">{order.order_number}</p>
                                     <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{order.items?.[0]?.course_title ?? 'Course'}</p>
                                     <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
-                                        {order.created_at ? new Date(order.created_at).toLocaleDateString('id-ID') : '—'}
+                                        {order.created_at ? new Date(order.created_at).toLocaleDateString('en-US') : '—'}
                                     </p>
                                 </div>
                                 <div className="text-right">

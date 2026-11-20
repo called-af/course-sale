@@ -151,12 +151,12 @@ class MidtransPaymentGateway implements PaymentGatewayInterface
 
         if ($paymentType !== '' && ! in_array($paymentType, self::REFUNDABLE_CHANNELS, true)) {
             throw new \RuntimeException(
-                'Midtrans tidak mendukung refund API untuk channel '.$paymentType.'. Lakukan refund manual melalui dashboard Midtrans.'
+                'Midtrans does not support the refund API for channel '.$paymentType.'. Process the refund manually through the Midtrans dashboard.'
             );
         }
 
         if ($amount <= 0) {
-            throw new \RuntimeException('Nominal refund harus lebih besar dari nol.');
+            throw new \RuntimeException('Refund amount must be greater than zero.');
         }
 
         $this->assertReady();
@@ -336,23 +336,23 @@ class MidtransPaymentGateway implements PaymentGatewayInterface
         $issues = [];
 
         if ($serverKey === '') {
-            $issues[] = 'MIDTRANS_SERVER_KEY belum diisi.';
+            $issues[] = 'MIDTRANS_SERVER_KEY is not set.';
         }
 
         if ($isProduction && $keyLooksSandbox) {
-            $issues[] = 'Mode production aktif tetapi server key masih key sandbox (SB-).';
+            $issues[] = 'Production mode is active but the server key is still a sandbox key (SB-).';
         }
 
         if (! $isProduction && $keyLooksProduction) {
-            $issues[] = 'Mode sandbox aktif tetapi server key adalah key production.';
+            $issues[] = 'Sandbox mode is active but the server key is a production key.';
         }
 
         if (app()->isProduction() && ! $isProduction) {
-            $issues[] = 'APP_ENV=production tetapi MIDTRANS_IS_PRODUCTION masih false. Transaksi akan masuk sandbox.';
+            $issues[] = 'APP_ENV=production but MIDTRANS_IS_PRODUCTION is still false. Transactions will go to sandbox.';
         }
 
         if ($isProduction && ! $keyLooksProduction && $serverKey !== '') {
-            $issues[] = 'MIDTRANS_IS_PRODUCTION=true tetapi format server key bukan key production.';
+            $issues[] = 'MIDTRANS_IS_PRODUCTION=true but the server key is not in production format.';
         }
 
         return [
@@ -391,15 +391,15 @@ class MidtransPaymentGateway implements PaymentGatewayInterface
         $isProduction = (bool) config('services.payment.midtrans.is_production');
 
         if ($isProduction && str_starts_with($serverKey, 'SB-')) {
-            throw new \RuntimeException('Midtrans production mode tidak boleh memakai server key sandbox (SB-).');
+            throw new \RuntimeException('Midtrans production mode must not use a sandbox server key (SB-).');
         }
 
         if (! $isProduction && str_starts_with($serverKey, 'Mid-server-')) {
-            throw new \RuntimeException('Midtrans sandbox mode tidak boleh memakai server key production.');
+            throw new \RuntimeException('Midtrans sandbox mode must not use a production server key.');
         }
 
         if (app()->isProduction() && ! $isProduction) {
-            throw new \RuntimeException('MIDTRANS_IS_PRODUCTION harus true saat APP_ENV=production.');
+            throw new \RuntimeException('MIDTRANS_IS_PRODUCTION must be true when APP_ENV=production.');
         }
     }
 

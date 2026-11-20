@@ -25,9 +25,9 @@ export default function TermsPage({
                     <h1 className="mt-6 text-4xl leading-[1.1] font-semibold tracking-[-0.02em] text-slate-900 sm:text-5xl dark:text-white">
                         {title}
                     </h1>
-                    {updated_at ? <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Terakhir diperbarui: {updated_at}</p> : null}
+                    {updated_at ? <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Last updated: {updated_at}</p> : null}
                     <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-400">
-                        Dengan menggunakan platform belajar ini, kamu memahami dan menyetujui ketentuan yang berlaku.
+                        By using this learning platform, you understand and agree to the applicable terms.
                     </p>
                 </div>
             </section>
@@ -49,7 +49,7 @@ export default function TermsPage({
                             className="inline-flex items-center gap-2 text-sm font-semibold text-purple-700 transition-colors hover:text-purple-500 dark:text-purple-400"
                         >
                             <ArrowLeft size={16} />
-                            Kembali ke Beranda
+                            Back to Home
                         </Link>
                     </div>
                 </div>

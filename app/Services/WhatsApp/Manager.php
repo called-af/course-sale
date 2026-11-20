@@ -141,7 +141,7 @@ class Manager
         $adapter = $this->adapterFor($provider);
 
         if (! $adapter->verifyWebhook($payload, $headers, $rawBody)) {
-            throw new ProviderException('Signature webhook tidak valid.', $provider->name, 403, false, 'invalid_signature');
+            throw new ProviderException('Invalid webhook signature.', $provider->name, 403, false, 'invalid_signature');
         }
 
         return $adapter->parseWebhook($payload, $headers, $rawBody);
@@ -205,7 +205,7 @@ class Manager
             }
         }
 
-        return $last ?? WhatsAppSendResult::failed('Tidak ada provider WhatsApp yang tersedia.', 'no_provider');
+        return $last ?? WhatsAppSendResult::failed('No WhatsApp provider is available.', 'no_provider');
     }
 
     protected function legacyAdapter(): WhatsAppProviderContract
@@ -247,7 +247,7 @@ class Manager
         }
 
         if (blank($config->baseUrl) && $driver !== 'meta') {
-            throw ProviderException::configuration('WhatsApp', 'Belum ada provider WhatsApp yang dikonfigurasi.');
+            throw ProviderException::configuration('WhatsApp', 'No WhatsApp provider is configured yet.');
         }
 
         return $this->registry->make($config);

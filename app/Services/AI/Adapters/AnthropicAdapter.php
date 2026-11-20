@@ -36,7 +36,7 @@ class AnthropicAdapter extends AbstractAdapter
             $models = $this->listModels();
 
             return ConnectionResult::ok(
-                'Koneksi Anthropic berhasil. '.count($models).' model terdeteksi.',
+                'Anthropic connection successful. '.count($models).' models detected.',
                 (int) ((microtime(true) - $start) * 1000),
                 ['models_count' => count($models)],
             );
@@ -49,7 +49,7 @@ class AnthropicAdapter extends AbstractAdapter
                         'messages' => [['role' => 'user', 'content' => 'ping']],
                     ], $this->headers());
 
-                    return ConnectionResult::ok('Koneksi Anthropic berhasil.', (int) ((microtime(true) - $start) * 1000));
+                    return ConnectionResult::ok('Anthropic connection successful.', (int) ((microtime(true) - $start) * 1000));
                 } catch (ProviderException $pingException) {
                     return ConnectionResult::failed($pingException->getMessage());
                 }
@@ -137,7 +137,7 @@ class AnthropicAdapter extends AbstractAdapter
                 ->withHeaders($this->headers())
                 ->post($this->endpoint('messages'), $payload);
         } catch (ConnectionException $exception) {
-            throw new ProviderException('Tidak dapat terhubung ke Anthropic.', $this->name(), null, true, 'connection_error', $exception);
+            throw new ProviderException('Unable to connect to Anthropic.', $this->name(), null, true, 'connection_error', $exception);
         }
 
         if ($response->failed()) {

@@ -2,16 +2,14 @@
   <img src="https://img.shields.io/badge/Laravel-12-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" />
   <img src="https://img.shields.io/badge/Inertia.js-2.0-9553E8?style=for-the-badge&logo=inertia&logoColor=white" />
-  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/FastAPI-ML_Engine-009688?style=for-the-badge&logo=fastapi&logoColor=white" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
 </p>
 
 # KursusIO — Course Sale Platform
 
-> Platform penjualan kursus online berbasis **Laravel 12 + Inertia.js + React 19** dengan **AI-Powered Recommendation Engine**, **AI Assistant**, dan **WhatsApp Integration**, serta pembayaran melalui **Midtrans**.
+> Platform penjualan kursus online berbasis **Laravel 12 + Inertia.js + React 19** dengan **Sistem Rekomendasi Kursus**, **AI Assistant**, dan **WhatsApp Integration**, serta pembayaran melalui **Midtrans**.
 
-Platform ini menjalankan proses belajar dari **pencarian kurikulum → pembelian → progress → quiz → sertifikat**, sambil menumbuhkan rekomendasi kursus secara personal.
+Platform ini menjalankan proses belajar dari **pencarian kurikulum → pembelian → progress → quiz → sertifikat**, sambil menampilkan rekomendasi kursus yang relevan.
 
 ---
 
@@ -23,7 +21,7 @@ Platform ini menjalankan proses belajar dari **pencarian kurikulum → pembelian
     - [Kurikulum & Pembelajaran](#kurikulum--pembelajaran)
     - [Sertifikat](#sertifikat)
     - [Reviews & Comments](#reviews--comments)
-    - [AI Recommendation Engine](#ai-recommendation-engine)
+    - [Sistem Rekomendasi Kursus](#sistem-rekomendasi-kursus)
     - [AI Assistant](#ai-assistant)
     - [WhatsApp Integration](#whatsapp-integration)
     - [Manajemen Konten & Moderation](#manajemen-konten--moderation)
@@ -50,9 +48,9 @@ Platform ini menjalankan proses belajar dari **pencarian kurikulum → pembelian
 1. **Instructor** membuat kursus dari nol (modul → materi → konten → quiz → resource).
 2. **Admin** menyetujui dan mempublikasikan kursus, mengelola user, konten, order, dan payout.
 3. **Student** membeli/mengikuti kursus, belajar dengan progress tracking, mengerjakan quiz, mendapatkan sertifikat, menulis review, dan berdiskusi.
-4. **AI** memberikan rekomendasi kursus personal dan asisten virtual untuk menjawab pertanyaan pembelajar.
+4. **Sistem rekomendasi** menampilkan kursus yang relevan berdasarkan interaksi dan popularitas, sementara **AI assistant** membantu menjawab pertanyaan pembelajar.
 
-Fokus utama platform: **terjemahan pembelajaran yang terukur** (progress → quiz → sertifikat) dan **kecerdasan rekomendasi** yang terus diperbaiki dari data interaksi.
+Fokus utama platform: **terjemahan pembelajaran yang terukur** (progress → quiz → sertifikat) dan **pengalaman penemuan kursus** yang relevan.
 
 ---
 
@@ -94,13 +92,13 @@ Fokus utama platform: **terjemahan pembelajaran yang terukur** (progress → qui
 - Quiz: tipe **`multiple_choice`**, **`essay`**; minimal 1 pertanyaan; MC wajib ≥2 opsi ≥1 benar; essay tanpa opsi. Submit: semua soal harus dijawab; MC auto-graded; essay → `needs_review` → manual grading oleh instructor/admin.
 - Score auto: `round(correct MC / total MC * 100, 2)`; essay graded manual.
 - Quiz content selalu ditandai content completed saat submit (apapun hasilnya).
-- Progress tracking: dua sistem independen — **material_progress** (material-level) dan **material_content_progress** (content-level). Player frontend memakai content-level untuk progress bar, auto-post material-level saat semua konten materi selesai.
+- Progress tracking: **material_content_progress** (content-level) adalah sumber kebenaran. **material_progress** (material-level) adalah catatan turunan/backend-owned yang disinkronkan otomatis saat konten/quiz selesai, saat halaman belajar dimuat, dan dapat direkonsiliasi (termasuk mencabut cache yang tidak lagi tuntas) via perintah `progress:sync-materials`. Progress bar & resume diarahkan oleh progres konten/pemetaan material.
 - Learning player (`/student/courses/{slug}`) punya sidebar, content viewer (video/text/file/ppt/quiz), resume dari materi/konten, refund policy notice.
 - Enrolled students CSV export (instructor/admin).
 
 ### Sertifikat
 
-- Auto-generate sertifikat saat course completion (dari `markProgress`), format nomor: **`KRSIO-YYYYMM-XXXXXXXX`**.
+- Auto-generate sertifikat saat course completion (ketika progress materi/konten mencapai 100%, termasuk melalui sinkronisasi backend), format nomor: **`KRSIO-YYYYMM-XXXXXXXX`**.
 - Unik per `(user_id, course_id)`.
 - PDF via **barryvdh/laravel-dompdf** (A4 landscape), stored di public disk.
 - Template: primary_color, accent_color, bg_style (`dark|light|gradient`), show_signature, signature_name, custom_title, footer_note.
@@ -118,15 +116,16 @@ Fokus utama platform: **terjemahan pembelajaran yang terukur** (progress → qui
 - Admin moderate comment: approve/reject/delete (`GET /admin/comments`, `PUT .../approve`, `PUT .../reject`, `DELETE ...`).
 - Testimonials di landing page diambil dari review yang **approved**.
 
-### AI Recommendation Engine
+### Sistem Rekomendasi Kursus
 
-- Hybrid recommendation: **Python FastAPI ML** (collaborative filtering + content-based + hybrid + popularity/cold-start) dengan fallback **native Laravel**.
-- Event tracking: `course_view`, `course_enroll`, `material_view`, `material_complete`, `quiz_attempt`, `quiz_complete` dengan weight (course_view: 1, material_view: 2, quiz_attempt: 3, material_complete: 4, quiz_complete: 4, course_enroll: 5).
-- Throttle view events: 1x per 5 menit per user/item.
-- Cache recommendation (TTL 2 jam) di Redis/database; invalidate event signifikan.
-- Admin toggle: `PATCH /admin/settings/recommendation/toggle` dan `PATCH /admin/integrations/ai/recommendation`.
-- AI commands: `php artisan recommendation:export|train|train --no-export|status|stats|evaluate|seed-events`.
-- Surfaces: student dashboard, `/courses`, `/courses/recommended`, AI tool Recommendation.
+- Engine rekomendasi **Laravel-native** (tanpa layanan eksternal/Python), berbasis sinyal interaksi pengguna dan popularitas kursus.
+- Untuk pengguna terautentikasi: rekomendasi **content-based** dari histori interaksi (tag/kategori kursus yang pernah diakses/diikuti), dengan mengecualikan kursus yang sudah di-enroll.
+- Untuk pengguna baru/guest atau saat data interaksi terbatas: fallback ke **popular courses** (berdasarkan views/enrollments/rating dalam jendela waktu).
+- Event tracking: `course_view`, `course_enroll`, `material_view`, `material_complete`, `quiz_attempt`, `quiz_complete` dengan bobot interaksi yang dapat dikonfigurasi.
+- Hasil rekomendasi di-cache (TTL default **2 jam**, cache store mengikuti konfigurasi aplikasi) untuk performa; cache dapat di-invalidasi oleh event/interaksi terkait.
+- Master switch: `RECOMMENDATION_ENABLED`; toggle admin: `PATCH /admin/settings/recommendation/toggle` dan `PATCH /admin/integrations/ai/recommendation`.
+- Perintah operasional: `php artisan recommendation:status` (cek status engine & uji hasil) dan `php artisan recommendation:seed-events` (seed data event simulasi untuk pengujian).
+- Surfaces: student dashboard, katalog kursus (`/course`), `/courses/recommended`, dan tool rekomendasi pada AI assistant.
 
 ### AI Assistant
 
@@ -209,13 +208,12 @@ Fokus utama platform: **terjemahan pembelajaran yang terukur** (progress → qui
 | Backend       | Laravel 12 (PHP 8.2+), Inertia Laravel 2                      |
 | Frontend      | React 19, TypeScript 5, Tailwind CSS 4, Motion (motion/react) |
 | Bridge        | Inertia.js 2 (SPA tanpa API) + Ziggy                          |
-| ML            | Python 3.11+, FastAPI, scikit-learn, pandas, NumPy            |
 | Database      | MySQL / PostgreSQL (SQLite untuk dev)                         |
 | Cache / Queue | Redis / database, Laravel queue                               |
 | PDF           | barryvdh/laravel-dompdf                                       |
 | Payments      | Midtrans                                                      |
 | WhatsApp      | Meta / Infobip / Fonnte / Custom adapters                     |
-| Testing       | Pest PHP 4, Pytest                                            |
+| Testing       | Pest PHP 4                                                    |
 
 ---
 
@@ -223,22 +221,21 @@ Fokus utama platform: **terjemahan pembelajaran yang terukur** (progress → qui
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                        CLIENT (Browser)                        │
+│                        CLIENT (Browser)                      │
 │   React 19 + TypeScript + Tailwind + Motion + Inertia        │
 └───────────────────────────────┬──────────────────────────────┘
                                 │ Inertia Protocol
                                 ▼
 ┌──────────────────────────────────────────────────────────────┐
-│                      LARAVEL 12 BACKEND                       │
+│                      LARAVEL 12 BACKEND                      │
 │   Controllers → Services → Models (Eloquent) → Form Requests │
-│   Policies/Gates → Queue Jobs                                 │
+│   Policies/Gates → Queue Jobs                                │
 └───────────────────────────────┬──────────────────────────────┘
-                                │ HTTP (FastAPI / Midtrans / WhatsApp / AI)
+                                │ HTTP (Midtrans / WhatsApp / AI)
                                 ▼
 ┌──────────────────────────────────────────────────────────────┐
-│              PYTHON FASTAPI ML SERVICE (Port 8001)            │
-│        Hybrid Recommendation Engine                           │
-│   (Collaborative + Content + Hybrid + Popularity)           │
+│                    EXTERNAL INTEGRATIONS                     │
+│              Midtrans • AI Providers • WhatsApp              │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -248,17 +245,17 @@ Fokus utama platform: **terjemahan pembelajaran yang terukur** (progress → qui
 
 | Tabel utama                                                                                                                                        | Deskripsi                                                                                                              |
 | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `users`                                                                                                                                            | Admin/instructor/student; `bio`, avatar, whatsapp_number, payout_account_number (encrypted), role                      |
+| `users`                                                                                                                                            | Admin/instructor/student; `bio`, avatar, whatsapp_number, payout_account_number (encrypted), role, google_id           |
 | `courses`                                                                                                                                          | Judul, slug, description, level, type (free/paid), price, status, thumbnail, rating, published/approved_at, creator_id |
 | `modules` / `materials` / `material_contents`                                                                                                      | Hierarki kurikulum + content (video/text/quiz/file/ppt)                                                                |
-| `material_progress` / `material_content_progress`                                                                                                  | Progress belajar                                                                                                       |
+| `material_progress` / `material_content_progress`                                                                                                  | Progress belajar (content-level canonical, material-level derived/synced)                                              |
 | `enrollments`                                                                                                                                      | Status `active`, `revoked`, `expired`; unique user+course                                                              |
 | `orders` / `order_items` / `payments` / `payment_logs` / `refunds`                                                                                 | Transaksi & pembayaran                                                                                                 |
 | `instructor_payouts` / `payout_account_audits`                                                                                                     | Ledger payout instructor                                                                                               |
 | `certificates`                                                                                                                                     | Nomor `KRSIO-YYYYMM-XXXXXXXX`, PDF path, template                                                                      |
 | `reviews` / `comments` / `rating`                                                                                                                  | Feedback & diskusi                                                                                                     |
 | `quiz_questions` / `quiz_options` / `quiz_attempts` / `quiz_answers`                                                                               | Quiz & grading                                                                                                         |
-| `user_events`                                                                                                                                      | Event tracking AI                                                                                                      |
+| `user_events`                                                                                                                                      | Event tracking interaksi untuk rekomendasi                                                                             |
 | `ai_providers` / `ai_provider_credentials` / `ai_models` / `ai_provider_logs` / `ai_settings` / `ai_setting_audits` / `ai_usage_logs`              | AI integration                                                                                                         |
 | `whatsapp_*` (settings, providers, credentials, logs, messages, conversations, contacts, delivery logs, templates, webhooks)                       | WhatsApp integration                                                                                                   |
 | `landing_settings`, `payment_settings`, `appearance_settings`, `recommendation_settings`, `categories`, `tags`, `course_categories`, `course_tags` | CMS & platform settings                                                                                                |
@@ -269,15 +266,15 @@ Fokus utama platform: **terjemahan pembelajaran yang terukur** (progress → qui
 
 ### Public Routes (No Auth)
 
-| Method | Route                   | Deskripsi                           |
-| ------ | ----------------------- | ----------------------------------- |
-| GET    | `/`                     | Landing page                        |
-| GET    | `/course`               | Course catalog + AI recommendations |
-| GET    | `/course/{slug}`        | Course detail + reviews + comments  |
-| GET    | `/courses/recommended`  | AI recommendations (JSON/redirect)  |
-| GET    | `/certificate/{number}` | Public certificate verification     |
-| GET    | `/terms`                | Terms of service                    |
-| GET    | `/privacy`              | Privacy policy                      |
+| Method | Route                   | Deskripsi                          |
+| ------ | ----------------------- | ---------------------------------- |
+| GET    | `/`                     | Landing page                       |
+| GET    | `/course`               | Course catalog + recommendations   |
+| GET    | `/course/{slug}`        | Course detail + reviews + comments |
+| GET    | `/courses/recommended`  | Recommendations (JSON/redirect)    |
+| GET    | `/certificate/{number}` | Public certificate verification    |
+| GET    | `/terms`                | Terms of service                   |
+| GET    | `/privacy`              | Privacy policy                     |
 
 ### Auth Routes (Guest Only)
 
@@ -287,6 +284,8 @@ Fokus utama platform: **terjemahan pembelajaran yang terukur** (progress → qui
 | POST   | `/login`                    | Process login (throttle 6/min)        |
 | GET    | `/register`                 | Register page                         |
 | POST   | `/register`                 | Process registration (throttle 6/min) |
+| GET    | `/auth/google`              | Redirect to Google OAuth              |
+| GET    | `/auth/google/callback`     | Google OAuth callback                 |
 | POST   | `/logout`                   | Logout                                |
 | GET    | `/forgot-password`          | Forgot password                       |
 | POST   | `/forgot-password`          | Process forgot password               |
@@ -347,20 +346,20 @@ Fokus utama platform: **terjemahan pembelajaran yang terukur** (progress → qui
 
 ### Admin Routes (`/admin/*`)
 
-| Area            | Route                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Deskripsi                       |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
-| Dashboard       | GET `/admin/dashboard`                                                                                                                                                                                                                                                                                                                                                                                                                                                         | KPIs, top courses, recent lists |
-| Courses         | GET/POST `/admin/courses`, GET/PUT/DELETE `/admin/courses/{slug}`, PUT `/admin/courses/{slug}/approve`, GET `/admin/courses/{slug}/preview`, GET/PUT `/admin/courses/{slug}/certificate-template`                                                                                                                                                                                                                                                                              | Full course management          |
-| Users           | GET `/admin/users`, GET/POST `/admin/users/{user}`, PUT `/admin/users/{user}`, DELETE `/admin/users/{user}`, GET `/admin/users/export`                                                                                                                                                                                                                                                                                                                                         | User management                 |
-| Orders          | GET `/admin/orders`, GET `/admin/orders/{order}`, PUT `/admin/orders/{order}/pay`, POST `/admin/orders/{order}/refund`, GET `/admin/orders/export`                                                                                                                                                                                                                                                                                                                             | Order & payment ops             |
-| Payouts         | GET `/admin/payouts`, GET `/admin/payouts/{payout}/pay`, PUT `/admin/payouts/batch`, GET `/admin/payouts/export`                                                                                                                                                                                                                                                                                                                                                               | Payout processing               |
-| Reviews         | GET `/admin/reviews`, PUT `/admin/reviews/{review}/approve`, PUT `/admin/reviews/{review}/reject`, DELETE `/admin/reviews/{review}`                                                                                                                                                                                                                                                                                                                                            | Moderation                      |
-| Comments        | GET `/admin/comments`, PUT `/admin/comments/{comment}/approve`, PUT `/admin/comments/{comment}/reject`, DELETE `/admin/comments/{comment}`                                                                                                                                                                                                                                                                                                                                     | Moderation                      |
-| Quiz attempts   | GET `/admin/quiz-attempts`, PUT `/admin/quiz-attempts/{attempt}/grade`                                                                                                                                                                                                                                                                                                                                                                                                         | Essay grading                   |
-| Categories/Tags | GET/POST `/admin/categories`, PUT/DELETE `/admin/categories/{category}`; GET/POST `/admin/tags`, PUT/DELETE `/admin/tags/{tag}`                                                                                                                                                                                                                                                                                                                                                | Taxonomy                        |
-| Landing         | GET/PUT `/admin/settings/landing/{section}`                                                                                                                                                                                                                                                                                                                                                                                                                                    | CMS landing                     |
+| Area            | Route                                                                                                                                                                                                                                                                                                                                                                                                                                                | Deskripsi                       |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| Dashboard       | GET `/admin/dashboard`                                                                                                                                                                                                                                                                                                                                                                                                                               | KPIs, top courses, recent lists |
+| Courses         | GET/POST `/admin/courses`, GET/PUT/DELETE `/admin/courses/{slug}`, PUT `/admin/courses/{slug}/approve`, GET `/admin/courses/{slug}/preview`, GET/PUT `/admin/courses/{slug}/certificate-template`                                                                                                                                                                                                                                                    | Full course management          |
+| Users           | GET `/admin/users`, GET/POST `/admin/users/{user}`, PUT `/admin/users/{user}`, DELETE `/admin/users/{user}`, GET `/admin/users/export`                                                                                                                                                                                                                                                                                                               | User management                 |
+| Orders          | GET `/admin/orders`, GET `/admin/orders/{order}`, PUT `/admin/orders/{order}/pay`, POST `/admin/orders/{order}/refund`, GET `/admin/orders/export`                                                                                                                                                                                                                                                                                                   | Order & payment ops             |
+| Payouts         | GET `/admin/payouts`, GET `/admin/payouts/{payout}/pay`, PUT `/admin/payouts/batch`, GET `/admin/payouts/export`                                                                                                                                                                                                                                                                                                                                     | Payout processing               |
+| Reviews         | GET `/admin/reviews`, PUT `/admin/reviews/{review}/approve`, PUT `/admin/reviews/{review}/reject`, DELETE `/admin/reviews/{review}`                                                                                                                                                                                                                                                                                                                  | Moderation                      |
+| Comments        | GET `/admin/comments`, PUT `/admin/comments/{comment}/approve`, PUT `/admin/comments/{comment}/reject`, DELETE `/admin/comments/{comment}`                                                                                                                                                                                                                                                                                                           | Moderation                      |
+| Quiz attempts   | GET `/admin/quiz-attempts`, PUT `/admin/quiz-attempts/{attempt}/grade`                                                                                                                                                                                                                                                                                                                                                                               | Essay grading                   |
+| Categories/Tags | GET/POST `/admin/categories`, PUT/DELETE `/admin/categories/{category}`; GET/POST `/admin/tags`, PUT/DELETE `/admin/tags/{tag}`                                                                                                                                                                                                                                                                                                                      | Taxonomy                        |
+| Landing         | GET/PUT `/admin/settings/landing/{section}`                                                                                                                                                                                                                                                                                                                                                                                                          | CMS landing                     |
 | Settings        | GET/PUT `/admin/settings/general`, PATCH `/admin/settings/appearance`, PATCH `/admin/settings/identity`, POST/DELETE `/admin/settings/logo`, GET/PUT `/admin/settings/payment`, PATCH `/admin/settings/ai/toggle`, PUT `/admin/settings/ai`, POST `/admin/settings/ai/verify-password`, PATCH `/admin/settings/recommendation/toggle`, PATCH `/admin/settings/whatsapp/toggle`, PUT `/admin/settings/whatsapp`, POST `/admin/settings/whatsapp/test` | Platform settings               |
-| Integrations    | GET/POST `/admin/integrations/ai[...]`, `/admin/integrations/whatsapp[...]`                                                                                                                                                                                                                                                                                                                                                                                                    | Provider management             |
+| Integrations    | GET/POST `/admin/integrations/ai[...]`, `/admin/integrations/whatsapp[...]`                                                                                                                                                                                                                                                                                                                                                                          | Provider management             |
 
 ### AI Routes
 
@@ -381,31 +380,17 @@ Fokus utama platform: **terjemahan pembelajaran yang terukur** (progress → qui
 | POST   | `/webhooks/whatsapp/{provider}` | Webhook handle   |
 | POST   | `/payments/midtrans/webhook`    | Midtrans webhook |
 
-### ML Microservice
-
-| Method | Route                                       | Deskripsi                    |
-| ------ | ------------------------------------------- | ---------------------------- |
-| GET    | `/api/v1/health`                            | Health check                 |
-| GET    | `/api/v1/recommendations/guest?limit=N`     | Guest recs                   |
-| GET    | `/api/v1/recommendations/user/{id}?limit=N` | User recs                    |
-| POST   | `/api/v1/recommend`                         | Recommend                    |
-| POST   | `/course`                                   | Recommend via course context |
-
 ---
 
 ## Artisan Commands
 
 ### Recommendation Commands
 
-| Command                                        | Deskripsi                                            |
-| ---------------------------------------------- | ---------------------------------------------------- |
-| `php artisan recommendation:export`            | Export event data + matrices + course catalog ke CSV |
-| `php artisan recommendation:train`             | Full pipeline: export → train Python → save model    |
-| `php artisan recommendation:train --no-export` | Train tanpa re-export                                |
-| `php artisan recommendation:status`            | Status engine (Python online/offline, fallback)      |
-| `php artisan recommendation:stats`             | Analytics detail + gate check                        |
-| `php artisan recommendation:evaluate`          | Evaluasi kualitas rekomendasi                        |
-| `php artisan recommendation:seed-events`       | Dummy event data                                     |
+| Command                                  | Deskripsi                                                                             |
+| ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| `php artisan recommendation:status`      | Tampilkan status konfigurasi engine rekomendasi dan uji hasil rekomendasi             |
+| `php artisan recommendation:seed-events` | Generate event interaksi simulasi untuk pengujian rekomendasi                         |
+| `php artisan progress:sync-materials`    | Rekonsiliasi material-level progress dari content-level (idempotent, backend-derived) |
 
 ### Standard & Payment
 
@@ -423,8 +408,7 @@ Fokus utama platform: **terjemahan pembelajaran yang terukur** (progress → qui
 - PHP 8.2+, Composer
 - Node.js 18+ & npm
 - MySQL / PostgreSQL
-- Redis
-- Python 3.11+ (ML recommendation)
+- Redis (opsional, direkomendasikan untuk cache/queue)
 - Midtrans account (payment)
 
 ### Step 1: Clone & install
@@ -453,10 +437,6 @@ REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 
 RECOMMENDATION_ENABLED=true
-RECOMMENDATION_DRIVER=python
-RECOMMENDATION_PYTHON_URL=http://127.0.0.1:8001
-RECOMMENDATION_PYTHON_TIMEOUT=2.0
-RECOMMENDATION_FALLBACK_TO_LARAVEL=true
 RECOMMENDATION_CACHE_TTL=7200
 
 WHATSAPP_PROVIDER=infobip
@@ -470,25 +450,7 @@ MIDTRANS_MERCHANT_ID=
 MIDTRANS_TIMEOUT=15
 ```
 
-### Step 3: ML service
-
-```bash
-cd recommendation-service
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-cd ..
-uvicorn app.main:app --port 8001 --reload
-```
-
-### Step 4: Train ML model (opsional)
-
-```bash
-php artisan recommendation:export
-php artisan recommendation:train
-```
-
-### Step 5: Run
+### Step 3: Run
 
 ```bash
 composer dev        # Laravel + Queue + Vite + Pail
@@ -511,12 +473,10 @@ course-sale/
 │   ├── Http/Middleware/, Requests/, Policies/
 │   ├── Jobs/                      # WhatsApp notification jobs, event tracking job
 │   ├── Models/                    # Eloquent models
-│   └── Services/                  # incl. AI/*, WhatsApp/*, Payment/*
+│   └── Services/                  # incl. AI/*, WhatsApp/*, Payment/*, RecommendationService
 ├── database/migrations/, factories/, seeders/
-├── recommendation-service/       # FastAPI ML microservice
 ├── resources/js/                  # React + Inertia pages & components
 ├── routes/web.php
-├── storage/app/ml/                 # ML training datasets
 └── ...
 ```
 

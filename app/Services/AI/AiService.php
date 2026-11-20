@@ -23,7 +23,7 @@ class AiService
     public function chat(array $messages, array $tools = [])
     {
         if (! $this->aiSettings->enabled() || ! $this->aiSettings->isConfigured()) {
-            throw new Exception('Fitur AI belum aktif atau belum dikonfigurasi.');
+            throw new Exception('The AI feature is not active or not configured.');
         }
 
         try {
@@ -41,7 +41,7 @@ class AiService
                 'error_code' => $exception->errorCode,
             ]);
 
-            throw new Exception('Gagal menghubungi layanan AI. Silakan coba lagi nanti.', 0, $exception);
+            throw new Exception('Failed to contact the AI service. Please try again later.', 0, $exception);
         }
     }
 }

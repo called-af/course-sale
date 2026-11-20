@@ -1,5 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, BookOpen, CheckCircle2, Clock3, Layers, Lock, MessageSquare, PlayCircle, Star, UserRound } from 'lucide-react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useState } from 'react';
 import Badge from '@/components/atoms/Badge';
 import Button from '@/components/atoms/Button';
@@ -12,8 +13,14 @@ import StarRating from '@/components/molecules/StarRating';
 import CheckoutModal from '@/components/organisms/Payment/CheckoutModal';
 import WelcomeLayout from '@/components/templates/WelcomeLayout';
 import { formatCoursePrice } from '@/lib/currency';
+import { EASE, entrance, staggerContainer } from '@/lib/motion';
 import type { Course, Review, RatingStats, Comment, PaymentGateway, PaymentMethod, RefundPolicy } from '@/types';
 import type { SharedPageProps } from '@/types/shared';
+
+const fadeUp = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: EASE } },
+};
 
 interface CourseDetailPageProps {
     course: Course;
@@ -48,6 +55,7 @@ export default function CourseDetailPage({
 }: CourseDetailPageProps) {
     const { auth } = usePage<SharedPageProps>().props;
     const user = auth?.user;
+    const reduceMotion = useReducedMotion();
     const [processing, setProcessing] = useState(false);
     const [checkoutOpen, setCheckoutOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'discussion' | 'ratings'>('discussion');
@@ -93,35 +101,62 @@ export default function CourseDetailPage({
 
             <div className="min-h-screen bg-gray-100 pt-24 pb-20 dark:bg-[#1e1f24]">
                 <div className="mx-auto max-w-7xl px-4 sm:px-8">
-                    <Link href="/course" className="mb-6 inline-block">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            leftIcon={<ArrowLeft size={17} />}
-                            className="!rounded-none !text-slate-500 hover:!text-purple-700 dark:!text-slate-400 dark:hover:!text-purple-400"
-                        >
-                            Back to courses
-                        </Button>
-                    </Link>
+                    <motion.div
+                        initial={entrance(reduceMotion, { opacity: 0, x: -14 })}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.45, ease: EASE }}
+                        className="mb-6 inline-block"
+                    >
+                        <Link href="/course">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                leftIcon={<ArrowLeft size={17} />}
+                                className="!rounded-none !text-slate-500 hover:!text-purple-700 dark:!text-slate-400 dark:hover:!text-purple-400"
+                            >
+                                Back to courses
+                            </Button>
+                        </Link>
+                    </motion.div>
 
                     <div className="grid gap-8 lg:grid-cols-3">
                         {/* Main content */}
-                        <section className="space-y-7 lg:col-span-2">
-                            <div className="overflow-hidden border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
-                                <img src={course.thumbnail_url} alt={course.title} className="aspect-video w-full object-cover" />
-                            </div>
+                        <motion.section
+                            variants={staggerContainer(0.08)}
+                            initial={entrance(reduceMotion, 'hidden')}
+                            animate="show"
+                            className="space-y-7 lg:col-span-2"
+                        >
+                            <motion.div
+                                variants={fadeUp}
+                                whileHover={reduceMotion ? undefined : { scale: 1.01 }}
+                                transition={{ type: 'spring', stiffness: 240, damping: 26 }}
+                                className="overflow-hidden border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]"
+                            >
+                                <motion.img
+                                    src={course.thumbnail_url}
+                                    alt={course.title}
+                                    whileHover={reduceMotion ? undefined : { scale: 1.04 }}
+                                    transition={{ duration: 0.6, ease: EASE }}
+                                    className="aspect-video w-full object-cover"
+                                />
+                            </motion.div>
 
                             <div className="space-y-5">
-                                <div className="flex flex-wrap items-center gap-2">
+                                <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-2">
                                     {course.categories?.map((category) => (
-                                        <Badge key={category.id} variant="purple">
-                                            {category.name}
-                                        </Badge>
+                                        <motion.span key={category.id} whileHover={reduceMotion ? undefined : { y: -2 }}>
+                                            <Badge variant="purple">{category.name}</Badge>
+                                        </motion.span>
                                     ))}
-                                    {course.level && <Badge>{course.level}</Badge>}
-                                </div>
+                                    {course.level && (
+                                        <motion.span whileHover={reduceMotion ? undefined : { y: -2 }}>
+                                            <Badge>{course.level}</Badge>
+                                        </motion.span>
+                                    )}
+                                </motion.div>
 
-                                <div>
+                                <motion.div variants={fadeUp}>
                                     <p className="mb-2 text-sm font-medium text-purple-700 dark:text-purple-400">Course</p>
                                     <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">{course.title}</h1>
 
@@ -134,25 +169,33 @@ export default function CourseDetailPage({
                                             <span className="text-sm text-slate-400 dark:text-slate-500">({ratingStats.total} reviews)</span>
                                         </div>
                                     )}
-                                </div>
+                                </motion.div>
 
-                                <div className="grid gap-4 border-y border-slate-200 py-5 sm:grid-cols-3 dark:border-slate-700">
+                                <motion.div
+                                    variants={fadeUp}
+                                    className="grid gap-4 border-y border-slate-200 py-5 sm:grid-cols-3 dark:border-slate-700"
+                                >
                                     <CourseInfo icon={<UserRound size={18} />} label="Instructor" value={course.creator?.name || '—'} />
                                     <CourseInfo icon={<Layers size={18} />} label="Level" value={course.level || 'All levels'} />
                                     <CourseInfo icon={<Clock3 size={18} />} label="Access" value="Learn at your pace" />
-                                </div>
+                                </motion.div>
 
-                                <div className="prose prose-slate dark:prose-invert max-w-none">
+                                <motion.div variants={fadeUp} className="prose prose-slate dark:prose-invert max-w-none">
                                     <h3 className="text-base font-bold text-slate-900 dark:text-white">About this course</h3>
                                     <p className="leading-relaxed whitespace-pre-line text-slate-600 dark:text-slate-300">
                                         {course.description || 'Course description is not available yet.'}
                                     </p>
-                                </div>
+                                </motion.div>
                             </div>
-                        </section>
+                        </motion.section>
 
                         {/* Sidebar — becomes resume when already enrolled */}
-                        <aside className="h-fit border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-24 dark:border-slate-700 dark:bg-[#1e1f24]">
+                        <motion.aside
+                            initial={entrance(reduceMotion, { opacity: 0, x: 24 })}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
+                            className="h-fit border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-24 dark:border-slate-700 dark:bg-[#1e1f24]"
+                        >
                             {isEnrolled ? (
                                 <>
                                     <p className="inline-flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-400">
@@ -161,7 +204,12 @@ export default function CourseDetailPage({
                                     <p className="mt-3 text-sm font-medium text-slate-500 dark:text-slate-400">Your progress</p>
                                     <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{progressPercent}%</p>
                                     <div className="mt-2 h-2 overflow-hidden bg-slate-100 dark:bg-slate-700">
-                                        <div className="h-full bg-purple-500 transition-all" style={{ width: `${progressPercent}%` }} />
+                                        <motion.div
+                                            initial={entrance(reduceMotion, { width: 0 })}
+                                            animate={{ width: `${progressPercent}%` }}
+                                            transition={{ type: 'spring', stiffness: 120, damping: 22, delay: 0.2 }}
+                                            className="h-full bg-purple-500"
+                                        />
                                     </div>
                                     <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                                         {completedCount} of {totalContents} lessons completed
@@ -224,7 +272,7 @@ export default function CourseDetailPage({
                                     </div>
                                 </>
                             )}
-                        </aside>
+                        </motion.aside>
                     </div>
 
                     {/* Discussion & Ratings — tabbed */}
@@ -233,12 +281,19 @@ export default function CourseDetailPage({
                         <div className="flex border-b border-slate-200 dark:border-slate-700">
                             <button
                                 onClick={() => setActiveTab('discussion')}
-                                className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold transition-colors ${
+                                className={`relative flex items-center gap-2 px-6 py-4 text-sm font-semibold transition-colors ${
                                     activeTab === 'discussion'
-                                        ? 'border-b-2 border-purple-600 text-purple-700 dark:text-purple-400'
+                                        ? 'text-purple-700 dark:text-purple-400'
                                         : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                                 }`}
                             >
+                                {activeTab === 'discussion' && (
+                                    <motion.span
+                                        layoutId="course-tab-indicator"
+                                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                        className="absolute inset-x-4 -bottom-px h-0.5 bg-purple-600"
+                                    />
+                                )}
                                 <MessageSquare size={16} />
                                 Discussion
                                 {comments.length > 0 && (
@@ -255,12 +310,19 @@ export default function CourseDetailPage({
                             </button>
                             <button
                                 onClick={() => setActiveTab('ratings')}
-                                className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold transition-colors ${
+                                className={`relative flex items-center gap-2 px-6 py-4 text-sm font-semibold transition-colors ${
                                     activeTab === 'ratings'
-                                        ? 'border-b-2 border-purple-600 text-purple-700 dark:text-purple-400'
+                                        ? 'text-purple-700 dark:text-purple-400'
                                         : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                                 }`}
                             >
+                                {activeTab === 'ratings' && (
+                                    <motion.span
+                                        layoutId="course-tab-indicator"
+                                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                        className="absolute inset-x-4 -bottom-px h-0.5 bg-purple-600"
+                                    />
+                                )}
                                 <Star size={16} />
                                 Ratings
                                 {ratingStats.total > 0 && (
@@ -279,86 +341,105 @@ export default function CourseDetailPage({
 
                         {/* Tab content */}
                         <div className="p-6">
-                            {activeTab === 'discussion' && (
-                                <CommentThread comments={comments} courseSlug={course.slug} currentUserId={isEnrolled ? user?.id : undefined} />
-                            )}
+                            <AnimatePresence mode="wait" initial={false}>
+                                {activeTab === 'discussion' ? (
+                                    <motion.div
+                                        key="discussion"
+                                        initial={entrance(reduceMotion, { opacity: 0, y: 12 })}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                                        transition={{ duration: 0.3, ease: EASE }}
+                                    >
+                                        <CommentThread
+                                            comments={comments}
+                                            courseSlug={course.slug}
+                                            currentUserId={isEnrolled ? user?.id : undefined}
+                                        />
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        key="ratings"
+                                        initial={entrance(reduceMotion, { opacity: 0, y: 12 })}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                                        transition={{ duration: 0.3, ease: EASE }}
+                                        className="space-y-6"
+                                    >
+                                        {ratingStats.total > 0 && <RatingSummary stats={ratingStats} />}
 
-                            {activeTab === 'ratings' && (
-                                <div className="space-y-6">
-                                    {ratingStats.total > 0 && <RatingSummary stats={ratingStats} />}
-
-                                    <div className="border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-[#1e1f24]">
-                                        <h3 className="mb-4 text-sm font-bold text-slate-800 dark:text-slate-100">
-                                            {userReview ? 'Your Review' : 'Write a Review'}
-                                        </h3>
-                                        {canReview ? (
-                                            userReview ? (
-                                                <ReviewCard
-                                                    review={userReview}
-                                                    courseSlug={course.slug}
-                                                    currentUserId={user?.id}
-                                                    onDeleted={handleReviewDeleted}
-                                                    onUpdated={handleReviewUpdated}
-                                                />
-                                            ) : (
-                                                <ReviewForm courseSlug={course.slug} onSuccess={handleReviewSuccess} />
-                                            )
-                                        ) : isEnrolled ? (
-                                            <div className="flex items-start gap-3 border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-950/30">
-                                                <Lock size={16} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
-                                                <div>
-                                                    <p className="text-sm font-semibold text-amber-900 dark:text-amber-300">
-                                                        Reviews unlock at 100% completion
-                                                    </p>
-                                                    <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">
-                                                        Your progress is {progressPercent}% ({completedCount}/{totalContents} lessons). Finish all
-                                                        lessons to leave a rating. You can still read other students&apos; reviews below.
-                                                    </p>
+                                        <div className="border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-[#1e1f24]">
+                                            <h3 className="mb-4 text-sm font-bold text-slate-800 dark:text-slate-100">
+                                                {userReview ? 'Your Review' : 'Write a Review'}
+                                            </h3>
+                                            {canReview ? (
+                                                userReview ? (
+                                                    <ReviewCard
+                                                        review={userReview}
+                                                        courseSlug={course.slug}
+                                                        currentUserId={user?.id}
+                                                        onDeleted={handleReviewDeleted}
+                                                        onUpdated={handleReviewUpdated}
+                                                    />
+                                                ) : (
+                                                    <ReviewForm courseSlug={course.slug} onSuccess={handleReviewSuccess} />
+                                                )
+                                            ) : isEnrolled ? (
+                                                <div className="flex items-start gap-3 border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-950/30">
+                                                    <Lock size={16} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-amber-900 dark:text-amber-300">
+                                                            Reviews unlock at 100% completion
+                                                        </p>
+                                                        <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">
+                                                            Your progress is {progressPercent}% ({completedCount}/{totalContents} lessons). Finish all
+                                                            lessons to leave a rating. You can still read other students&apos; reviews below.
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ) : !user ? (
-                                            <div className="border border-slate-100 bg-white p-4 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400">
-                                                <a href="/login" className="font-medium text-purple-600 hover:underline dark:text-purple-400">
-                                                    Sign in
-                                                </a>{' '}
-                                                and enroll to leave a review after finishing 100% of the course.
-                                            </div>
-                                        ) : (
-                                            <div className="border border-slate-100 bg-white p-4 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400">
-                                                Enroll in this course to leave a review after finishing 100% of the course.
+                                            ) : !user ? (
+                                                <div className="border border-slate-100 bg-white p-4 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400">
+                                                    <a href="/login" className="font-medium text-purple-600 hover:underline dark:text-purple-400">
+                                                        Sign in
+                                                    </a>{' '}
+                                                    and enroll to leave a review after finishing 100% of the course.
+                                                </div>
+                                            ) : (
+                                                <div className="border border-slate-100 bg-white p-4 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-400">
+                                                    Enroll in this course to leave a review after finishing 100% of the course.
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {reviews.length > 0 && (
+                                            <div className="space-y-3">
+                                                <div className="flex items-center gap-2">
+                                                    <MessageSquare size={15} className="text-slate-400 dark:text-slate-500" />
+                                                    <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                                                        All Reviews ({reviews.length})
+                                                    </h3>
+                                                </div>
+                                                {reviews.map((review) => (
+                                                    <ReviewCard
+                                                        key={review.id}
+                                                        review={review}
+                                                        courseSlug={course.slug}
+                                                        currentUserId={user?.id}
+                                                        onDeleted={handleReviewDeleted}
+                                                        onUpdated={handleReviewUpdated}
+                                                    />
+                                                ))}
                                             </div>
                                         )}
-                                    </div>
 
-                                    {reviews.length > 0 && (
-                                        <div className="space-y-3">
-                                            <div className="flex items-center gap-2">
-                                                <MessageSquare size={15} className="text-slate-400 dark:text-slate-500" />
-                                                <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                                                    All Reviews ({reviews.length})
-                                                </h3>
+                                        {reviews.length === 0 && (
+                                            <div className="py-6 text-center text-slate-400 dark:text-slate-500">
+                                                <Star size={32} className="mx-auto mb-2 opacity-30" />
+                                                <p className="text-sm">No reviews yet. Be the first to share your experience!</p>
                                             </div>
-                                            {reviews.map((review) => (
-                                                <ReviewCard
-                                                    key={review.id}
-                                                    review={review}
-                                                    courseSlug={course.slug}
-                                                    currentUserId={user?.id}
-                                                    onDeleted={handleReviewDeleted}
-                                                    onUpdated={handleReviewUpdated}
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {reviews.length === 0 && (
-                                        <div className="py-6 text-center text-slate-400 dark:text-slate-500">
-                                            <Star size={32} className="mx-auto mb-2 opacity-30" />
-                                            <p className="text-sm">No reviews yet. Be the first to share your experience!</p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+                                        )}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </section>
                 </div>

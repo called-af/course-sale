@@ -33,6 +33,6 @@ class InstructorProfileController extends Controller
 
         $this->userService->update($user, $request->validated());
 
-        return back()->with('success', 'Profil instruktur berhasil diperbarui.');
+        return back()->with('success', 'Instructor profile updated successfully.');
     }
 }

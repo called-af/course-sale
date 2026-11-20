@@ -341,3 +341,15 @@ html.dark *::-webkit-scrollbar-thumb:hover {
 .custom-scrollbar {
     overscroll-behavior: contain;
 }
+
+/* Certificate designer workspace */
+.canvas-dot-grid {
+    background-color: #ececef;
+    background-image: radial-gradient(circle, rgba(15, 23, 42, 0.09) 1px, transparent 1px);
+    background-size: 18px 18px;
+}
+
+html.dark .canvas-dot-grid {
+    background-color: #0f0f12;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+}

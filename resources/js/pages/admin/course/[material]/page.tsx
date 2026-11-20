@@ -73,7 +73,13 @@ export default function MaterialPage({ material, editContentId = null }: Materia
                     }
                 />
 
-                <EditMaterialContent courseSlug={course.slug} moduleId={material.module_id} materialId={material.id} content={content} />
+                <EditMaterialContent
+                    courseSlug={course.slug}
+                    moduleId={material.module_id}
+                    materialId={material.id}
+                    content={content}
+                    routePrefix="admin"
+                />
             </div>
         </>
     );

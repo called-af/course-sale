@@ -12,7 +12,7 @@ export default function ForgotPassword() {
                     <div className="w-full max-w-md space-y-5">
                         <Title as="h2">Reset your password</Title>
                         <p className="text-sm text-slate-600 dark:text-slate-300">
-                            Masukkan alamat email akunmu. Kita akan mengirimkan tautan untuk mereset password.
+                            Enter your account email address. We'll send you a link to reset your password.
                         </p>
                         <ForgotPasswordForm />
                     </div>
@@ -55,7 +55,7 @@ function ForgotPasswordForm() {
                 disabled={processing}
                 className="w-full bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
             >
-                {processing ? 'Mengirim...' : 'Kirim Link Reset'}
+                {processing ? 'Sending...' : 'Send Reset Link'}
             </button>
 
             <p className="text-center text-sm text-slate-600 dark:text-slate-300">

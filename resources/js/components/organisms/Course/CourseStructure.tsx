@@ -1,19 +1,4 @@
-import {
-    ArrowUp,
-    ArrowDown,
-    ChevronRight,
-    Layers,
-    Plus,
-    Pencil,
-    Trash2,
-    X,
-    Save,
-    FileText,
-    Video,
-    HelpCircle,
-    File,
-    Presentation,
-} from 'lucide-react';
+import { ArrowUp, ArrowDown, ChevronRight, Layers, Plus, Pencil, Trash2, FileText, Video, HelpCircle, File, Presentation } from 'lucide-react';
 import { useState } from 'react';
 import type { SetStateAction } from 'react';
 
@@ -40,14 +25,11 @@ const TYPE_META: Record<string, { label: string; icon: typeof Video; cls: string
 
 /*
    TreeNode — Renders the connecting lines for each item.
-   Creates a continuous vertical pipe │ that connects siblings,
-   with a horizontal branch at each item. */
+*/
 function TreeNode({ isLast, children }: { isLast: boolean; children: React.ReactNode }) {
     return (
         <div className="relative pl-4 sm:pl-6">
-            {/* Vertical line: full height for non-last, half for last */}
             <div className={`absolute top-0 left-[7px] border-l-2 border-neutral-200 dark:border-slate-700 ${isLast ? 'h-[22px]' : 'bottom-0'}`} />
-            {/* Horizontal branch */}
             <div className="absolute top-[21px] left-[7px] w-[9px] border-t-2 border-neutral-200 sm:w-[17px] dark:border-slate-700" />
             {children}
         </div>
@@ -80,74 +62,6 @@ function ContentsSection({ courseSlug, moduleId, materialId, contents, editId, r
 
     return (
         <div>
-            {/* Inline Edit */}
-            {crud.editing && (
-                <div className="m-2 space-y-3 border border-violet-200/60 bg-violet-50/20 p-3 sm:m-3 sm:p-4">
-                    <div className="flex items-center justify-between gap-2">
-                        <span className="text-[10px] font-semibold tracking-wider text-violet-500 uppercase">Edit Content</span>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => history.back()}
-                            leftIcon={<X className="h-3.5 w-3.5" />}
-                            aria-label="Close editor"
-                            className="!h-7 !w-7 shrink-0 !rounded-none !p-0"
-                        />
-                    </div>
-                    <InputField label="Title" value={crud.title} onChange={(e) => crud.setTitle(e.target.value)} />
-                    <div className="space-y-1">
-                        <label className="text-xs font-medium text-neutral-500">Type</label>
-                        <select
-                            value={crud.type}
-                            onChange={(e) => {
-                                crud.setType(e.target.value as MaterialContent['type']);
-                                crud.setSourceMode('url');
-                            }}
-                            className="w-full border border-neutral-200 bg-white px-3 py-2 text-sm text-slate-800 transition focus:border-violet-300 focus:ring-2 focus:ring-violet-500/20 focus:outline-none dark:border-slate-600 dark:bg-[#1e1f24] dark:text-slate-200 dark:focus:border-violet-500"
-                        >
-                            {Object.entries(TYPE_META).map(([val, { label }]) => (
-                                <option key={val} value={val}>
-                                    {label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    {(crud.type === 'video' || crud.type === 'file' || crud.type === 'ppt') && (
-                        <InputField
-                            label="Content URL"
-                            value={crud.contentUrl}
-                            onChange={(e) => {
-                                crud.setSourceMode('url');
-                                crud.setContentUrl(e.target.value);
-                            }}
-                        />
-                    )}
-                    {crud.type === 'text' && (
-                        <TextAreaField
-                            label="Content Text"
-                            value={typeof crud.contentText === 'string' ? crud.contentText : ''}
-                            onChange={(e: { target: { value: SetStateAction<string> } }) => crud.setContentText(e.target.value)}
-                        />
-                    )}
-                    {crud.type === 'video' && (
-                        <InputField
-                            label="Duration (seconds)"
-                            type="number"
-                            value={crud.duration}
-                            onChange={(e) => crud.setDuration(Number(e.target.value))}
-                        />
-                    )}
-                    <div className="flex gap-2">
-                        <Button size="sm" onClick={crud.update} leftIcon={<Save className="h-3 w-3" />}>
-                            Save
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => history.back()}>
-                            Cancel
-                        </Button>
-                    </div>
-                </div>
-            )}
-
             {/* Contents header */}
             <div className="flex items-center justify-between pt-2 pr-2 pb-1">
                 <div className="flex items-center gap-2">
@@ -224,6 +138,18 @@ function ContentsSection({ courseSlug, moduleId, materialId, contents, editId, r
             <Modal open={crud.open} onClose={() => crud.setOpen(false)} title="Add Content">
                 <div className="space-y-4">
                     <InputField label="Title" value={crud.title} onChange={(e) => crud.setTitle(e.target.value)} />
+                    <SelectField
+                        label="Type"
+                        value={crud.type}
+                        onChange={(e) => crud.setType(e.target.value as MaterialContent['type'])}
+                        options={[
+                            { label: 'Video', value: 'video' },
+                            { label: 'Text', value: 'text' },
+                            { label: 'Quiz', value: 'quiz' },
+                            { label: 'File', value: 'file' },
+                            { label: 'PPT', value: 'ppt' },
+                        ]}
+                    />
                     <SelectField
                         label="Status"
                         value={crud.status}
@@ -316,6 +242,9 @@ function MaterialsSection({ courseSlug, moduleId, materials, routePrefix }: Mate
                                 </div>
                                 <span className="min-w-0 flex-1 text-sm leading-snug font-medium break-words text-neutral-700 dark:text-slate-200">
                                     {material.title}
+                                </span>
+                                <span className="hidden shrink-0 text-[10px] font-semibold text-neutral-400 sm:inline dark:text-slate-500">
+                                    {(material.contents ?? []).length} contents
                                 </span>
                                 <StatusDot status={material.status} />
                                 <div
@@ -416,7 +345,7 @@ export default function CourseStructure({ course, modules, routePrefix }: Course
                         <div className="min-w-0">
                             <h3 className="text-lg font-bold break-words text-slate-900 dark:text-white">Structure &amp; Syllabus Course</h3>
                             <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                                Manage modules, materials, and learning content ({crud.sortedModules.length} Modules)
+                                Manage modules, materials, and learning contents ({crud.sortedModules.length} Modules)
                             </p>
                         </div>
                     </div>

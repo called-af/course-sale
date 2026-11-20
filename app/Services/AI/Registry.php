@@ -31,7 +31,7 @@ class Registry
     public function register(string $driver, string $adapterClass): void
     {
         if (! is_a($adapterClass, AIProviderContract::class, true)) {
-            throw new InvalidArgumentException("Adapter {$adapterClass} harus mengimplementasikan AIProviderContract.");
+            throw new InvalidArgumentException("Adapter {$adapterClass} must implement AIProviderContract.");
         }
 
         $this->adapters[$driver] = $adapterClass;
@@ -42,7 +42,7 @@ class Registry
         $class = $this->adapters[$config->driver] ?? null;
 
         if ($class === null) {
-            throw new InvalidArgumentException("Driver AI tidak dikenal: {$config->driver}.");
+            throw new InvalidArgumentException("Unknown AI driver: {$config->driver}.");
         }
 
         return app($class, ['config' => $config]);

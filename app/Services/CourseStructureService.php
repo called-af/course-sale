@@ -37,7 +37,7 @@ class CourseStructureService
         $this->ensureContentBelongsToMaterial($material, $content);
     }
 
-    private function ensure(bool $condition): void
+    protected function ensure(bool $condition): void
     {
         if (! $condition) {
             throw new NotFoundHttpException;

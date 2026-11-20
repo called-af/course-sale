@@ -22,7 +22,7 @@ class Registry
     public function register(string $driver, string $adapterClass): void
     {
         if (! is_a($adapterClass, WhatsAppProviderContract::class, true)) {
-            throw new InvalidArgumentException("Adapter {$adapterClass} harus mengimplementasikan WhatsAppProviderContract.");
+            throw new InvalidArgumentException("Adapter {$adapterClass} must implement WhatsAppProviderContract.");
         }
 
         $this->adapters[$driver] = $adapterClass;
@@ -33,7 +33,7 @@ class Registry
         $class = $this->adapters[$config->driver] ?? null;
 
         if ($class === null) {
-            throw new InvalidArgumentException("Driver WhatsApp tidak dikenal: {$config->driver}.");
+            throw new InvalidArgumentException("Unknown WhatsApp driver: {$config->driver}.");
         }
 
         return app($class, ['config' => $config]);

@@ -30,10 +30,10 @@ export default function BrandIdentityPanel({ initialName, initialEmail }: BrandI
         <section className="space-y-5" aria-labelledby="identity-heading">
             <div>
                 <h2 id="identity-heading" className="text-lg font-semibold text-slate-900 dark:text-white">
-                    Identitas aplikasi
+                    Application identity
                 </h2>
                 <p className="mt-1 text-sm text-neutral-500">
-                    Nama ini dipakai di landing page, dashboard, navbar, footer, dan sertifikat. Ubah sekali di sini, semua halaman ikut berubah.
+                    This name is used on the landing page, dashboard, navbar, footer, and certificates. Change it once here and every page updates.
                 </p>
             </div>
 
@@ -43,14 +43,14 @@ export default function BrandIdentityPanel({ initialName, initialEmail }: BrandI
             >
                 <div className="space-y-1.5">
                     <label htmlFor="app_name" className="text-sm font-medium text-slate-900 dark:text-white">
-                        Nama aplikasi
+                        Application name
                     </label>
                     <input
                         id="app_name"
                         type="text"
                         value={data.app_name}
                         onChange={(event) => setData('app_name', event.target.value)}
-                        placeholder="Contoh: KursusIO"
+                        placeholder="Example: KursusIO"
                         className="w-full border border-neutral-300 bg-white px-3 py-2 text-sm text-slate-900 transition outline-none focus:border-purple-700 focus:ring-1 focus:ring-purple-700 dark:border-slate-600 dark:bg-[#1e1f24] dark:text-white"
                     />
                     {errors.app_name && <p className="text-xs text-red-600 dark:text-red-400">{errors.app_name}</p>}
@@ -58,7 +58,7 @@ export default function BrandIdentityPanel({ initialName, initialEmail }: BrandI
 
                 <div className="space-y-1.5">
                     <label htmlFor="contact_email" className="text-sm font-medium text-slate-900 dark:text-white">
-                        Email kontak
+                        Contact email
                     </label>
                     <input
                         id="contact_email"
@@ -78,13 +78,13 @@ export default function BrandIdentityPanel({ initialName, initialEmail }: BrandI
                         disabled={processing}
                         className="w-full sm:w-auto"
                     >
-                        Simpan identitas
+                        Save identity
                     </Button>
 
                     {recentlySuccessful && (
                         <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
                             <Check size={14} />
-                            Tersimpan
+                            Saved
                         </span>
                     )}
                 </div>

@@ -12,32 +12,30 @@ import InstructorSection from '@/components/organisms/Landing/InstructorSection'
 import TestimonialSection from '@/components/organisms/Landing/TestimoniSection';
 import TrustBar from '@/components/organisms/Landing/TrustBar';
 import WelcomeLayout from '@/components/templates/WelcomeLayout';
+import { useLanding } from '@/hooks/useLanding';
+import { useSeo } from '@/hooks/useSeo';
 
-import type { Course, TestimonialItem } from '@/types';
-import type { Category } from '@/types/category';
+import type { LandingPageProps } from '@/types';
 
-interface WelcomeProps {
-    courses: Course[];
-    categories: Category[];
-    testimonials: TestimonialItem[];
-}
+export default function Welcome({ courses, categories, testimonials, instructors, certificates, certificateTemplate }: LandingPageProps) {
+    const seo = useSeo();
+    const landing = useLanding();
 
-export default function Welcome({ courses, categories, testimonials }: WelcomeProps) {
     return (
         <>
-            <Head title="Welcome to our digital course" />
+            <Head title={seo.title || 'Welcome to our digital course'} />
 
-            <HeroSection />
-            <AboutSection />
-            <CourseSection courses={courses} />
-            <CategorySection categories={categories} />
-            <InstructorSection />
-            <HowItWorksSection />
-            <BenefitSection />
-            <CertificateSection />
-            <TestimonialSection testimonials={testimonials} />
-            <FaqSection />
-            <TrustBar />
+            {landing.hero.show && <HeroSection />}
+            {landing.about.show && <AboutSection />}
+            {landing.courses.show && <CourseSection courses={courses} />}
+            {landing.career.show && <CategorySection categories={categories} />}
+            {landing.instructor.show && <InstructorSection instructors={instructors} />}
+            {landing.how_it_works.show && <HowItWorksSection />}
+            {landing.benefit.show && <BenefitSection />}
+            {landing.certificate.show && <CertificateSection certificates={certificates} certificateTemplate={certificateTemplate} />}
+            {landing.testimonial.show && <TestimonialSection testimonials={testimonials} />}
+            {landing.faq.show && <FaqSection />}
+            {landing.trust.show && <TrustBar />}
         </>
     );
 }

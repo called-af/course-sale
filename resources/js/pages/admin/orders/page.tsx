@@ -85,17 +85,17 @@ const STATUS_META: Record<string, { label: string; badge: string; dot: string }>
         dot: 'bg-amber-500',
     },
     paid: {
-        label: 'Lunas',
+        label: 'Paid',
         badge: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300',
         dot: 'bg-emerald-500',
     },
     failed: {
-        label: 'Gagal',
+        label: 'Failed',
         badge: 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300',
         dot: 'bg-rose-500',
     },
     expired: {
-        label: 'Kedaluwarsa',
+        label: 'Expired',
         badge: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
         dot: 'bg-slate-400',
     },
@@ -112,11 +112,11 @@ const STATUS_META: Record<string, { label: string; badge: string; dot: string }>
 };
 
 const STATUS_TABS = [
-    { value: 'all', label: 'Semua' },
+    { value: 'all', label: 'All' },
     { value: 'pending', label: 'Pending' },
-    { value: 'paid', label: 'Lunas' },
-    { value: 'failed', label: 'Gagal' },
-    { value: 'expired', label: 'Kedaluwarsa' },
+    { value: 'paid', label: 'Paid' },
+    { value: 'failed', label: 'Failed' },
+    { value: 'expired', label: 'Expired' },
     { value: 'refunded', label: 'Refund' },
     { value: 'chargeback', label: 'Chargeback' },
 ];
@@ -131,7 +131,7 @@ const TONES: Record<string, string> = {
 function formatDate(value?: string | null): string {
     if (!value) return '—';
 
-    return new Date(value).toLocaleString('id-ID', {
+    return new Date(value).toLocaleString('en-US', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
@@ -229,29 +229,29 @@ export default function AdminOrders({
 
     const summaryCards = [
         {
-            label: 'Total Pendapatan',
+            label: 'Total Revenue',
             value: formatRupiah(stats.revenue),
-            hint: `${stats.paid.count} pesanan lunas`,
+            hint: `${stats.paid.count} paid orders`,
             icon: CircleDollarSign,
             tone: 'emerald',
         },
         {
-            label: 'Total Pesanan',
-            value: Number(stats.total_orders).toLocaleString('id-ID'),
-            hint: 'Semua status pembayaran',
+            label: 'Total Orders',
+            value: Number(stats.total_orders).toLocaleString('en-US'),
+            hint: 'All payment statuses',
             icon: Receipt,
             tone: 'purple',
         },
         {
-            label: 'Menunggu Pembayaran',
-            value: Number(stats.pending.count).toLocaleString('id-ID'),
+            label: 'Awaiting Payment',
+            value: Number(stats.pending.count).toLocaleString('en-US'),
             hint: formatRupiah(stats.pending.amount),
             icon: Clock3,
             tone: 'amber',
         },
         {
-            label: 'Gagal / Kedaluwarsa',
-            value: Number(stats.failed.count + stats.expired.count).toLocaleString('id-ID'),
+            label: 'Failed / Expired',
+            value: Number(stats.failed.count + stats.expired.count).toLocaleString('en-US'),
             hint: formatRupiah(stats.failed.amount + stats.expired.amount),
             icon: XCircle,
             tone: 'sky',
@@ -268,7 +268,7 @@ export default function AdminOrders({
                 <PageHeader
                     breadcrumbs={[{ label: 'Admin' }, { label: 'Orders & Revenue' }]}
                     title="Orders & Revenue"
-                    description="Pantau transaksi, status pembayaran, dan pendapatan platform."
+                    description="Monitor transactions, payment statuses, and platform revenue."
                     actions={
                         <a
                             href={exportUrl}
@@ -302,12 +302,12 @@ export default function AdminOrders({
                     <div className="flex flex-col justify-between gap-4 border-b border-slate-100 p-5 sm:p-6 lg:flex-row lg:items-center dark:border-slate-700">
                         <div>
                             <div className="flex items-center gap-2">
-                                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Daftar Pesanan</h2>
+                                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Order List</h2>
                                 <span className="border border-purple-500/30 bg-purple-500/10 px-2 py-0.5 text-[11px] font-bold text-purple-600 dark:text-purple-300">
                                     {orders.total}
                                 </span>
                             </div>
-                            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Klik nomor order untuk melihat detail pembayaran.</p>
+                            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Click an order number to view payment details.</p>
                         </div>
 
                         <div className="relative w-full sm:w-80">
@@ -316,7 +316,7 @@ export default function AdminOrders({
                                 type="text"
                                 value={search}
                                 onChange={(event) => setSearch(event.target.value)}
-                                placeholder="Cari order, siswa, atau course..."
+                                placeholder="Search orders, students, or courses..."
                                 className="w-full border border-slate-200 bg-white py-2 pr-9 pl-9 text-sm text-slate-700 transition-colors placeholder:text-slate-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 focus:outline-none dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-200"
                             />
                             {search && (
@@ -324,7 +324,7 @@ export default function AdminOrders({
                                     type="button"
                                     onClick={() => setSearch('')}
                                     className="absolute top-1/2 right-2.5 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-700 dark:hover:text-white"
-                                    aria-label="Hapus pencarian"
+                                    aria-label="Clear search"
                                 >
                                     <X size={14} />
                                 </button>
@@ -361,11 +361,11 @@ export default function AdminOrders({
                             <span className="flex h-12 w-12 items-center justify-center bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
                                 <Inbox size={22} />
                             </span>
-                            <p className="mt-4 text-sm font-bold text-slate-700 dark:text-slate-200">Tidak ada pesanan</p>
+                            <p className="mt-4 text-sm font-bold text-slate-700 dark:text-slate-200">No orders found</p>
                             <p className="mt-1 max-w-sm text-xs text-slate-500 dark:text-slate-400">
                                 {search || status !== 'all'
-                                    ? 'Coba ubah kata kunci atau filter status untuk menemukan pesanan.'
-                                    : 'Pesanan akan muncul di sini setelah siswa melakukan checkout.'}
+                                    ? 'Try adjusting your search keywords or status filters.'
+                                    : 'Orders will appear here after students complete checkout.'}
                             </p>
                             {(search || status !== 'all') && (
                                 <button
@@ -376,7 +376,7 @@ export default function AdminOrders({
                                     }}
                                     className="mt-4 inline-flex items-center gap-1.5 border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                                 >
-                                    <RotateCcw size={13} /> Reset filter
+                                    <RotateCcw size={13} /> Reset filters
                                 </button>
                             )}
                         </div>
@@ -437,7 +437,7 @@ export default function AdminOrders({
                                                     </p>
                                                     {extraItems > 0 && (
                                                         <p className="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">
-                                                            +{extraItems} course lainnya
+                                                            +{extraItems} more courses
                                                         </p>
                                                     )}
                                                 </div>
@@ -468,9 +468,9 @@ export default function AdminOrders({
                                     <thead className="border-b border-slate-100 bg-slate-50/60 dark:border-slate-700 dark:bg-slate-800/30">
                                         <tr className="text-[11px] tracking-wide text-slate-500 uppercase dark:text-slate-400">
                                             <th className="px-5 py-3 font-semibold sm:px-6">Order</th>
-                                            <th className="px-4 py-3 font-semibold">Siswa</th>
+                                            <th className="px-4 py-3 font-semibold">Student</th>
                                             <th className="px-4 py-3 font-semibold">Course</th>
-                                            <th className="px-4 py-3 text-right font-semibold">Jumlah</th>
+                                            <th className="px-4 py-3 text-right font-semibold">Amount</th>
                                             <th className="px-4 py-3 font-semibold">Status</th>
                                             <th className="px-5 py-3 sm:px-6" />
                                         </tr>
@@ -529,7 +529,7 @@ export default function AdminOrders({
                                                                 </p>
                                                                 {extraItems > 0 && (
                                                                     <p className="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">
-                                                                        +{extraItems} course lainnya
+                                                                        +{extraItems} more courses
                                                                     </p>
                                                                 )}
                                                             </div>
@@ -565,9 +565,9 @@ export default function AdminOrders({
                     {orders.total > 0 && (
                         <div className="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 dark:border-slate-700">
                             <p className="text-xs text-slate-500 dark:text-slate-400">
-                                Menampilkan <span className="font-semibold text-slate-700 dark:text-slate-200">{orders.from ?? 0}</span>–
-                                <span className="font-semibold text-slate-700 dark:text-slate-200">{orders.to ?? 0}</span> dari{' '}
-                                <span className="font-semibold text-slate-700 dark:text-slate-200">{orders.total}</span> pesanan
+                                Showing <span className="font-semibold text-slate-700 dark:text-slate-200">{orders.from ?? 0}</span>–
+                                <span className="font-semibold text-slate-700 dark:text-slate-200">{orders.to ?? 0}</span> of{' '}
+                                <span className="font-semibold text-slate-700 dark:text-slate-200">{orders.total}</span> orders
                             </p>
 
                             <div className="flex flex-wrap items-center gap-2">
@@ -577,7 +577,7 @@ export default function AdminOrders({
                                     disabled={orders.current_page <= 1}
                                     className="inline-flex items-center gap-1 border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                                 >
-                                    <ChevronLeft size={14} /> Sebelumnya
+                                    <ChevronLeft size={14} /> Previous
                                 </button>
                                 <span className="px-2 text-xs font-medium text-slate-500 dark:text-slate-400">
                                     {orders.current_page} / {orders.last_page}
@@ -588,7 +588,7 @@ export default function AdminOrders({
                                     disabled={orders.current_page >= orders.last_page}
                                     className="inline-flex items-center gap-1 border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                                 >
-                                    Berikutnya <ChevronRight size={14} />
+                                    Next <ChevronRight size={14} />
                                 </button>
                             </div>
                         </div>
@@ -597,13 +597,13 @@ export default function AdminOrders({
 
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <p className="text-xs text-slate-400 dark:text-slate-500">
-                        Total pendapatan dihitung dari pesanan berstatus <span className="font-semibold">Lunas</span>.
+                        Total revenue is calculated from orders with <span className="font-semibold">Paid</span> status.
                     </p>
                     <Link
                         href="/admin/dashboard"
                         className="inline-flex items-center gap-1.5 text-sm font-medium text-purple-700 hover:underline dark:text-purple-400"
                     >
-                        <CheckCircle2 size={15} /> Kembali ke dashboard
+                        <CheckCircle2 size={15} /> Back to dashboard
                     </Link>
                 </div>
             </div>

@@ -84,14 +84,14 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
             const result = await response.json();
 
             if (!response.ok) {
-                setPasswordError(result.errors?.current_password ?? 'Password yang dimasukkan salah.');
+                setPasswordError(result.errors?.current_password ?? 'The password you entered is incorrect.');
                 return;
             }
 
             setShowPasswordModal(false);
             setIsEditing(true);
         } catch {
-            setPasswordError('Tidak dapat memverifikasi password. Silakan coba lagi.');
+            setPasswordError('Unable to verify the password. Please try again.');
         } finally {
             setIsVerifyingPassword(false);
         }
@@ -107,7 +107,7 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
         if (!testPhone.trim()) {
             setTestResult({
                 success: false,
-                error: 'Silakan masukkan nomor WhatsApp tujuan uji coba.',
+                error: 'Please enter the destination WhatsApp number for the test.',
             });
             return;
         }
@@ -127,18 +127,18 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
             if (response.ok && result.success) {
                 setTestResult({
                     success: true,
-                    message: `Pesan uji coba WhatsApp berhasil dikirim ke +${testPhone.trim()} via WhatsApp Gateway!`,
+                    message: `Test WhatsApp message sent successfully to +${testPhone.trim()} via WhatsApp Gateway!`,
                 });
             } else {
                 setTestResult({
                     success: false,
-                    error: result.error ?? 'Gagal mengirim pesan uji coba. Periksa kredensial WhatsApp Anda.',
+                    error: result.error ?? 'Failed to send the test message. Check your WhatsApp credentials.',
                 });
             }
         } catch {
             setTestResult({
                 success: false,
-                error: 'Terjadi kesalahan saat menghubungi server pengujian.',
+                error: 'An error occurred while contacting the test server.',
             });
         } finally {
             setIsTesting(false);
@@ -158,11 +158,12 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
                             <div className="flex flex-wrap items-center gap-2">
                                 <h2 className="font-semibold text-slate-900 dark:text-white">WhatsApp Gateway</h2>
                                 <span className="inline-flex items-center bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
-                                    Ready Prod (DB Managed)
+                                    Production Ready (DB Managed)
                                 </span>
                             </div>
                             <p className="mt-1 text-sm text-neutral-500">
-                                Kelola konfigurasi WhatsApp secara langsung dari Database &amp; Admin Panel tanpa edit file .env di server.
+                                Manage WhatsApp configuration directly from the Database &amp; Admin Panel without editing the .env file on the
+                                server.
                             </p>
                         </div>
                     </div>
@@ -171,7 +172,7 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
                         checked={data.enabled}
                         onCheckedChange={updateEnabled}
                         disabled={processing}
-                        label="Aktifkan atau nonaktifkan gateway WhatsApp"
+                        label="Enable or disable the WhatsApp gateway"
                     />
                 </div>
 
@@ -179,8 +180,8 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
                 <div className="border-t border-neutral-200 bg-neutral-50/70 p-4 sm:p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h3 className="font-semibold text-slate-900 dark:text-white">Konfigurasi WhatsApp</h3>
-                            <p className="mt-1 text-sm text-neutral-500">Base URL, API Key, nomor pengirim (From), dan kata kunci sandbox.</p>
+                            <h3 className="font-semibold text-slate-900 dark:text-white">WhatsApp Configuration</h3>
+                            <p className="mt-1 text-sm text-neutral-500">Base URL, API Key, sender number (From), and sandbox keyword.</p>
                         </div>
                         {!isEditing && (
                             <Button type="button" variant="secondary" onClick={startEditing} className="w-full sm:w-auto">
@@ -194,7 +195,7 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
                             <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1e1f24]">
                                 <p className="text-xs font-medium tracking-wide text-neutral-500 uppercase">WhatsApp Base URL</p>
                                 <p className="mt-2 text-sm font-medium break-all text-slate-900 dark:text-white">
-                                    {data.base_url || 'Belum dikonfigurasi'}
+                                    {data.base_url || 'Not configured'}
                                 </p>
                             </div>
                             <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1e1f24]">
@@ -208,7 +209,7 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
                             <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1e1f24]">
                                 <p className="text-xs font-medium tracking-wide text-neutral-500 uppercase">API Key Status</p>
                                 <p className="mt-2 text-sm font-medium text-slate-900 dark:text-white">
-                                    {initialWhatsApp.has_api_key ? `••••••••${initialWhatsApp.api_key_hint?.slice(-4) ?? ''}` : 'Belum disetel'}
+                                    {initialWhatsApp.has_api_key ? `••••••••${initialWhatsApp.api_key_hint?.slice(-4) ?? ''}` : 'Not set'}
                                 </p>
                             </div>
                         </div>
@@ -219,7 +220,7 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
                         >
                             <div>
                                 <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200" htmlFor="whatsapp_provider">
-                                    Provider WhatsApp
+                                    WhatsApp Provider
                                 </label>
                                 <select
                                     id="whatsapp_provider"
@@ -232,7 +233,7 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
                                     <option value="infobip">WhatsApp API</option>
                                     <option value="meta">Meta WhatsApp Cloud API</option>
                                 </select>
-                                <p className="mt-1 text-xs text-neutral-500">Gateway utama untuk notifikasi WhatsApp di platform ini.</p>
+                                <p className="mt-1 text-xs text-neutral-500">Primary gateway for WhatsApp notifications on this platform.</p>
                             </div>
 
                             <InputField
@@ -267,7 +268,7 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
 
                             <div>
                                 <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200" htmlFor="whatsapp_api_key">
-                                    WhatsApp API Key (Terenkripsi di Database)
+                                    WhatsApp API Key (Encrypted in Database)
                                 </label>
                                 <div className="relative">
                                     <KeyRound className="absolute top-2.5 left-3 h-4 w-4 text-neutral-400" />
@@ -280,7 +281,7 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
                                         placeholder={
                                             initialWhatsApp.has_api_key
                                                 ? `••••${initialWhatsApp.api_key_hint?.slice(-4) ?? ''}`
-                                                : 'Masukkan API key WhatsApp'
+                                                : 'Enter WhatsApp API key'
                                         }
                                         className="w-full border border-gray-300 bg-white py-2 pr-10 pl-9 text-sm text-slate-900 outline-none focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 dark:border-slate-600 dark:bg-[#1e1f24] dark:text-white"
                                         disabled={processing}
@@ -289,14 +290,14 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
                                         type="button"
                                         onClick={() => setShowKey(!showKey)}
                                         className="absolute top-2 right-3 text-neutral-500 hover:text-slate-900 dark:hover:text-white"
-                                        aria-label="Tampilkan atau sembunyikan API key"
+                                        aria-label="Show or hide API key"
                                     >
                                         {showKey ? <EyeOff size={17} /> : <Eye size={17} />}
                                     </button>
                                 </div>
                                 {initialWhatsApp.has_api_key && (
                                     <p className="mt-1 text-xs text-neutral-500">
-                                        API key terenkripsi sudah tersimpan di database. Biarkan kosong jika tidak ingin mengubahnya.
+                                        The encrypted API key is already stored in the database. Leave blank if you do not want to change it.
                                     </p>
                                 )}
                                 {errors.api_key && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.api_key}</p>}
@@ -310,23 +311,23 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
                                     disabled={processing}
                                     className="w-full sm:w-auto"
                                 >
-                                    Keluar edit mode
+                                    Exit edit mode
                                 </Button>
                                 <Button type="submit" disabled={processing} isLoading={processing} className="w-full sm:w-auto">
-                                    Simpan konfigurasi WhatsApp
+                                    Save WhatsApp configuration
                                 </Button>
                             </div>
                         </form>
                     )}
 
-                    {/* Uji Coba Pengiriman Langsung */}
+                    {/* Direct Send Test */}
                     <div className="mt-6 border-t border-neutral-200 pt-5 dark:border-slate-700">
                         <div className="mb-3 flex items-center gap-2">
                             <Send size={16} className="text-emerald-600 dark:text-emerald-400" />
-                            <h4 className="text-sm font-semibold text-slate-900 dark:text-white">Uji Coba Gateway WhatsApp</h4>
+                            <h4 className="text-sm font-semibold text-slate-900 dark:text-white">Test WhatsApp Gateway</h4>
                         </div>
                         <p className="mb-4 text-xs text-neutral-500">
-                            Kirim pesan uji coba langsung ke nomor WhatsApp Anda untuk memvalidasi kredensial gateway WhatsApp yang tersimpan di DB.
+                            Send a test message directly to your WhatsApp number to validate the WhatsApp gateway credentials stored in the DB.
                         </p>
 
                         <form onSubmit={handleTestNotification} className="flex max-w-xl flex-col items-start gap-3 sm:flex-row sm:items-center">
@@ -335,13 +336,13 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
                                     type="text"
                                     value={testPhone}
                                     onChange={(e) => setTestPhone(e.target.value)}
-                                    placeholder="Contoh: 081234567890 atau 6281234567890"
+                                    placeholder="Example: 081234567890 or 6281234567890"
                                     className="w-full border border-gray-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 dark:border-slate-600 dark:bg-[#1e1f24] dark:text-white"
                                     disabled={isTesting}
                                 />
                             </div>
                             <Button type="submit" variant="secondary" disabled={isTesting || !testPhone.trim()} isLoading={isTesting}>
-                                Kirim Uji Coba
+                                Send Test
                             </Button>
                         </form>
 
@@ -359,7 +360,7 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
                                     <ShieldAlert size={16} className="mt-0.5 shrink-0 text-red-600" />
                                 )}
                                 <div>
-                                    <p className="font-semibold">{testResult.success ? 'Berhasil!' : 'Gagal Mengirim'}</p>
+                                    <p className="font-semibold">{testResult.success ? 'Success!' : 'Send Failed'}</p>
                                     <p className="mt-0.5 leading-relaxed">{testResult.message || testResult.error}</p>
                                 </div>
                             </div>
@@ -368,35 +369,35 @@ export default function WhatsAppSettingsPanel({ initialWhatsApp, flash }: WhatsA
                 </div>
             </Card>
 
-            {/* Modal Konfirmasi Password */}
+            {/* Password Confirmation Modal */}
             <Modal
                 open={showPasswordModal}
                 onClose={() => !isVerifyingPassword && setShowPasswordModal(false)}
-                title="Verifikasi password akun admin"
+                title="Verify admin account password"
                 footer={
                     <>
                         <Button variant="ghost" onClick={() => setShowPasswordModal(false)} disabled={isVerifyingPassword}>
-                            Batal
+                            Cancel
                         </Button>
                         <Button onClick={verifyPassword} isLoading={isVerifyingPassword} disabled={!data.current_password}>
-                            Buka edit mode
+                            Unlock edit mode
                         </Button>
                     </>
                 }
             >
                 <InputField
-                    label="Password akun admin"
+                    label="Admin account password"
                     name="current_password"
                     type="password"
                     value={data.current_password}
                     onChange={(event) => setData('current_password', event.target.value)}
-                    placeholder="Masukkan password akun admin yang sedang login"
+                    placeholder="Enter the password of the logged-in admin account"
                     error={passwordError ?? errors.current_password}
                     autoComplete="current-password"
                     disabled={isVerifyingPassword}
                 />
                 <p className="mt-3 text-xs text-neutral-500">
-                    Verifikasi keamanan diperlukan sebelum mengubah kredensial gateway WhatsApp di database.
+                    Security verification is required before changing the WhatsApp gateway credentials in the database.
                 </p>
             </Modal>
         </section>

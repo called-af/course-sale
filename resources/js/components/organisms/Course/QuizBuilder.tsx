@@ -161,7 +161,7 @@ function QuestionCard({
             </div>
 
             <div className="space-y-5 p-5">
-                {/* Teks Pertanyaan & Gambar */}
+                {/* Question text & image */}
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_130px]">
                     <TextAreaField
                         label="Question Prompt"

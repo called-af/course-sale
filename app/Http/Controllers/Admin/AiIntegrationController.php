@@ -138,7 +138,7 @@ class AiIntegrationController extends Controller
             $this->audit($provider, 'created', ['name', 'driver', 'base_url', 'config', 'credentials', 'enabled', 'is_default']);
         });
 
-        return back()->with('success', 'Provider AI berhasil ditambahkan.');
+        return back()->with('success', 'AI provider added successfully.');
     }
 
     public function update(Request $request, AiProvider $provider): RedirectResponse
@@ -180,7 +180,7 @@ class AiIntegrationController extends Controller
             $this->audit($provider, 'updated', $changed);
         });
 
-        return back()->with('success', 'Provider AI berhasil diperbarui.');
+        return back()->with('success', 'AI provider updated successfully.');
     }
 
     public function destroy(AiProvider $provider): RedirectResponse
@@ -188,7 +188,7 @@ class AiIntegrationController extends Controller
         $this->authorize('manage-settings');
 
         if (AiProvider::query()->count() <= 1) {
-            return back()->with('error', 'Minimal satu provider AI harus tetap tersedia.');
+            return back()->with('error', 'At least one AI provider must remain available.');
         }
 
         DB::transaction(function () use ($provider) {
@@ -204,7 +204,7 @@ class AiIntegrationController extends Controller
             }
         });
 
-        return back()->with('success', 'Provider AI dihapus.');
+        return back()->with('success', 'AI provider deleted.');
     }
 
     public function toggle(Request $request, AiProvider $provider): RedirectResponse
@@ -232,7 +232,7 @@ class AiIntegrationController extends Controller
             $this->audit($provider, $enabled ? 'enabled' : 'disabled', ['enabled']);
         });
 
-        return back()->with('success', $enabled ? 'Provider AI diaktifkan.' : 'Provider AI dinonaktifkan.');
+        return back()->with('success', $enabled ? 'AI provider enabled.' : 'AI provider disabled.');
     }
 
     public function setDefault(AiProvider $provider): RedirectResponse
@@ -245,7 +245,7 @@ class AiIntegrationController extends Controller
             $this->audit($provider, 'set_default', ['is_default']);
         });
 
-        return back()->with('success', 'Provider AI utama diperbarui.');
+        return back()->with('success', 'Primary AI provider updated.');
     }
 
     public function test(AiProvider $provider): JsonResponse
@@ -308,7 +308,7 @@ class AiIntegrationController extends Controller
             }
         });
 
-        return back()->with('success', 'Model berhasil disimpan.');
+        return back()->with('success', 'Model saved successfully.');
     }
 
     public function updateModel(Request $request, AiProvider $provider, AiModel $model): RedirectResponse
@@ -337,7 +337,7 @@ class AiIntegrationController extends Controller
             $this->setDefaultModel($provider, $model);
         }
 
-        return back()->with('success', 'Model diperbarui.');
+        return back()->with('success', 'Model updated.');
     }
 
     public function destroyModel(AiProvider $provider, AiModel $model): RedirectResponse
@@ -355,7 +355,7 @@ class AiIntegrationController extends Controller
             }
         }
 
-        return back()->with('success', 'Model dihapus.');
+        return back()->with('success', 'Model deleted.');
     }
 
     public function importLegacy(): RedirectResponse
@@ -363,12 +363,12 @@ class AiIntegrationController extends Controller
         $this->authorize('manage-settings');
 
         if (AiProvider::query()->exists()) {
-            return back()->with('error', 'Provider sudah tersedia. Import hanya dapat dilakukan saat daftar kosong.');
+            return back()->with('error', 'Providers already exist. Import is only available when the list is empty.');
         }
 
         $legacy = app(AiSettings::class);
         if (! $legacy->hasApiKey()) {
-            return back()->with('error', 'Konfigurasi AI lama belum memiliki API key.');
+            return back()->with('error', 'Legacy AI configuration does not have an API key.');
         }
 
         $driver = $legacy->provider() === 'openai' ? 'openai' : 'openai_compatible';
@@ -389,7 +389,7 @@ class AiIntegrationController extends Controller
 
         $this->audit($provider, 'imported_legacy', ['provider']);
 
-        return back()->with('success', 'Konfigurasi AI lama berhasil diimpor sebagai provider.');
+        return back()->with('success', 'Legacy AI configuration imported as a provider.');
     }
 
     public function toggleGlobal(Request $request): RedirectResponse
@@ -411,7 +411,7 @@ class AiIntegrationController extends Controller
             'changed_fields' => ['enabled'],
         ]);
 
-        return back()->with('success', $enabled ? 'Fitur AI diaktifkan.' : 'Fitur AI dinonaktifkan.');
+        return back()->with('success', $enabled ? 'AI features enabled.' : 'AI features disabled.');
     }
 
     protected function validateProvider(Request $request, ?AiProvider $provider = null): array
@@ -436,14 +436,14 @@ class AiIntegrationController extends Controller
         $driver = $data['driver'] ?? $preset['driver'] ?? $provider?->driver ?? 'openai_compatible';
 
         if (! in_array($driver, array_keys(config('ai_providers.drivers', [])), true)) {
-            throw ValidationException::withMessages(['driver' => 'Driver AI tidak dikenal.']);
+            throw ValidationException::withMessages(['driver' => 'Unknown AI driver.']);
         }
 
         $baseUrl = $data['base_url'] ?? $preset['base_url'] ?? $provider?->base_url;
 
         if ($driver !== 'bedrock') {
             if (blank($baseUrl)) {
-                throw ValidationException::withMessages(['base_url' => 'Base URL wajib diisi untuk provider ini.']);
+                throw ValidationException::withMessages(['base_url' => 'Base URL is required for this provider.']);
             }
 
             $urlError = UrlGuard::error((string) $baseUrl, (bool) config('ai_providers.allow_local_endpoints', false));
@@ -462,7 +462,7 @@ class AiIntegrationController extends Controller
             $existing = $provider?->hasCredential($key) ?? false;
 
             if (blank($provided) && ! $existing) {
-                throw ValidationException::withMessages(["credentials.{$key}" => ($field['label'] ?? $key).' wajib diisi.']);
+                throw ValidationException::withMessages(["credentials.{$key}" => ($field['label'] ?? $key).' is required.']);
             }
         }
 
@@ -477,7 +477,7 @@ class AiIntegrationController extends Controller
             $default = $field['default'] ?? null;
 
             if (blank($provided) && blank($existing) && blank($default)) {
-                throw ValidationException::withMessages(["config.{$key}" => ($field['label'] ?? $key).' wajib diisi.']);
+                throw ValidationException::withMessages(["config.{$key}" => ($field['label'] ?? $key).' is required.']);
             }
         }
 
@@ -652,7 +652,7 @@ class AiIntegrationController extends Controller
             'user_id' => auth()->id(),
             'action' => $action,
             'status' => 'success',
-            'message' => 'Perubahan konfigurasi provider.',
+            'message' => 'Provider configuration changed.',
             'context' => ['changed_fields' => array_values(array_unique($fields))],
             'ip' => request()->ip(),
         ]);

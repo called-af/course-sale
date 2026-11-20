@@ -113,14 +113,14 @@ class PaymentSettings
 
         // Midtrans is the only supported payment gateway.
         if ($gateway !== 'midtrans') {
-            throw new \RuntimeException('Gateway pembayaran harus Midtrans.');
+            throw new \RuntimeException('The payment gateway must be Midtrans.');
         }
 
         $currency = strtoupper(trim((string) ($currency ?? $setting->currency)));
 
         // Snap only supports IDR.
         if ($currency !== 'IDR') {
-            throw new \RuntimeException('Midtrans hanya mendukung mata uang IDR.');
+            throw new \RuntimeException('Midtrans only supports IDR currency.');
         }
 
         $setting->forceFill([

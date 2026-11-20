@@ -75,7 +75,7 @@ class AiSettingsFeatureTest extends TestCase
             'current_password' => 'wrong-password',
         ]);
         $wrongResponse->assertStatus(422);
-        $wrongResponse->assertJsonPath('errors.current_password', 'Password yang dimasukkan salah.');
+        $wrongResponse->assertJsonPath('errors.current_password', 'The password you entered is incorrect.');
 
         $correctResponse = $this->post(route('admin.settings.ai.verify-password'), [
             '_token' => 'test-csrf-token',

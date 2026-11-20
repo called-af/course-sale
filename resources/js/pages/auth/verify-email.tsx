@@ -9,9 +9,9 @@ export default function VerifyEmail() {
                 <div className="w-full max-w-md rounded-none border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
                     <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Verify your email</h1>
                     <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
-                        Segarkan halaman ini setelah membuka tautan dari email verifikasi Anda.
+                        Refresh this page after opening the link in your verification email.
                     </p>
-                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Jika Anda sudah menerima tautannya, silakan tunggu sebentar.</p>
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">If you've already received the link, please wait a moment.</p>
                 </div>
             </div>
         </LoginLayout>

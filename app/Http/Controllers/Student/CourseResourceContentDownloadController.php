@@ -33,7 +33,7 @@ class CourseResourceContentDownloadController extends Controller
 
         abort_unless($enrollmentService->isEnrolled($user, $course), 403);
 
-        // Lesson-file resources unlock per lesson: completing the content (or
+        // Lesson-file resources unlock per content: completing the content (or
         // the whole material) is enough, while finishing the entire course
         // still unlocks everything.
         $sourceUnlocked = $enrollmentService->hasCompletedContent($user, $content)

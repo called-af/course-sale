@@ -14,28 +14,28 @@ class LegalController extends Controller
     public function terms(): Response
     {
         return Inertia::render('legal/terms', [
-            'title' => 'Syarat & Ketentuan',
-            'updated_at' => '5 November 2026',
+            'title' => 'Terms & Conditions',
+            'updated_at' => 'November 5, 2026',
             'sections' => [
                 [
-                    'heading' => 'Penerimaan Syarat',
-                    'body' => 'Dengan mengakses atau menggunakan platform belajar ini, kamu memahami dan menyetujui Syarat & Ketentuan yang berlaku. Jika kamu tidak setuju, harap berhenti menggunakan layanan ini.',
+                    'heading' => 'Acceptance of Terms',
+                    'body' => 'By accessing or using this learning platform, you understand and agree to the applicable Terms & Conditions. If you do not agree, please stop using this service.',
                 ],
                 [
-                    'heading' => 'Akun & Keamanan',
-                    'body' => 'Kamu bertanggung jawab menjaga kerahasiaan kredensial akun, melindungi data pribadi, dan mengakses konten kursus hanya melalui akun yang kamu miliki.',
+                    'heading' => 'Account & Security',
+                    'body' => 'You are responsible for keeping your account credentials confidential, protecting personal data, and accessing course content only through the account you own.',
                 ],
                 [
-                    'heading' => 'Pembelian & Pembayaran',
-                    'body' => 'Pembelian kursus melalui gateway pembayaran resmi platform (sekarang Midtrans) akan diproses sesuai ketentuan merchant. Pembayaran yang sudah berhasil akan memberikan akses ke materi kursus.',
+                    'heading' => 'Purchases & Payments',
+                    'body' => 'Course purchases through the platform\'s official payment gateway (currently Midtrans) are processed according to the merchant terms. Successful payments grant access to the course materials.',
                 ],
                 [
-                    'heading' => 'Refund & Pembatasan Akses',
-                    'body' => 'Kursus yang dibeli dapat ditarik kembali sesuai kebijakan pada masa tertentu. Setelah refund diproses, akses materi kursus akan ditarik kembali.',
+                    'heading' => 'Refunds & Access Restrictions',
+                    'body' => 'Purchased courses may be revoked according to the policy within a certain period. Once a refund is processed, access to the course materials will be revoked.',
                 ],
                 [
-                    'heading' => 'Perilaku Pengguna',
-                    'body' => 'Kamu tidak boleh menyebarkan materi kursus, mencoba mengakses materi orang lain, atau menggunakan platform untuk tujuan melanggar hukum.',
+                    'heading' => 'User Conduct',
+                    'body' => 'You must not distribute course materials, attempt to access other people\'s materials, or use the platform for unlawful purposes.',
                 ],
             ],
         ]);
@@ -47,24 +47,24 @@ class LegalController extends Controller
     public function privacy(): Response
     {
         return Inertia::render('legal/privacy', [
-            'title' => 'Kebijakan Privasi',
-            'updated_at' => '5 November 2026',
+            'title' => 'Privacy Policy',
+            'updated_at' => 'November 5, 2026',
             'sections' => [
                 [
-                    'heading' => 'Data yang Kami Kumpulkan',
-                    'body' => 'Kami mengumpulkan data akun (nama, email), data belajar (kelas yang diikuti, progres materi), dan data transaksi pembayaran untuk keperluan operasional.',
+                    'heading' => 'Data We Collect',
+                    'body' => 'We collect account data (name, email), learning data (enrolled classes, material progress), and payment transaction data for operational purposes.',
                 ],
                 [
-                    'heading' => 'Penggunaan Data',
-                    'body' => 'Data digunakan untuk memproses pembelian, memberikan akses belajar, komunikasi notifikasi, perbaikan layanan, dan kepatuhan terhadap peraturan yang berlaku.',
+                    'heading' => 'Use of Data',
+                    'body' => 'Data is used to process purchases, provide learning access, send notifications, improve the service, and comply with applicable regulations.',
                 ],
                 [
-                    'heading' => 'Penyimpanan & Keamanan',
-                    'body' => 'Data disimpan dengan enkripsi dan kontrol akses yang ketat. Token pembayaran disimpan sebagai referensi transaksi dan tidak menampilkan data sensitif ke penyedia pembayaran.',
+                    'heading' => 'Storage & Security',
+                    'body' => 'Data is stored with encryption and strict access controls. Payment tokens are stored as transaction references and do not expose sensitive data to payment providers.',
                 ],
                 [
-                    'heading' => 'Hak Pengguna',
-                    'body' => 'Kamu dapat meminta akses, koreksi, atau penghapusan data akun sesuai ketentuan yang berlaku.',
+                    'heading' => 'User Rights',
+                    'body' => 'You may request access, correction, or deletion of your account data in accordance with applicable regulations.',
                 ],
             ],
         ]);

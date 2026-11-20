@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Models\UserEvent;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class RecommendationService
@@ -19,8 +18,6 @@ class RecommendationService
      */
     public function getRecommendations(?User $user, int $limit = 6): array
     {
-        // 1. Check both the legacy environment switch and the admin-managed
-        // Python recommendation switch. They remain separate from the AI service.
         if (! config('recommendation.enabled', true)
             || ! RecommendationSetting::isEnabled()) {
             return [];
@@ -41,107 +38,11 @@ class RecommendationService
     }
 
     /**
-     * Compute recommendations using configured driver (Python ML or Laravel native)
-     * with automatic fallback mechanism.
+     * Compute recommendations using the native Laravel recommendation engine.
      */
     public function computeRecommendations(?User $user, int $limit = 6): array
     {
-        $driver = config('recommendation.driver', 'python');
-
-        if ($driver === 'python') {
-            try {
-                $pythonResults = $this->fetchPythonRecommendations($user, $limit);
-                if (! empty($pythonResults)) {
-                    return $pythonResults;
-                }
-            } catch (\Throwable $e) {
-                $fallbackEnabled = config('recommendation.python.fallback_to_laravel', true);
-                Log::warning("[Recommendation] Python ML service unreachable or failed: {$e->getMessage()}. Fallback to Laravel engine: ".($fallbackEnabled ? 'YES' : 'NO'));
-
-                if (! $fallbackEnabled) {
-                    return [];
-                }
-            }
-
-            // Fallback to Laravel native Content-Based + Popularity engine
-            return $this->computeLaravelRecommendations($user, $limit);
-        }
-
-        // Native Laravel driver
         return $this->computeLaravelRecommendations($user, $limit);
-    }
-
-    /**
-     * Fetch recommendations from the Python FastAPI microservice.
-     */
-    public function fetchPythonRecommendations(?User $user, int $limit = 6): ?array
-    {
-        $baseUrl = rtrim(config('recommendation.python.url', 'http://127.0.0.1:8001'), '/');
-        $timeout = (float) config('recommendation.python.timeout', 2.0);
-        $retry = (int) config('recommendation.python.retry', 1);
-
-        $endpoint = $user
-            ? "{$baseUrl}/api/v1/recommendations/user/{$user->id}?limit={$limit}"
-            : "{$baseUrl}/api/v1/recommendations/guest?limit={$limit}";
-
-        $response = Http::timeout($timeout)
-            ->retry($retry, 100)
-            ->get($endpoint);
-
-        if (! $response->successful()) {
-            throw new \RuntimeException("Python service returned HTTP status {$response->status()}: {$response->body()}");
-        }
-
-        $payload = $response->json();
-        $items = $payload['recommendations'] ?? [];
-
-        if (empty($items)) {
-            return null;
-        }
-
-        // Extract ordered course IDs and score metadata
-        $courseMeta = [];
-        $courseIds = [];
-        foreach ($items as $item) {
-            $cid = (int) ($item['course_id'] ?? 0);
-            if ($cid > 0) {
-                $courseIds[] = $cid;
-                $courseMeta[$cid] = [
-                    'score' => (float) ($item['score'] ?? 0.0),
-                    'reason' => (string) ($item['reason'] ?? 'Recommended for you'),
-                    'matching_tags' => (array) ($item['matching_tags'] ?? []),
-                ];
-            }
-        }
-
-        if (empty($courseIds)) {
-            return null;
-        }
-
-        // Hydrate Course models from database (ensuring they exist and are published)
-        $courses = Course::whereIn('id', $courseIds)
-            ->where('status', 'published')
-            ->with(['tags:id,name,slug', 'categories:id,name,slug', 'creator:id,name'])
-            ->get()
-            ->keyBy('id');
-
-        $result = [];
-        foreach ($courseIds as $cid) {
-            if ($courses->has($cid)) {
-                $course = $courses->get($cid);
-                $courseArray = $course->toArray();
-                $courseArray['thumbnail_url'] = $course->thumbnail_url;
-                $courseArray['recommendation_score'] = round($courseMeta[$cid]['score'] ?? 0.0, 2);
-                $courseArray['recommendation_reason'] = $courseMeta[$cid]['reason'] ?? 'Recommended for you';
-                $courseArray['matching_tags'] = ! empty($courseMeta[$cid]['matching_tags'])
-                    ? $courseMeta[$cid]['matching_tags']
-                    : $course->tags->pluck('name')->take(3)->toArray();
-
-                $result[] = $courseArray;
-            }
-        }
-
-        return $result;
     }
 
     /**
@@ -310,44 +211,19 @@ class RecommendationService
     }
 
     /**
-     * Get real-time status and health of the recommendation subsystem.
+     * Get real-time status of the recommendation subsystem.
      */
     public function getStatus(): array
     {
-        $legacyEnabled = (bool) config('recommendation.enabled', true);
+        $enabled = (bool) config('recommendation.enabled', true);
         $adminEnabled = RecommendationSetting::isEnabled();
-        $driver = config('recommendation.driver', 'python');
-        $pythonUrl = config('recommendation.python.url', 'http://127.0.0.1:8001');
-        $fallbackToLaravel = (bool) config('recommendation.python.fallback_to_laravel', true);
-
-        $pythonOnline = false;
-        $pythonHealth = null;
-
-        if ($legacyEnabled && $adminEnabled && $driver === 'python') {
-            try {
-                $res = Http::timeout(0.6)->get(rtrim($pythonUrl, '/').'/api/v1/health');
-                if ($res->successful()) {
-                    $pythonOnline = true;
-                    $pythonHealth = $res->json();
-                }
-            } catch (\Throwable) {
-                $pythonOnline = false;
-            }
-        }
 
         return [
-            'enabled' => $legacyEnabled,
+            'enabled' => $enabled,
             'admin_enabled' => $adminEnabled,
-            'driver' => $driver,
-            'python_url' => $pythonUrl,
-            'python_online' => $pythonOnline,
-            'python_health' => $pythonHealth,
-            'fallback_to_laravel' => $fallbackToLaravel,
-            'active_engine' => ! $legacyEnabled || ! $adminEnabled
-                ? 'DISABLED'
-                : ($driver === 'python'
-                    ? ($pythonOnline ? 'PYTHON_FASTAPI_ML' : ($fallbackToLaravel ? 'LARAVEL_NATIVE_FALLBACK' : 'PYTHON_OFFLINE_NO_FALLBACK'))
-                    : 'LARAVEL_NATIVE'),
+            'active_engine' => ! $enabled || ! $adminEnabled ? 'DISABLED' : 'LARAVEL_NATIVE',
+            'cache_ttl' => (int) config('recommendation.cache_ttl', 7200),
+            'cache_store' => config('recommendation.cache_store') ?: config('cache.default'),
         ];
     }
 

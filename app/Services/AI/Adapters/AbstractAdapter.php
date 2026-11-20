@@ -54,7 +54,7 @@ abstract class AbstractAdapter implements AIProviderContract
             };
         } catch (ConnectionException $exception) {
             throw new ProviderException(
-                'Tidak dapat terhubung ke '.$this->name().'.',
+                'Unable to connect to '.$this->name().'.',
                 $this->name(),
                 null,
                 true,

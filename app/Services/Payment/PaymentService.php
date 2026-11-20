@@ -111,84 +111,113 @@ class PaymentService
             return $reusable;
         }
 
-        return DB::transaction(function () use ($user, $course, $method, $currency) {
-            $method->loadMissing('provider');
+        $lastException = null;
 
-            $activeGateway = $this->paymentSettings->current()->gateway;
-            $providerCode = $method->provider?->code ?? 'midtrans';
+        for ($attempt = 1; $attempt <= 5; $attempt++) {
+            try {
+                return DB::transaction(function () use ($user, $course, $method, $currency) {
+                    $method->loadMissing('provider');
 
-            if ($providerCode !== $activeGateway) {
-                throw new \RuntimeException('Metode pembayaran tidak tersedia untuk gateway aktif.');
+                    $activeGateway = $this->paymentSettings->current()->gateway;
+                    $providerCode = $method->provider?->code ?? 'midtrans';
+
+                    if ($providerCode !== $activeGateway) {
+                        throw new \RuntimeException('Metode pembayaran tidak tersedia untuk gateway aktif.');
+                    }
+
+                    // Concurrent requests can slip in before the transaction above
+                    // commits; reuse whatever pending order won the race.
+                    $existing = Order::query()
+                        ->where('user_id', $user->id)
+                        ->whereHas('items', fn ($query) => $query->where('course_id', $course->id))
+                        ->where('status', 'pending')
+                        ->latest('id')
+                        ->first();
+
+                    if ($existing) {
+                        return $existing;
+                    }
+
+                    $order = Order::create([
+                        'user_id' => $user->id,
+                        'order_number' => $this->generateOrderNumber(),
+                        'total_price' => (float) $course->price,
+                        'currency' => $currency,
+                        'status' => 'pending',
+                        'payment_method_id' => $method->id,
+                        'expires_at' => now()->addHours(24),
+                    ]);
+
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'course_id' => $course->id,
+                        'course_title' => $course->title,
+                        'course_price' => (float) $course->price,
+                    ]);
+
+                    $payment = Payment::create([
+                        'order_id' => $order->id,
+                        'provider_id' => $method->provider_id,
+                        'reference' => 'PAY-'.strtoupper($order->order_number),
+                        'amount' => (float) $course->price,
+                        'currency' => $currency,
+                        'status' => 'pending',
+                    ]);
+
+                    $transaction = $this->gatewayFor($method)->createTransaction((float) $course->price, [
+                        'order_number' => $order->order_number,
+                        'payment_method' => $method->code,
+                        'customer_name' => $user->name,
+                        'customer_email' => $user->email,
+                        'customer_phone' => $user->whatsapp_number,
+                        'currency' => $currency,
+                        'finish_url' => route('student.payment.show', ['order' => $order->order_number]),
+                        'course_id' => $course->id,
+                        'item_name' => $course->title,
+                    ]);
+
+                    $payment->update([
+                        'reference' => $transaction['provider_ref'] ?: $payment->reference,
+                        'payment_url' => $transaction['payment_url'] ?? null,
+                    ]);
+
+                    if (! empty($transaction['expires_at'])) {
+                        $order->update(['expires_at' => $transaction['expires_at']]);
+                    }
+
+                    $this->log($payment, 'created', [
+                        'gateway' => $providerCode,
+                        'provider_ref' => $transaction['provider_ref'] ?? null,
+                        'currency' => $currency,
+                    ]);
+
+                    return $order->fresh(['items', 'payments']);
+                });
+            } catch (\Throwable $exception) {
+                if ($this->isOrderNumberCollision($exception)) {
+                    $lastException = $exception;
+
+                    // Another request may have won the race and created a usable
+                    // pending order for this user/course; reuse it if present.
+                    $existing = Order::query()
+                        ->where('user_id', $user->id)
+                        ->whereHas('items', fn ($query) => $query->where('course_id', $course->id))
+                        ->where('status', 'pending')
+                        ->latest('id')
+                        ->first();
+
+                    if ($existing) {
+                        return $existing;
+                    }
+
+                    continue;
+                }
+
+                throw $exception;
             }
+        }
 
-            // Concurrent requests can slip in before the transaction above
-            // commits; reuse whatever pending order won the race.
-            $existing = Order::query()
-                ->where('user_id', $user->id)
-                ->whereHas('items', fn ($query) => $query->where('course_id', $course->id))
-                ->where('status', 'pending')
-                ->latest('id')
-                ->first();
-
-            if ($existing) {
-                return $existing;
-            }
-
-            $order = Order::create([
-                'user_id' => $user->id,
-                'order_number' => $this->generateOrderNumber(),
-                'total_price' => (float) $course->price,
-                'currency' => $currency,
-                'status' => 'pending',
-                'payment_method_id' => $method->id,
-                'expires_at' => now()->addHours(24),
-            ]);
-
-            OrderItem::create([
-                'order_id' => $order->id,
-                'course_id' => $course->id,
-                'course_title' => $course->title,
-                'course_price' => (float) $course->price,
-            ]);
-
-            $payment = Payment::create([
-                'order_id' => $order->id,
-                'provider_id' => $method->provider_id,
-                'reference' => 'PAY-'.strtoupper($order->order_number),
-                'amount' => (float) $course->price,
-                'currency' => $currency,
-                'status' => 'pending',
-            ]);
-
-            $transaction = $this->gatewayFor($method)->createTransaction((float) $course->price, [
-                'order_number' => $order->order_number,
-                'payment_method' => $method->code,
-                'customer_name' => $user->name,
-                'customer_email' => $user->email,
-                'customer_phone' => $user->whatsapp_number,
-                'currency' => $currency,
-                'finish_url' => route('student.payment.show', ['order' => $order->order_number]),
-                'course_id' => $course->id,
-                'item_name' => $course->title,
-            ]);
-
-            $payment->update([
-                'reference' => $transaction['provider_ref'] ?: $payment->reference,
-                'payment_url' => $transaction['payment_url'] ?? null,
-            ]);
-
-            if (! empty($transaction['expires_at'])) {
-                $order->update(['expires_at' => $transaction['expires_at']]);
-            }
-
-            $this->log($payment, 'created', [
-                'gateway' => $providerCode,
-                'provider_ref' => $transaction['provider_ref'] ?? null,
-                'currency' => $currency,
-            ]);
-
-            return $order->fresh(['items', 'payments']);
-        });
+        throw new \RuntimeException('Gagal membuat nomor pesanan unik. Silakan coba lagi.', 0, $lastException);
     }
 
     /**
@@ -361,8 +390,9 @@ class PaymentService
     }
 
     /**
-     * Mark a payment as failed/expired. If the payment was already paid this
-     * is a settlement reversal (e.g. deny after settlement), so access and
+     * Mark a payment as failed/expired. If the payment was already paid (or
+     * partially refunded, which still carries active access for the remainder)
+     * this is a settlement reversal (e.g. deny after settlement), so access and
      * pending payouts must be revoked too.
      *
      * @param  array<string, mixed>  $transaction
@@ -385,17 +415,18 @@ class PaymentService
                 return $lockedPayment;
             }
 
-            if ($lockedPayment->status === 'paid') {
+            if (in_array($lockedPayment->status, ['paid', 'partial_refund'], true)) {
                 if ($status === 'expired') {
                     // An expiry notification after settlement is a stale
                     // delivery; never revoke access because of it.
                     return $lockedPayment;
                 }
 
-                $lockedPayment->update(['status' => $status === 'chargeback' ? 'chargeback' : 'failed']);
+                $finalStatus = $status === 'chargeback' ? 'chargeback' : 'failed';
+                $lockedPayment->update(['status' => $finalStatus]);
 
                 if ($order) {
-                    $order->update(['status' => $status === 'chargeback' ? 'chargeback' : 'failed']);
+                    $order->update(['status' => $finalStatus]);
                     $this->revokeEnrollments($order);
                     $this->cancelPayouts($order, 'Pembayaran dibatalkan/di-reverse oleh gateway.');
                 }
@@ -403,6 +434,7 @@ class PaymentService
                 $this->log($lockedPayment, 'reversed', [
                     'order_number' => $order?->order_number,
                     'status' => $status,
+                    'previous_status' => $payment->status,
                 ]);
 
                 return $lockedPayment;
@@ -785,5 +817,23 @@ class PaymentService
     public function generateOrderNumber(): string
     {
         return 'ORD-'.now()->format('Ymd').'-'.strtoupper(Str::random(6));
+    }
+
+    protected function isOrderNumberCollision(\Throwable $exception): bool
+    {
+        if ($exception instanceof \Illuminate\Database\UniqueConstraintViolationException) {
+            return str_contains($exception->getMessage(), 'order_number')
+                || str_contains($exception->getMessage(), 'orders_order_number_unique');
+        }
+
+        if (! $exception instanceof \Illuminate\Database\QueryException) {
+            return false;
+        }
+
+        $message = $exception->getMessage();
+
+        return str_contains($message, 'orders_order_number_unique')
+            || str_contains($message, 'order_number')
+            || in_array($exception->getCode(), ['23000', 23000], true);
     }
 }

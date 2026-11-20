@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\GeneralSettingsController;
 use App\Http\Controllers\Admin\LandingSettingsController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PayoutController;
+use App\Http\Controllers\Admin\SeoSettingsController;
 use App\Http\Controllers\Admin\WhatsAppIntegrationController;
 use App\Http\Controllers\AuthControllers;
 use App\Http\Controllers\CategoryController;
@@ -103,9 +104,8 @@ Route::get('/course/{course:slug}', function (Course $course) {
         $canReview = $enrollmentService->isCompleted($user, $course);
         $refundPolicy = $enrollmentService->refundPolicy($user, $course);
 
-        // Track progress per lesson/content (not per material or module) so a
-        // watched video, opened file, read text or submitted quiz immediately
-        // reflects on the progress bar.
+        // Track progress per published content block so a watched video, opened
+        // file, read text or submitted quiz immediately reflects on the progress bar.
         $course->load([
             'modules' => fn ($modules) => $modules
                 ->where('status', 'published')
@@ -123,7 +123,9 @@ Route::get('/course/{course:slug}', function (Course $course) {
         ]);
 
         $allContentIds = $course->modules
-            ->flatMap(fn ($module) => $module->materials->flatMap(fn ($material) => $material->contents->pluck('id')));
+            ->flatMap(fn ($module) => $module->materials)
+            ->flatMap(fn ($material) => $material->contents)
+            ->pluck('id');
 
         $totalContents = $allContentIds->count();
 
@@ -191,6 +193,9 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/register', [AuthControllers::class, 'showRegister']);
     Route::post('/register', [AuthControllers::class, 'register'])->middleware('throttle:6,1');
+
+    Route::get('/auth/google/redirect', [AuthControllers::class, 'redirectToGoogle'])->name('auth.google.redirect');
+    Route::get('/auth/google/callback', [AuthControllers::class, 'handleGoogleCallback'])->name('auth.google.callback');
 });
 
 Route::post('/logout', [AuthControllers::class, 'logout'])
@@ -320,8 +325,6 @@ Route::middleware(['auth', 'role'])->group(function () {
                     [MaterialContentController::class, 'edit']
                 )->name('contents.edit');
 
-                // Keep this after the existing contents.move route.
-
                 /*
                 |--------------------------------------------------------------------------
                 | QUIZ QUESTIONS (nested under content)
@@ -417,11 +420,11 @@ Route::middleware(['auth', 'role'])->group(function () {
             Route::delete('/courses/{course:slug}', [CourseController::class, 'destroy'])
                 ->name('courses.destroy');
 
-            Route::get('/courses/{course:slug}/certificate-template', [CertificateTemplateController::class, 'show'])
-                ->name('courses.certificate-template.show');
+            Route::get('/certificate-template', [CertificateTemplateController::class, 'globalShow'])
+                ->name('certificate-template.show');
 
-            Route::put('/courses/{course:slug}/certificate-template', [CertificateTemplateController::class, 'update'])
-                ->name('courses.certificate-template.update');
+            Route::put('/certificate-template', [CertificateTemplateController::class, 'globalUpdate'])
+                ->name('certificate-template.update');
 
             $registerCourseStructureRoutes();
 
@@ -465,6 +468,12 @@ Route::middleware(['auth', 'role'])->group(function () {
 
             Route::get('/settings/general', [GeneralSettingsController::class, 'edit'])
                 ->name('settings.general');
+
+            Route::get('/settings/seo', [SeoSettingsController::class, 'edit'])
+                ->name('settings.seo');
+
+            Route::post('/settings/seo', [SeoSettingsController::class, 'update'])
+                ->name('settings.seo.update');
 
             Route::put('/settings/appearance', [GeneralSettingsController::class, 'updateAppearance'])
                 ->name('settings.appearance.update');
@@ -593,11 +602,8 @@ Route::middleware(['auth', 'role'])->group(function () {
             Route::delete('/courses/{course:slug}', [CourseController::class, 'destroy'])
                 ->name('courses.destroy');
 
-            Route::get('/courses/{course:slug}/certificate-template', [CertificateTemplateController::class, 'show'])
-                ->name('courses.certificate-template.show');
-
-            Route::put('/courses/{course:slug}/certificate-template', [CertificateTemplateController::class, 'update'])
-                ->name('courses.certificate-template.update');
+            Route::put('/courses/{course:slug}/certificate-template/signature', [CertificateTemplateController::class, 'updateSignature'])
+                ->name('courses.certificate-template.signature');
 
             Route::get('/quiz-attempts', [QuizGradingController::class, 'index'])
                 ->name('quiz-attempts.index');
@@ -788,6 +794,7 @@ Route::middleware(['auth', 'role:admin'])
 |--------------------------------------------------------------------------
 */
 Route::post('/payments/midtrans/webhook', [PaymentWebhookController::class, 'midtrans'])
+    ->middleware('throttle:payment-webhooks')
     ->name('payment.webhook.midtrans');
 
 /*

@@ -62,7 +62,7 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
 
     return (
         <section className="space-y-6">
-            <Head title="Pengaturan Pembayaran" />
+            <Head title="Payment Settings" />
 
             <Card className="overflow-hidden rounded-none">
                 <div className="flex flex-col gap-5 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
@@ -81,10 +81,8 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
                             </svg>
                         </span>
                         <div>
-                            <h2 className="font-semibold text-slate-900 dark:text-white">Gateway Pembayaran</h2>
-                            <p className="mt-1 text-sm text-neutral-500">
-                                Midtrans adalah satu-satunya gateway pembayaran untuk order & checkout course.
-                            </p>
+                            <h2 className="font-semibold text-slate-900 dark:text-white">Payment Gateway</h2>
+                            <p className="mt-1 text-sm text-neutral-500">Midtrans is the only payment gateway for course orders and checkout.</p>
                         </div>
                     </div>
 
@@ -96,7 +94,7 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
                                     : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
                             }`}
                         >
-                            {configured ? `Midtrans ${mode} Ready` : 'Midtrans belum dikonfigurasi'}
+                            {configured ? `Midtrans ${mode} Ready` : 'Midtrans is not configured'}
                         </span>
                     </div>
                 </div>
@@ -104,9 +102,9 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
                 <div className="border-t border-neutral-200 bg-neutral-50/70 p-4 sm:p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h3 className="font-semibold text-slate-900 dark:text-white">Konfigurasi Midtrans</h3>
+                            <h3 className="font-semibold text-slate-900 dark:text-white">Midtrans Configuration</h3>
                             <p className="mt-1 text-sm text-neutral-500">
-                                Kredensial disimpan sebagai environment variable di server, bukan di database.
+                                Credentials are stored as environment variables on the server, not in the database.
                             </p>
                         </div>
                     </div>
@@ -121,14 +119,14 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
                                 <span className="text-xs font-medium text-slate-500 dark:text-slate-400">{mode}</span>
                             </div>
                             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                Kartu kredit, QRIS, Virtual Account, GoPay, dan channel lain yang aktif di dashboard Midtrans.
+                                Credit card, QRIS, Virtual Account, GoPay, and other channels enabled in the Midtrans dashboard.
                             </p>
                         </div>
 
                         <input type="hidden" name="gateway" value="midtrans" />
 
                         <InputField
-                            label="Mata Uang"
+                            label="Currency"
                             name="currency"
                             value={data.currency}
                             onChange={(event) => setData('currency', event.target.value)}
@@ -139,7 +137,7 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
                         />
 
                         <InputField
-                            label="Fee Platform (%)"
+                            label="Platform Fee (%)"
                             name="platform_fee_percent"
                             type="number"
                             min={0}
@@ -151,13 +149,13 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
                             disabled={processing}
                         />
                         <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                            Persentase fee platform yang dipotong dari pendapatan instruktur saat order course lunas. Instruktur menerima sisa setelah
-                            fee ini.
+                            Percentage of the platform fee deducted from instructor earnings when a course order is paid. Instructors receive the
+                            remainder after this fee.
                         </p>
 
                         <div className="grid gap-4 sm:grid-cols-3">
                             <InputField
-                                label="Hold (hari)"
+                                label="Hold (days)"
                                 name="payout_hold_days"
                                 type="number"
                                 min={0}
@@ -168,7 +166,7 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
                                 disabled={processing}
                             />
                             <InputField
-                                label="Minimum Payout (Rp)"
+                                label="Minimum Payout (IDR)"
                                 name="payout_minimum"
                                 type="number"
                                 min={0}
@@ -179,7 +177,7 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
                                 disabled={processing}
                             />
                             <InputField
-                                label="Lock Ganti Rekening (jam)"
+                                label="Account Change Lock (hours)"
                                 name="payout_account_lock_hours"
                                 type="number"
                                 min={0}
@@ -191,20 +189,21 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
                             />
                         </div>
                         <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                            Dana ditahan sekian hari setelah order lunas sebelum bisa dicairkan. Payout hanya dikirim jika total payout instruktur
-                            sudah mencapai minimum. Rekening yang baru diubah dikunci sekian jam demi keamanan.
+                            Funds are held for the configured number of days after an order is paid before they can be withdrawn. Payouts are only
+                            sent once an instructor's total payout reaches the minimum. Newly changed bank accounts are locked for the configured
+                            number of hours for security.
                         </p>
 
                         <div className="space-y-2 border border-sky-200 bg-sky-50 p-4 text-xs text-sky-900 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-sky-200">
-                            <p className="font-semibold">Environment yang dibutuhkan</p>
+                            <p className="font-semibold">Required environment variables</p>
                             <ul className="list-inside list-disc space-y-1 font-mono">
                                 <li>MIDTRANS_SERVER_KEY</li>
                                 <li>MIDTRANS_CLIENT_KEY</li>
-                                <li>MIDTRANS_IS_PRODUCTION=true (saat live)</li>
+                                <li>MIDTRANS_IS_PRODUCTION=true (when live)</li>
                                 <li>MIDTRANS_SNAP_BASE_URL / MIDTRANS_API_BASE_URL</li>
                             </ul>
                             <p className="pt-1">
-                                Notification URL Midtrans:{' '}
+                                Midtrans Notification URL:{' '}
                                 <span className="font-mono break-all">{initialPayment.webhook_url ?? '/payments/midtrans/webhook'}</span>
                             </p>
                         </div>
@@ -218,7 +217,7 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
                                 }`}
                             >
                                 <p className="font-semibold">
-                                    {issues.length === 0 ? 'Diagnosa konfigurasi: sehat' : 'Diagnosa konfigurasi: ada masalah'}
+                                    {issues.length === 0 ? 'Configuration diagnosis: healthy' : 'Configuration diagnosis: issues found'}
                                 </p>
                                 <div className="grid gap-1 sm:grid-cols-2">
                                     <p>
@@ -228,10 +227,10 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
                                         Mode: <span className="font-mono">{diagnostics.mode}</span>
                                     </p>
                                     <p>
-                                        Jenis key: <span className="font-mono">{diagnostics.server_key_kind ?? '—'}</span>
+                                        Key type: <span className="font-mono">{diagnostics.server_key_kind ?? '—'}</span>
                                     </p>
                                     <p>
-                                        Merchant ID: <span className="font-mono">{diagnostics.merchant_id_configured ? 'terisi' : 'belum'}</span>
+                                        Merchant ID: <span className="font-mono">{diagnostics.merchant_id_configured ? 'set' : 'not set'}</span>
                                     </p>
                                     <p className="break-all">
                                         Snap: <span className="font-mono">{diagnostics.snap_base_url}</span>
@@ -248,15 +247,15 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
                                     </ul>
                                 ) : null}
                                 <p className="pt-1">
-                                    Channel refund API: <span className="font-mono">{diagnostics.refundable_channels.join(', ')}</span>
+                                    Refundable API channels: <span className="font-mono">{diagnostics.refundable_channels.join(', ')}</span>
                                 </p>
                             </div>
                         ) : null}
 
                         {!configured ? (
                             <p className="text-xs font-medium text-amber-700 dark:text-amber-300">
-                                Isi MIDTRANS_SERVER_KEY di server lalu jalankan ulang seeder pembayaran. Metode pembayaran tidak akan muncul sampai
-                                Midtrans terkonfigurasi.
+                                Set MIDTRANS_SERVER_KEY on the server and re-run the payment seeder. Payment methods will not appear until Midtrans is
+                                configured.
                             </p>
                         ) : null}
 
@@ -264,7 +263,7 @@ export default function PaymentSettingsPanel({ initialPayment }: PaymentSettings
 
                         <div className="flex">
                             <Button type="submit" disabled={processing} className="w-full sm:w-auto">
-                                Simpan pengaturan pembayaran
+                                Save payment settings
                             </Button>
                         </div>
                     </form>

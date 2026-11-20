@@ -171,9 +171,9 @@ it('downloads automatic lesson-file resources once their lesson is completed', f
         'status' => 'published',
     ]);
 
-    MaterialProgress::create([
+    MaterialContentProgress::create([
         'user_id' => $student->id,
-        'material_id' => $materials->first()->id,
+        'material_content_id' => $content->id,
         'is_completed' => true,
         'completed_at' => now(),
     ]);

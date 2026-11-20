@@ -1,6 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Award, ClipboardCheck, Eye, Image, Save, Tag } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowLeft, Award, ClipboardCheck, Eye, Image, ImagePlus, PenLine, Save, Tag, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import Button from '@/components/atoms/Button';
 import ChooseFile from '@/components/molecules/ChooseFile';
@@ -9,13 +9,13 @@ import MultiSelectField from '@/components/molecules/MultiSelectField';
 import PageHeader from '@/components/molecules/PageHeader';
 import SelectField from '@/components/molecules/SelectField';
 import TextAreaField from '@/components/molecules/TextAreaField';
-import CertificateTemplateEditor from '@/components/organisms/Course/CertificateTemplateEditor';
 import CourseResourcesSection from '@/components/organisms/Course/CourseResourcesSection';
 import CourseStructure from '@/components/organisms/Course/CourseStructure';
 import EnrolledStudentsList from '@/components/organisms/Course/EnrolledStudentsList';
 
 import UserLayout from '@/components/templates/UserLayout';
 import { useCourse } from '@/hooks/useCourse';
+import { validateTransparentPng } from '@/lib/transparent-png';
 import type { Course, EnrolledStudent } from '@/types';
 import type { SharedPageProps } from '@/types/shared';
 
@@ -32,6 +32,58 @@ export default function CourseSlug({ course, categories, tags, enrolled_students
     const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
     const { data, setData, errors, processing, preview, handleThumbnailChange, hasChanges, save } = useCourse(course);
+
+    const [signatureName, setSignatureName] = useState<string>(course.certificate_template?.signature_name ?? '');
+    const [savingSignature, setSavingSignature] = useState(false);
+    const [signatureFile, setSignatureFile] = useState<File | null>(null);
+    const [removeSignature, setRemoveSignature] = useState(false);
+    const [signatureError, setSignatureError] = useState<string | null>(null);
+    const signatureFileInputRef = useRef<HTMLInputElement>(null);
+
+    const signaturePreviewUrl = useMemo(() => (signatureFile ? URL.createObjectURL(signatureFile) : null), [signatureFile]);
+    const storedSignatureUrl = course.certificate_template?.signature_image_url ?? null;
+    const activeSignatureUrl = removeSignature ? null : signaturePreviewUrl || storedSignatureUrl;
+
+    useEffect(
+        () => () => {
+            if (signaturePreviewUrl) URL.revokeObjectURL(signaturePreviewUrl);
+        },
+        [signaturePreviewUrl],
+    );
+
+    const pickSignature = async (file: File | null) => {
+        if (!file) return;
+
+        const error = await validateTransparentPng(file);
+        setSignatureError(error);
+        if (error) return;
+
+        setSignatureFile(file);
+        setRemoveSignature(false);
+    };
+
+    const saveSignature = () => {
+        const data = new FormData();
+        data.append('_method', 'PUT');
+        data.append('signature_name', signatureName);
+        if (removeSignature) data.append('remove_signature_image', '1');
+        if (signatureFile) data.append('signature_image', signatureFile);
+
+        router.post(`/instructor/courses/${course.slug}/certificate-template/signature`, data, {
+            forceFormData: true,
+            preserveScroll: true,
+            onStart: () => {
+                setSavingSignature(true);
+                setSignatureError(null);
+            },
+            onFinish: () => setSavingSignature(false),
+            onSuccess: () => {
+                setSignatureFile(null);
+                setRemoveSignature(false);
+            },
+            onError: (formErrors) => setSignatureError(formErrors.signature_image ?? null),
+        });
+    };
 
     const submitForReview = () => {
         router.put(
@@ -257,32 +309,102 @@ export default function CourseSlug({ course, categories, tags, enrolled_students
                 {/* Enrolled Students List */}
                 <EnrolledStudentsList students={enrolled_students ?? []} exportUrl={`/instructor/courses/${course.slug}/students/export`} />
 
-                {/* Certificate Template Editor */}
-                <div className="space-y-6 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
+                {/* Certificate Signature (instructor-limited) */}
+                <div className="space-y-4 border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="flex items-center gap-3 border-b border-slate-100 pb-4 dark:border-slate-700">
                         <div className="flex h-8 w-8 items-center justify-center bg-purple-50 dark:bg-purple-950/40">
                             <Award className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                         </div>
                         <div>
-                            <h2 className="text-base font-bold text-slate-900 dark:text-white">Certificate Template</h2>
+                            <h2 className="text-base font-bold text-slate-900 dark:text-white">Certificate Signature</h2>
                             <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                                Customize the certificate design issued to students who complete this course.
+                                Change your signature name and upload your own transparent PNG. The template layout and design are managed by the
+                                admin.
                             </p>
                         </div>
                     </div>
-                    <CertificateTemplateEditor
-                        courseSlug={course.slug}
-                        rolePrefix="instructor"
-                        initialTemplate={{
-                            primary_color: course.certificate_template?.primary_color ?? '#7c3aed',
-                            accent_color: course.certificate_template?.accent_color ?? '#a78bfa',
-                            bg_style: (course.certificate_template?.bg_style ?? 'dark') as 'dark' | 'light' | 'gradient',
-                            show_signature: course.certificate_template?.show_signature ?? false,
-                            signature_name: course.certificate_template?.signature_name ?? '',
-                            custom_title: course.certificate_template?.custom_title ?? '',
-                            footer_note: course.certificate_template?.footer_note ?? '',
-                        }}
-                    />
+
+                    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_260px]">
+                        <div className="space-y-3">
+                            <InputField
+                                label="Signature Name"
+                                value={signatureName}
+                                onChange={(e) => setSignatureName(e.target.value)}
+                                placeholder="e.g. Instructor Name"
+                            />
+
+                            <div>
+                                <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">Signature image</span>
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => signatureFileInputRef.current?.click()}
+                                        className="inline-flex items-center gap-1.5 border border-purple-200 bg-purple-50 px-3 py-2 text-xs font-semibold text-purple-700 transition hover:bg-purple-100 dark:border-purple-900 dark:bg-purple-950/40 dark:text-purple-300"
+                                    >
+                                        <ImagePlus className="h-4 w-4" />
+                                        {activeSignatureUrl ? 'Replace PNG' : 'Upload PNG'}
+                                    </button>
+                                    {activeSignatureUrl && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setSignatureFile(null);
+                                                setRemoveSignature(true);
+                                                setSignatureError(null);
+                                            }}
+                                            className="inline-flex items-center gap-1.5 border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30"
+                                        >
+                                            <Trash2 className="h-4 w-4" /> Remove
+                                        </button>
+                                    )}
+                                </div>
+                                <p className="mt-1.5 text-[11px] leading-relaxed text-slate-400 dark:text-slate-500">
+                                    Transparent PNG only · no background · max 2 MB. Removing your image falls back to the admin default.
+                                </p>
+                                {signatureError && (
+                                    <p className="mt-1.5 text-[11px] leading-relaxed text-red-600 dark:text-red-400">{signatureError}</p>
+                                )}
+                                <input
+                                    ref={signatureFileInputRef}
+                                    type="file"
+                                    accept="image/png"
+                                    className="hidden"
+                                    onChange={(event) => {
+                                        pickSignature(event.target.files?.[0] ?? null);
+                                        event.target.value = '';
+                                    }}
+                                />
+                            </div>
+                        </div>
+
+                        <div
+                            className="flex h-40 items-center justify-center overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700"
+                            style={{
+                                backgroundImage: 'conic-gradient(#e5e7eb 0 25%, #ffffff 0 50%, #e5e7eb 0 75%, #ffffff 0)',
+                                backgroundSize: '14px 14px',
+                            }}
+                        >
+                            {activeSignatureUrl ? (
+                                <img src={activeSignatureUrl} alt="Signature preview" className="h-full w-full object-contain" />
+                            ) : (
+                                <div className="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+                                    <PenLine className="h-6 w-6" />
+                                    <span className="text-[11px] font-medium">No signature image</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end">
+                        <Button
+                            onClick={saveSignature}
+                            isLoading={savingSignature}
+                            leftIcon={<PenLine className="h-4 w-4" />}
+                            className="!rounded-none"
+                        >
+                            Save Signature
+                        </Button>
+                    </div>
                 </div>
             </div>
         </>

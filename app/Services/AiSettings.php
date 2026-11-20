@@ -84,7 +84,7 @@ class AiSettings
         $setting = AiSetting::current();
 
         if ($enabled && ! $this->isConfigured()) {
-            throw new \RuntimeException('Base URL, model, dan API key harus lengkap sebelum AI diaktifkan.');
+            throw new \RuntimeException('Base URL, model, and API key must be complete before AI is enabled.');
         }
 
         $setting->enabled = $enabled;
@@ -107,7 +107,7 @@ class AiSettings
         }
 
         if ($baseUrlChanged && empty($attributes['api_key'] ?? null)) {
-            throw new \RuntimeException('API key wajib diisi ulang saat Base URL berubah.');
+            throw new \RuntimeException('The API key must be re-entered when the Base URL changes.');
         }
 
         if ($baseUrlChanged) {
@@ -131,7 +131,7 @@ class AiSettings
             $setting->provider = $previousProvider;
             $setting->save();
 
-            throw new \RuntimeException('Konfigurasi AI tidak lengkap.');
+            throw new \RuntimeException('AI configuration is incomplete.');
         }
     }
 

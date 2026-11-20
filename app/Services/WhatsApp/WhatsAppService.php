@@ -155,7 +155,7 @@ class WhatsAppService
         if (! $this->isEnabled()) {
             return [
                 'success' => false,
-                'error' => 'Notifikasi WhatsApp dinonaktifkan oleh administrator.',
+                'error' => 'WhatsApp notifications are disabled by the administrator.',
             ];
         }
 
@@ -164,7 +164,7 @@ class WhatsAppService
         if (empty($recipient)) {
             return [
                 'success' => false,
-                'error' => 'Nomor WhatsApp instructor tidak tersedia.',
+                'error' => 'Instructor WhatsApp number is unavailable.',
             ];
         }
 
@@ -174,14 +174,14 @@ class WhatsAppService
         $appName = AppearanceSetting::current()->displayName();
 
         // Standard text message
-        $body = "Halo, *{$instructor->name}*! 🎓\n\n"
-            ."Ada student baru yang baru saja enroll di course Anda:\n\n"
+        $body = "Hello, *{$instructor->name}*! 🎓\n\n"
+            ."A new student just enrolled in your course:\n\n"
             ."👤 *Student:* {$student->name}\n"
             ."📚 *Course:* {$course->title}\n"
-            ."🗓️ *Tanggal Enrollment:* {$dateFormatted}\n\n"
-            ."Buka dashboard instructor Anda untuk memantau progress siswa:\n"
+            ."🗓️ *Enrollment Date:* {$dateFormatted}\n\n"
+            ."Open your instructor dashboard to monitor student progress:\n"
             ."🔗 {$dashboardUrl}\n\n"
-            ."Salam,\n*{$appName}*";
+            ."Regards,\n*{$appName}*";
 
         // If provider is Meta and template is configured, try template first
         if ($this->provider === 'meta' && ! empty($this->templateName)) {
@@ -222,18 +222,18 @@ class WhatsAppService
         if (empty($recipient)) {
             return [
                 'success' => false,
-                'error' => 'Nomor WhatsApp belum diisi atau format tidak valid.',
+                'error' => 'WhatsApp number is not set or has an invalid format.',
             ];
         }
 
         $appName = AppearanceSetting::current()->displayName();
         $timestamp = now()->translatedFormat('d M Y, H:i');
 
-        $body = "Halo, *{$instructor->name}*! 🎓\n\n"
-            ."Ini adalah pesan uji coba (*Test WhatsApp Notification*) dari platform *{$appName}*.\n\n"
-            ."Pengaturan notifikasi WhatsApp Anda telah berhasil terhubung dan aktif.\n"
-            ."Waktu Pengujian: {$timestamp}\n\n"
-            .'Setiap kali ada student baru yang mendaftar pada course Anda, sistem akan otomatis mengirim notifikasi ke nomor ini.';
+        $body = "Hello, *{$instructor->name}*! 🎓\n\n"
+            ."This is a test message (*Test WhatsApp Notification*) from the *{$appName}* platform.\n\n"
+            ."Your WhatsApp notification settings are connected and active.\n"
+            ."Test Time: {$timestamp}\n\n"
+            .'Whenever a new student enrolls in your course, the system will automatically send a notification to this number.';
 
         // Support local simulation mode if WhatsApp API credentials are not set in .env
         if (! $this->isConfigured()) {
@@ -249,13 +249,13 @@ class WhatsAppService
                 return [
                     'success' => true,
                     'is_simulated' => true,
-                    'message' => "Pesan uji coba berhasil disimulasikan ke {$recipient} (dicatat di storage/logs/laravel.log).",
+                    'message' => "Test message successfully simulated to {$recipient} (logged in storage/logs/laravel.log).",
                 ];
             }
 
             return [
                 'success' => false,
-                'error' => 'WhatsApp API belum dikonfigurasi di .env.',
+                'error' => 'WhatsApp API is not configured in .env.',
             ];
         }
 
@@ -268,13 +268,13 @@ class WhatsAppService
                 return [
                     'success' => true,
                     'message_id' => $fallbackTemplate['message_id'] ?? null,
-                    'notice' => 'Pesan dikirim via template resmi Meta (hello_world) karena batas percakapan 24 jam belum terbuka.',
+                    'notice' => 'Message sent via the official Meta template (hello_world) because the 24-hour conversation window is not open.',
                 ];
             }
 
             return [
                 'success' => false,
-                'error' => 'Meta Cloud API menolak pesan bebas (Error 131047: Re-engagement message). Untuk inisiasi pesan pertama, Meta mewajibkan pesan Template yang sudah disetujui di Meta Business Manager.',
+                'error' => 'Meta Cloud API rejected the free-form message (Error 131047: Re-engagement message). To initiate the first message, Meta requires a Template approved in Meta Business Manager.',
             ];
         }
 
@@ -325,7 +325,7 @@ class WhatsAppService
         if (! $this->isConfigured()) {
             return [
                 'success' => false,
-                'error' => 'WhatsApp API belum dikonfigurasi (API key atau Base URL belum diatur di Admin Panel atau .env).',
+                'error' => 'WhatsApp API is not configured (API key or Base URL is not set in the Admin Panel or .env).',
             ];
         }
 
@@ -356,13 +356,13 @@ class WhatsAppService
                     if ($statusName === 'REJECTED_DESTINATION_NOT_REGISTERED') {
                         return [
                             'success' => false,
-                            'error' => "Nomor WhatsApp Anda ({$recipient}) belum terdaftar di sandbox. Silakan kirim chat WhatsApp ke nomor +{$this->infobipFrom} dari HP Anda untuk mengaktifkan sandbox.",
+                            'error' => "Your WhatsApp number ({$recipient}) is not registered in the sandbox. Send a WhatsApp chat to +{$this->infobipFrom} from your phone to activate the sandbox.",
                         ];
                     }
 
                     return [
                         'success' => false,
-                        'error' => "WhatsApp Gateway menolak pesan: {$statusDesc} ({$statusName})",
+                        'error' => "WhatsApp Gateway rejected the message: {$statusDesc} ({$statusName})",
                     ];
                 }
 
@@ -383,7 +383,7 @@ class WhatsAppService
 
             return [
                 'success' => false,
-                'error' => "Gagal kirim via WhatsApp Gateway: {$errorMsg}",
+                'error' => "Failed to send via WhatsApp Gateway: {$errorMsg}",
             ];
         } catch (\Throwable $e) {
             Log::error('Exception while calling WhatsApp API: '.$e->getMessage(), [
@@ -405,7 +405,7 @@ class WhatsAppService
         if (! $this->isConfigured()) {
             return [
                 'success' => false,
-                'error' => 'WhatsApp Cloud API belum dikonfigurasi (WHATSAPP_ACCESS_TOKEN atau WHATSAPP_PHONE_NUMBER_ID kosong).',
+                'error' => 'WhatsApp Cloud API is not configured (WHATSAPP_ACCESS_TOKEN or WHATSAPP_PHONE_NUMBER_ID is empty).',
             ];
         }
 
@@ -433,7 +433,7 @@ class WhatsAppService
         if (! $this->isConfigured()) {
             return [
                 'success' => false,
-                'error' => 'WhatsApp Cloud API belum dikonfigurasi.',
+                'error' => 'WhatsApp Cloud API is not configured.',
             ];
         }
 

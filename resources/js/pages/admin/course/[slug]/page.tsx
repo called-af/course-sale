@@ -10,7 +10,6 @@ import MultiSelectField from '@/components/molecules/MultiSelectField';
 import PageHeader from '@/components/molecules/PageHeader';
 import SelectField from '@/components/molecules/SelectField';
 import TextAreaField from '@/components/molecules/TextAreaField';
-import CertificateTemplateEditor from '@/components/organisms/Course/CertificateTemplateEditor';
 import CourseResourcesSection from '@/components/organisms/Course/CourseResourcesSection';
 import CourseStructure from '@/components/organisms/Course/CourseStructure';
 import EnrolledStudentsList from '@/components/organisms/Course/EnrolledStudentsList';
@@ -248,32 +247,32 @@ export default function CourseSlug({ course, categories, tags, enrolled_students
                 {/* Enrolled Students List */}
                 <EnrolledStudentsList students={enrolled_students ?? []} exportUrl={`/admin/courses/${course.slug}/students/export`} />
 
-                {/* Certificate Template Editor */}
-                <div className="space-y-6 border border-slate-200/80 bg-white p-4 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-4 dark:border-slate-700">
-                        <div className="flex h-8 w-8 items-center justify-center bg-purple-50 dark:bg-purple-950/40">
-                            <Award className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                {/* Certificate Template */}
+                <div className="space-y-4 border border-slate-200/80 bg-white p-4 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center bg-purple-50 dark:bg-purple-950/40">
+                                <Award className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                            </div>
+                            <div>
+                                <h2 className="text-base font-bold text-slate-900 dark:text-white">Certificate Template</h2>
+                                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                                    Design the certificate (upload background, drag and position text Canva-style) on the dedicated admin page.
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-base font-bold text-slate-900 dark:text-white">Certificate Template</h2>
-                            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                                Customize the certificate design issued to students who complete this course.
-                            </p>
-                        </div>
+                        <Link
+                            href="/admin/certificate-template"
+                            className="inline-flex items-center justify-center gap-2 border border-purple-200 bg-purple-50 px-4 py-2.5 text-sm font-semibold text-purple-700 transition-colors hover:bg-purple-100 dark:border-purple-900/50 dark:bg-purple-950/30 dark:text-purple-300 dark:hover:bg-purple-950/50"
+                        >
+                            <Award className="h-4 w-4" />
+                            Open Global Certificate Template
+                        </Link>
                     </div>
-                    <CertificateTemplateEditor
-                        courseSlug={course.slug}
-                        rolePrefix="admin"
-                        initialTemplate={{
-                            primary_color: course.certificate_template?.primary_color ?? '#7c3aed',
-                            accent_color: course.certificate_template?.accent_color ?? '#a78bfa',
-                            bg_style: (course.certificate_template?.bg_style ?? 'dark') as 'dark' | 'light' | 'gradient',
-                            show_signature: course.certificate_template?.show_signature ?? false,
-                            signature_name: course.certificate_template?.signature_name ?? '',
-                            custom_title: course.certificate_template?.custom_title ?? '',
-                            footer_note: course.certificate_template?.footer_note ?? '',
-                        }}
-                    />
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                        The certificate template is global (applies to all courses) and managed from the Certificate menu. Instructors can only change
+                        their signature name per course.
+                    </p>
                 </div>
             </div>
 

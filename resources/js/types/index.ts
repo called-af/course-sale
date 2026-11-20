@@ -11,3 +11,4 @@ export * from '@/types/review';
 export * from '@/types/enrollment';
 export * from '@/types/dashboard';
 export * from '@/types/landing';
+export * from '@/types/seo';

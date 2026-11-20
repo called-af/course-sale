@@ -67,7 +67,7 @@ interface OrderDetail {
 }
 
 function formatDate(value?: string | null): string {
-    return value ? new Date(value).toLocaleString('id-ID') : '—';
+    return value ? new Date(value).toLocaleString('en-US') : '—';
 }
 
 export default function AdminOrderShow({ order, refundable = false }: { order: OrderDetail; refundable?: boolean }) {
@@ -75,7 +75,7 @@ export default function AdminOrderShow({ order, refundable = false }: { order: O
     const payouts = order?.payouts ?? [];
 
     const markPaid = () => {
-        const reason = window.prompt('Alasan konfirmasi pembayaran (minimal 3 karakter):');
+        const reason = window.prompt('Payment confirmation reason (minimum 3 characters):');
 
         if (!reason) return;
 
@@ -83,28 +83,28 @@ export default function AdminOrderShow({ order, refundable = false }: { order: O
     };
 
     const forcePaid = () => {
-        const reason = window.prompt('Alasan override manual. Status akan diverifikasi ke Midtrans terlebih dahulu:');
+        const reason = window.prompt('Manual override reason. Status will be verified with Midtrans first:');
 
         if (!reason) return;
 
-        if (!window.confirm('Override hanya untuk pembayaran yang benar-benar diterima. Lanjutkan?')) return;
+        if (!window.confirm('Override should only be used for payments that were actually received. Continue?')) return;
 
         router.put(`/admin/orders/${order.order_number}/pay`, { reason, override: true }, { preserveScroll: true });
     };
 
     const refund = () => {
-        const reason = window.prompt('Alasan refund:');
+        const reason = window.prompt('Refund reason:');
 
         if (!reason) return;
 
-        const amount = window.prompt('Nominal refund. Kosongkan untuk refund penuh:');
+        const amount = window.prompt('Refund amount. Leave blank for a full refund:');
         const payload: { reason: string; amount?: number } = { reason };
 
         if (amount && Number(amount) > 0) {
             payload.amount = Number(amount);
         }
 
-        if (!window.confirm('Refund pesanan ini dan cabut akses course jika refund penuh?')) return;
+        if (!window.confirm('Refund this order and revoke course access if this is a full refund?')) return;
 
         router.post(`/admin/orders/${order.order_number}/refund`, payload, { preserveScroll: true });
     };
@@ -118,7 +118,7 @@ export default function AdminOrderShow({ order, refundable = false }: { order: O
                     href="/admin/orders"
                     className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-purple-700 dark:text-slate-400 dark:hover:text-purple-400"
                 >
-                    <ArrowLeft size={16} /> Kembali ke orders
+                    <ArrowLeft size={16} /> Back to orders
                 </Link>
 
                 <div className="border border-slate-200 bg-white p-4 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
@@ -128,7 +128,7 @@ export default function AdminOrderShow({ order, refundable = false }: { order: O
                             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Status: {order?.status}</p>
                             <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{formatRupiah(order?.total_price)}</p>
                             {Number(order?.refunded_amount ?? 0) > 0 ? (
-                                <p className="mt-1 text-xs text-sky-700 dark:text-sky-300">Direfund: {formatRupiah(order?.refunded_amount)}</p>
+                                <p className="mt-1 text-xs text-sky-700 dark:text-sky-300">Refunded: {formatRupiah(order?.refunded_amount)}</p>
                             ) : null}
                             {Number(order?.chargeback_amount ?? 0) > 0 ? (
                                 <p className="mt-1 text-xs text-rose-700 dark:text-rose-300">Chargeback: {formatRupiah(order?.chargeback_amount)}</p>
@@ -139,7 +139,7 @@ export default function AdminOrderShow({ order, refundable = false }: { order: O
                             {order?.status === 'pending' ? (
                                 <>
                                     <Button onClick={markPaid} leftIcon={<CheckCircle2 size={16} />}>
-                                        Verifikasi &amp; Konfirmasi
+                                        Verify &amp; Confirm
                                     </Button>
                                     <Button variant="outline" onClick={forcePaid} leftIcon={<AlertTriangle size={16} />}>
                                         Override
@@ -153,7 +153,7 @@ export default function AdminOrderShow({ order, refundable = false }: { order: O
                             ) : null}
                             {order?.status === 'paid' && !refundable ? (
                                 <span className="inline-flex items-center gap-1.5 border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-300">
-                                    <ShieldAlert size={14} /> Refund via dashboard Midtrans
+                                    <ShieldAlert size={14} /> Refund via Midtrans dashboard
                                 </span>
                             ) : null}
                         </div>
@@ -161,18 +161,18 @@ export default function AdminOrderShow({ order, refundable = false }: { order: O
 
                     <div className="mt-6 grid gap-4 sm:grid-cols-2">
                         <div>
-                            <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Siswa</p>
+                            <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Student</p>
                             <p className="mt-1 text-sm font-medium break-words text-slate-900 dark:text-white">
                                 {order?.user?.name ?? '—'} <span className="break-all text-slate-500">({order?.user?.email ?? '—'})</span>
                             </p>
                         </div>
                         <div>
-                            <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Dibayar pada</p>
+                            <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Paid at</p>
                             <p className="mt-1 text-sm font-medium text-slate-900 dark:text-white">{formatDate(order?.paid_at)}</p>
                         </div>
                     </div>
 
-                    <h2 className="mt-8 text-lg font-semibold text-slate-900 dark:text-white">Item</h2>
+                    <h2 className="mt-8 text-lg font-semibold text-slate-900 dark:text-white">Items</h2>
                     <div className="mt-4 space-y-3">
                         {(order?.items ?? []).map((item) => (
                             <div
@@ -188,10 +188,10 @@ export default function AdminOrderShow({ order, refundable = false }: { order: O
                         ))}
                     </div>
 
-                    <h2 className="mt-8 text-lg font-semibold text-slate-900 dark:text-white">Transaksi Midtrans</h2>
+                    <h2 className="mt-8 text-lg font-semibold text-slate-900 dark:text-white">Midtrans Transactions</h2>
                     <div className="mt-4 space-y-4">
                         {payments.length === 0 ? (
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Belum ada percobaan pembayaran.</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">No payment attempts yet.</p>
                         ) : (
                             payments.map((payment) => (
                                 <div key={payment.id} className="border border-slate-100 p-4 text-sm dark:border-slate-700">
@@ -240,7 +240,7 @@ export default function AdminOrderShow({ order, refundable = false }: { order: O
                                     {(payment.refunds?.length ?? 0) > 0 ? (
                                         <div className="mt-4 space-y-2 border-t border-slate-100 pt-3 dark:border-slate-700">
                                             <p className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
-                                                Riwayat refund
+                                                Refund History
                                             </p>
                                             {payment.refunds?.map((refundRecord) => (
                                                 <div
@@ -254,7 +254,7 @@ export default function AdminOrderShow({ order, refundable = false }: { order: O
                                                         </p>
                                                         <p className="mt-0.5 text-slate-500 dark:text-slate-400">
                                                             {refundRecord.reason ?? '—'}{' '}
-                                                            {refundRecord.requester?.name ? `· oleh ${refundRecord.requester.name}` : ''}
+                                                            {refundRecord.requester?.name ? `· by ${refundRecord.requester.name}` : ''}
                                                         </p>
                                                     </div>
                                                     <span className="font-mono text-[10px] text-slate-400">{refundRecord.refund_key}</span>
@@ -267,10 +267,10 @@ export default function AdminOrderShow({ order, refundable = false }: { order: O
                         )}
                     </div>
 
-                    <h2 className="mt-8 text-lg font-semibold text-slate-900 dark:text-white">Payout Instruktur</h2>
+                    <h2 className="mt-8 text-lg font-semibold text-slate-900 dark:text-white">Instructor Payouts</h2>
                     <div className="mt-4 space-y-3">
                         {payouts.length === 0 ? (
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Belum ada ledger payout untuk order ini.</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">No payout ledger entries for this order yet.</p>
                         ) : (
                             payouts.map((payout) => (
                                 <div

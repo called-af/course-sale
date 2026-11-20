@@ -12,7 +12,7 @@ interface CheckoutPanelProps {
 }
 
 const METHOD_META: Record<string, { label: string; icon: typeof CreditCard }> = {
-    credit_card: { label: 'Kartu Kredit/Debit', icon: CreditCard },
+    credit_card: { label: 'Credit/Debit Card', icon: CreditCard },
     qris: { label: 'QRIS', icon: QrCode },
     virtual_account: { label: 'Virtual Account', icon: Landmark },
     bank_transfer: { label: 'Bank Transfer', icon: Landmark },
@@ -41,7 +41,7 @@ export default function CheckoutPanel({ course, paymentMethods = [], gateway, on
             <section className="border border-slate-200 bg-white dark:border-slate-700 dark:bg-[#1e1f24]">
                 <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3 dark:border-slate-700">
                     <span className="flex h-6 w-6 items-center justify-center bg-purple-700 text-[11px] font-bold text-white">1</span>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">Ringkasan Pesanan</h3>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">Order Summary</h3>
                 </div>
 
                 <div className="flex gap-4 p-4">
@@ -55,13 +55,13 @@ export default function CheckoutPanel({ course, paymentMethods = [], gateway, on
 
                     <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold text-slate-900 dark:text-white">{course.title}</p>
-                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Akses penuh seumur hidup setelah pembayaran berhasil.</p>
+                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Full lifetime access after successful payment.</p>
                         <div className="mt-2 flex flex-wrap items-center gap-2">
                             <span className="inline-flex items-center gap-1 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-                                <Check size={12} /> Akses permanen
+                                <Check size={12} /> Lifetime access
                             </span>
                             <span className="inline-flex items-center gap-1 bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                                Sertifikat
+                                Certificate
                             </span>
                         </div>
                     </div>
@@ -78,16 +78,16 @@ export default function CheckoutPanel({ course, paymentMethods = [], gateway, on
                 <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-700">
                     <div className="flex items-center gap-2">
                         <span className="flex h-6 w-6 items-center justify-center bg-purple-700 text-[11px] font-bold text-white">2</span>
-                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">Pembayaran</h3>
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">Payment</h3>
                     </div>
-                    <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">Diproses oleh Midtrans</span>
+                    <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">Processed by Midtrans</span>
                 </div>
 
                 <div className="space-y-4 p-4">
                     {hasMethods ? (
                         <>
                             <p className="text-xs text-slate-500 dark:text-slate-400">
-                                Tidak perlu memilih sekarang. Setelah menekan tombol bayar, Anda akan memilih metode pembayaran di halaman Midtrans.
+                                No need to choose now. After clicking the pay button, you will select a payment method on the Midtrans page.
                             </p>
 
                             <div className="flex flex-wrap gap-2">
@@ -111,10 +111,9 @@ export default function CheckoutPanel({ course, paymentMethods = [], gateway, on
                         <div className="flex items-start gap-3 border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/60 dark:bg-amber-950/30">
                             <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
                             <div>
-                                <p className="text-sm font-semibold text-amber-900 dark:text-amber-300">Belum ada metode pembayaran aktif</p>
+                                <p className="text-sm font-semibold text-amber-900 dark:text-amber-300">No active payment methods</p>
                                 <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
-                                    Admin perlu mengaktifkan provider pembayaran terlebih dahulu. Silakan hubungi admin untuk menyelesaikan
-                                    pendaftaran kursus ini.
+                                    An admin needs to enable a payment provider first. Please contact an admin to complete this course enrollment.
                                 </p>
                             </div>
                         </div>
@@ -134,10 +133,10 @@ export default function CheckoutPanel({ course, paymentMethods = [], gateway, on
                     <ShieldCheck size={17} className="mt-0.5 shrink-0" />
                     <p>
                         {midtransReady
-                            ? `Anda akan diarahkan ke Midtrans${
+                            ? `You will be redirected to Midtrans${
                                   gateway.is_production ? '' : ' (Sandbox)'
-                              } untuk memilih dan menyelesaikan pembayaran. Data kartu tidak disimpan oleh platform ini.`
-                            : 'Gateway Midtrans belum dikonfigurasi pada server ini. Hubungi admin sebelum melakukan pembayaran.'}
+                              } to choose and complete your payment. Card details are not stored by this platform.`
+                            : 'The Midtrans gateway is not configured on this server. Contact an admin before making a payment.'}
                     </p>
                 </section>
             )}
@@ -153,12 +152,12 @@ export default function CheckoutPanel({ course, paymentMethods = [], gateway, on
                     leftIcon={<Lock size={16} />}
                     className="!rounded-none"
                 >
-                    {processing ? 'Memproses...' : `Lanjut ke Pembayaran — ${formatRupiah(price)}`}
+                    {processing ? 'Processing...' : `Continue to Payment — ${formatRupiah(price)}`}
                 </Button>
 
                 <p className="flex items-center justify-center gap-1.5 text-center text-[11px] text-slate-400 dark:text-slate-500">
                     <ShieldCheck size={13} />
-                    Pembayaran diproses aman oleh gateway resmi. Dengan melanjutkan, Anda menyetujui syarat dan ketentuan.
+                    Payments are securely processed by an official gateway. By continuing, you agree to the terms and conditions.
                 </p>
             </div>
         </form>

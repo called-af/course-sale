@@ -23,12 +23,12 @@ export default function General() {
 
     return (
         <>
-            <Head title="Pengaturan Umum" />
+            <Head title="General Settings" />
             <div className="mx-auto max-w-6xl space-y-8">
                 <div>
-                    <Title as="h3">Pengaturan Umum</Title>
+                    <Title as="h3">General Settings</Title>
                     <p className="mt-1 text-sm text-neutral-500">
-                        Kelola identitas aplikasi, logo, tampilan, dan pembayaran. Integrasi AI dan WhatsApp memiliki halaman tersendiri.
+                        Manage app identity, logo, appearance, and payments. AI and WhatsApp integrations have their own pages.
                     </p>
                 </div>
 

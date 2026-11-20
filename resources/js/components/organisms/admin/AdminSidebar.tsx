@@ -14,6 +14,7 @@ import {
     MessageSquare,
     CreditCard,
     Plug,
+    Award,
     type LucideIcon,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -64,6 +65,11 @@ const mainMenus: MenuItem[] = [
         icon: Users,
     },
     {
+        label: 'Certificates',
+        href: '/admin/certificate-template',
+        icon: Award,
+    },
+    {
         label: 'Community',
         icon: MessageSquare,
         children: [
@@ -77,7 +83,7 @@ const mainMenus: MenuItem[] = [
         icon: CreditCard,
         children: [
             { label: 'Orders & Revenue', href: '/admin/orders' },
-            { label: 'Payout Instruktur', href: '/admin/payouts' },
+            { label: 'Instructor Payouts', href: '/admin/payouts' },
         ],
     },
 ];
@@ -105,7 +111,6 @@ const systemMenus: MenuItem[] = [
         children: [
             { label: 'General', href: '/admin/settings/general' },
             { label: 'SEO', href: '/admin/settings/seo' },
-            { label: 'Social', href: '/admin/settings/social' },
         ],
     },
     {
@@ -116,7 +121,13 @@ const systemMenus: MenuItem[] = [
             { label: 'About', href: '/admin/settings/landing/about' },
             { label: 'Courses', href: '/admin/settings/landing/courses' },
             { label: 'Career', href: '/admin/settings/landing/career' },
-            { label: 'Testimonial', href: '/admin/settings/landing/testimonial' },
+            { label: 'Instructors', href: '/admin/settings/landing/instructor' },
+            { label: 'How it works', href: '/admin/settings/landing/how_it_works' },
+            { label: 'Benefits', href: '/admin/settings/landing/benefit' },
+            { label: 'Certificate', href: '/admin/settings/landing/certificate' },
+            { label: 'Testimonials', href: '/admin/settings/landing/testimonial' },
+            { label: 'FAQ', href: '/admin/settings/landing/faq' },
+            { label: 'Trust bar', href: '/admin/settings/landing/trust' },
             { label: 'CTA', href: '/admin/settings/landing/cta' },
             { label: 'Footer', href: '/admin/settings/landing/footer' },
         ],
@@ -187,7 +198,7 @@ function SideItem({
                 <ChevronDown size={13} className={clsx('ml-auto text-white/20 transition-transform duration-200', isOpen && 'rotate-180')} />
             </button>
 
-            <div className={clsx('overflow-hidden transition-all duration-200', isOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0')}>
+            <div className={clsx('overflow-hidden transition-all duration-200', isOpen ? 'max-h-[28rem] opacity-100' : 'max-h-0 opacity-0')}>
                 <div className="ml-6 space-y-0.5 py-1 pl-4" style={{ borderLeft: '1px solid rgba(255,255,255,0.06)' }}>
                     {item.children.map((child) => {
                         const childActive = isUrlActive(child.href);

@@ -1,18 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import {
-    CheckCircle2,
-    Copy,
-    Link2,
-    MessageCircle,
-    Pencil,
-    Plus,
-    RefreshCw,
-    Send,
-    Smartphone,
-    Trash2,
-    Webhook,
-    XCircle,
-} from 'lucide-react';
+import { CheckCircle2, Copy, Link2, MessageCircle, Pencil, Plus, RefreshCw, Send, Smartphone, Trash2, Webhook, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { route } from 'ziggy-js';
@@ -240,9 +227,7 @@ function ProviderFormModal({
             driver: next.driver,
             base_url: next.base_url ?? '',
             name: data.name || next.name,
-            config: Object.fromEntries(
-                next.config_fields.map((field) => [field.key, field.default != null ? String(field.default) : '']),
-            ),
+            config: Object.fromEntries(next.config_fields.map((field) => [field.key, field.default != null ? String(field.default) : ''])),
         }));
     };
 
@@ -272,14 +257,14 @@ function ProviderFormModal({
             open={open}
             onClose={onClose}
             size="xl"
-            title={provider ? `Edit provider: ${provider.name}` : 'Tambah provider WhatsApp'}
+            title={provider ? `Edit provider: ${provider.name}` : 'Add WhatsApp Provider'}
             footer={
                 <>
                     <Button variant="ghost" onClick={onClose} disabled={form.processing}>
-                        Batal
+                        Cancel
                     </Button>
                     <Button onClick={submit} isLoading={form.processing} disabled={form.processing}>
-                        {provider ? 'Simpan perubahan' : 'Tambah provider'}
+                        {provider ? 'Save changes' : 'Add provider'}
                     </Button>
                 </>
             }
@@ -287,13 +272,13 @@ function ProviderFormModal({
             <form onSubmit={submit} className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                     <SelectField
-                        label="Preset provider"
+                        label="Provider preset"
                         name="preset"
                         value={form.data.preset}
                         onChange={(event) => applyPreset(event.target.value)}
                         options={[
                             ...catalog.map((item) => ({ label: item.name, value: item.key })),
-                            { label: 'Custom (pilih driver manual)', value: '' },
+                            { label: 'Custom (select driver manually)', value: '' },
                         ]}
                     />
 
@@ -306,7 +291,7 @@ function ProviderFormModal({
                     />
 
                     <InputField
-                        label="Nama provider"
+                        label="Provider name"
                         name="name"
                         value={form.data.name}
                         onChange={(event) => form.setData('name', event.target.value)}
@@ -324,7 +309,7 @@ function ProviderFormModal({
                     />
 
                     <InputField
-                        label="Timeout (detik)"
+                        label="Timeout (seconds)"
                         name="timeout"
                         type="number"
                         min={1}
@@ -335,7 +320,7 @@ function ProviderFormModal({
                     />
 
                     <InputField
-                        label="Maks. retry"
+                        label="Max retries"
                         name="max_retries"
                         type="number"
                         min={0}
@@ -348,7 +333,7 @@ function ProviderFormModal({
 
                 {(preset?.credential_fields.length ?? 0) > 0 && (
                     <div className="border-t border-neutral-200 pt-4 dark:border-slate-700">
-                        <p className="mb-3 text-sm font-semibold text-slate-900 dark:text-white">Kredensial</p>
+                        <p className="mb-3 text-sm font-semibold text-slate-900 dark:text-white">Credentials</p>
                         <div className="grid gap-4 sm:grid-cols-2">
                             {preset?.credential_fields.map((field) => {
                                 const existing = provider?.credentials[field.key];
@@ -367,19 +352,19 @@ function ProviderFormModal({
                                                 [field.key]: event.target.value,
                                             })
                                         }
-                                        placeholder={existing?.has_value ? `Tersimpan ${existing.hint ?? ''} — kosongkan untuk mempertahankan` : 'Masukkan nilai'}
+                                        placeholder={existing?.has_value ? `Saved ${existing.hint ?? ''} — leave blank to keep` : 'Enter value'}
                                         error={form.errors[`credentials.${field.key}`]}
                                     />
                                 );
                             })}
                         </div>
-                        <p className="mt-2 text-xs text-neutral-500">Kredensial disimpan terenkripsi dan tidak pernah dikirim kembali ke browser.</p>
+                        <p className="mt-2 text-xs text-neutral-500">Credentials are stored encrypted and are never sent back to the browser.</p>
                     </div>
                 )}
 
                 {(preset?.config_fields.length ?? 0) > 0 && (
                     <div className="border-t border-neutral-200 pt-4 dark:border-slate-700">
-                        <p className="mb-3 text-sm font-semibold text-slate-900 dark:text-white">Konfigurasi provider</p>
+                        <p className="mb-3 text-sm font-semibold text-slate-900 dark:text-white">Provider configuration</p>
                         <div className="grid gap-4 sm:grid-cols-2">
                             {preset?.config_fields.map((field) => (
                                 <div key={field.key}>
@@ -403,12 +388,16 @@ function ProviderFormModal({
 
                 <div className="flex flex-wrap items-center gap-6 border-t border-neutral-200 pt-4 dark:border-slate-700">
                     <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
-                        <Toggle checked={form.data.enabled} onCheckedChange={(checked) => form.setData('enabled', checked)} label="Aktifkan provider" />
-                        Aktif
+                        <Toggle checked={form.data.enabled} onCheckedChange={(checked) => form.setData('enabled', checked)} label="Enable provider" />
+                        Active
                     </label>
                     <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
-                        <Toggle checked={form.data.is_default} onCheckedChange={(checked) => form.setData('is_default', checked)} label="Jadikan provider utama" />
-                        Provider utama
+                        <Toggle
+                            checked={form.data.is_default}
+                            onCheckedChange={(checked) => form.setData('is_default', checked)}
+                            label="Set as primary provider"
+                        />
+                        Primary provider
                     </label>
                 </div>
             </form>
@@ -443,19 +432,22 @@ function TemplatesModal({ provider, onClose }: { provider: Provider | null; onCl
             open={provider !== null}
             onClose={onClose}
             size="lg"
-            title={provider ? `Template — ${provider.name}` : 'Template'}
+            title={provider ? `Templates — ${provider.name}` : 'Templates'}
             footer={
                 <Button variant="ghost" onClick={onClose}>
-                    Tutup
+                    Close
                 </Button>
             }
         >
             {provider && (
                 <div className="space-y-5">
                     <div className="space-y-2">
-                        {provider.templates.length === 0 && <p className="text-sm text-neutral-500">Belum ada template terdaftar.</p>}
+                        {provider.templates.length === 0 && <p className="text-sm text-neutral-500">No templates registered yet.</p>}
                         {provider.templates.map((template) => (
-                            <div key={template.id} className="flex items-center justify-between gap-3 border border-neutral-200 p-3 dark:border-slate-700">
+                            <div
+                                key={template.id}
+                                className="flex items-center justify-between gap-3 border border-neutral-200 p-3 dark:border-slate-700"
+                            >
                                 <div className="min-w-0">
                                     <p className="truncate text-sm font-medium text-slate-900 dark:text-white">{template.name}</p>
                                     <p className="text-xs text-neutral-500">
@@ -468,9 +460,13 @@ function TemplatesModal({ provider, onClose }: { provider: Provider | null; onCl
                                         size="sm"
                                         variant="ghost"
                                         leftIcon={<Trash2 size={14} />}
-                                        onClick={() => router.delete(route('admin.integrations.whatsapp.templates.destroy', [provider.id, template.id]), { preserveScroll: true })}
+                                        onClick={() =>
+                                            router.delete(route('admin.integrations.whatsapp.templates.destroy', [provider.id, template.id]), {
+                                                preserveScroll: true,
+                                            })
+                                        }
                                     >
-                                        Hapus
+                                        Remove
                                     </Button>
                                 </div>
                             </div>
@@ -478,11 +474,29 @@ function TemplatesModal({ provider, onClose }: { provider: Provider | null; onCl
                     </div>
 
                     <div className="border-t border-neutral-200 pt-4 dark:border-slate-700">
-                        <p className="mb-3 text-sm font-semibold text-slate-900 dark:text-white">Tambah template</p>
+                        <p className="mb-3 text-sm font-semibold text-slate-900 dark:text-white">Add template</p>
                         <div className="grid gap-3 sm:grid-cols-2">
-                            <InputField label="Nama template" name="template_name" value={name} onChange={(event) => setName(event.target.value)} placeholder="order_confirmation" />
-                            <InputField label="Bahasa" name="template_language" value={language} onChange={(event) => setLanguage(event.target.value)} placeholder="id" />
-                            <InputField label="Kategori" name="template_category" value={category} onChange={(event) => setCategory(event.target.value)} placeholder="UTILITY" />
+                            <InputField
+                                label="Template name"
+                                name="template_name"
+                                value={name}
+                                onChange={(event) => setName(event.target.value)}
+                                placeholder="order_confirmation"
+                            />
+                            <InputField
+                                label="Language"
+                                name="template_language"
+                                value={language}
+                                onChange={(event) => setLanguage(event.target.value)}
+                                placeholder="en"
+                            />
+                            <InputField
+                                label="Category"
+                                name="template_category"
+                                value={category}
+                                onChange={(event) => setCategory(event.target.value)}
+                                placeholder="UTILITY"
+                            />
                             <SelectField
                                 label="Status"
                                 name="template_status"
@@ -497,7 +511,7 @@ function TemplatesModal({ provider, onClose }: { provider: Provider | null; onCl
                             />
                         </div>
                         <Button className="mt-3" onClick={addTemplate} disabled={name.trim() === ''} leftIcon={<Plus size={15} />}>
-                            Simpan template
+                            Save template
                         </Button>
                     </div>
                 </div>
@@ -509,7 +523,7 @@ function TemplatesModal({ provider, onClose }: { provider: Provider | null; onCl
 function SendTestCard({ providers }: { providers: Provider[] }) {
     const [providerId, setProviderId] = useState('');
     const [phone, setPhone] = useState('');
-    const [message, setMessage] = useState('Halo! Ini adalah pesan uji coba dari dashboard integrasi WhatsApp.');
+    const [message, setMessage] = useState('Hello! This is a test message from the WhatsApp integration dashboard.');
     const [processing, setProcessing] = useState(false);
 
     const send = async (event: React.FormEvent) => {
@@ -528,13 +542,13 @@ function SendTestCard({ providers }: { providers: Provider[] }) {
             const result = await response.json();
 
             if (!response.ok || !result.success) {
-                throw new Error(result.error ?? 'Pesan gagal dikirim.');
+                throw new Error(result.error ?? 'Failed to send message.');
             }
 
-            toast.success(`Pesan terkirim via ${result.provider ?? 'provider'}.`);
+            toast.success(`Message sent via ${result.provider ?? 'provider'}.`);
             router.reload({ only: ['recent_messages', 'recent_logs', 'stats'] });
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Pesan gagal dikirim.');
+            toast.error(error instanceof Error ? error.message : 'Failed to send message.');
         } finally {
             setProcessing(false);
         }
@@ -547,8 +561,8 @@ function SendTestCard({ providers }: { providers: Provider[] }) {
                     <Send size={19} />
                 </span>
                 <div>
-                    <h2 className="font-semibold text-slate-900 dark:text-white">Kirim pesan uji coba</h2>
-                    <p className="text-sm text-neutral-500">Verifikasi kredensial dan koneksi provider secara langsung.</p>
+                    <h2 className="font-semibold text-slate-900 dark:text-white">Send test message</h2>
+                    <p className="text-sm text-neutral-500">Verify provider credentials and connection directly.</p>
                 </div>
             </div>
 
@@ -559,12 +573,15 @@ function SendTestCard({ providers }: { providers: Provider[] }) {
                     value={providerId}
                     onChange={(event) => setProviderId(event.target.value)}
                     options={[
-                        { label: 'Provider utama (default)', value: '' },
-                        ...providers.map((provider) => ({ label: `${provider.name}${provider.is_default ? ' (utama)' : ''}`, value: String(provider.id) })),
+                        { label: 'Primary provider (default)', value: '' },
+                        ...providers.map((provider) => ({
+                            label: `${provider.name}${provider.is_default ? ' (primary)' : ''}`,
+                            value: String(provider.id),
+                        })),
                     ]}
                 />
                 <InputField
-                    label="Nomor WhatsApp"
+                    label="WhatsApp number"
                     name="phone_number"
                     value={phone}
                     onChange={(event) => setPhone(event.target.value)}
@@ -572,7 +589,7 @@ function SendTestCard({ providers }: { providers: Provider[] }) {
                     required
                 />
                 <div className="sm:col-span-2">
-                    <Label htmlFor="test_message">Pesan</Label>
+                    <Label htmlFor="test_message">Message</Label>
                     <textarea
                         id="test_message"
                         value={message}
@@ -583,7 +600,7 @@ function SendTestCard({ providers }: { providers: Provider[] }) {
                 </div>
                 <div className="sm:col-span-2">
                     <Button type="submit" isLoading={processing} disabled={processing || phone.trim() === ''} leftIcon={<Send size={15} />}>
-                        Kirim pesan
+                        Send message
                     </Button>
                 </div>
             </form>
@@ -591,15 +608,7 @@ function SendTestCard({ providers }: { providers: Provider[] }) {
     );
 }
 
-function ProviderCard({
-    provider,
-    onEdit,
-    onTemplates,
-}: {
-    provider: Provider;
-    onEdit: () => void;
-    onTemplates: () => void;
-}) {
+function ProviderCard({ provider, onEdit, onTemplates }: { provider: Provider; onEdit: () => void; onTemplates: () => void }) {
     const [testing, setTesting] = useState(false);
 
     const testConnection = async () => {
@@ -610,13 +619,13 @@ function ProviderCard({
             const result = await response.json();
 
             if (!response.ok || !result.success) {
-                toast.error(result.message ?? result.error ?? 'Koneksi gagal.');
+                toast.error(result.message ?? result.error ?? 'Connection failed.');
             } else {
-                toast.success(result.message ?? 'Koneksi berhasil.');
+                toast.success(result.message ?? 'Connection successful.');
                 router.reload({ only: ['providers'] });
             }
         } catch {
-            toast.error('Tidak dapat menguji koneksi.');
+            toast.error('Unable to test connection.');
         } finally {
             setTesting(false);
         }
@@ -625,9 +634,9 @@ function ProviderCard({
     const copyWebhook = async () => {
         try {
             await navigator.clipboard.writeText(provider.webhook_url);
-            toast.success('URL webhook disalin.');
+            toast.success('Webhook URL copied.');
         } catch {
-            toast.error('Tidak dapat menyalin URL.');
+            toast.error('Unable to copy URL.');
         }
     };
 
@@ -641,8 +650,8 @@ function ProviderCard({
                     <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                             <h3 className="font-semibold text-slate-900 dark:text-white">{provider.name}</h3>
-                            {provider.is_default && <Badge variant="purple">Utama</Badge>}
-                            <Badge variant={provider.enabled ? 'success' : 'default'}>{provider.enabled ? 'Aktif' : 'Nonaktif'}</Badge>
+                            {provider.is_default && <Badge variant="purple">Primary</Badge>}
+                            <Badge variant={provider.enabled ? 'success' : 'default'}>{provider.enabled ? 'Active' : 'Inactive'}</Badge>
                             <Badge variant={statusVariant(provider.status)}>{provider.status}</Badge>
                         </div>
                         <p className="mt-1 truncate text-xs text-neutral-500">
@@ -657,21 +666,21 @@ function ProviderCard({
                     onCheckedChange={(checked) =>
                         router.patch(route('admin.integrations.whatsapp.toggle', provider.id), { enabled: checked }, { preserveScroll: true })
                     }
-                    label={`Aktifkan ${provider.name}`}
+                    label={`Enable ${provider.name}`}
                 />
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
                 <div className="border border-neutral-200 p-3 dark:border-slate-700">
-                    <p className="text-[10px] font-semibold tracking-wider text-neutral-500 uppercase">Pesan</p>
+                    <p className="text-[10px] font-semibold tracking-wider text-neutral-500 uppercase">Messages</p>
                     <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{provider.messages_count}</p>
                 </div>
                 <div className="border border-neutral-200 p-3 dark:border-slate-700">
-                    <p className="text-[10px] font-semibold tracking-wider text-neutral-500 uppercase">Template</p>
+                    <p className="text-[10px] font-semibold tracking-wider text-neutral-500 uppercase">Templates</p>
                     <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{provider.templates_count}</p>
                 </div>
                 <div className="border border-neutral-200 p-3 dark:border-slate-700">
-                    <p className="text-[10px] font-semibold tracking-wider text-neutral-500 uppercase">Akun</p>
+                    <p className="text-[10px] font-semibold tracking-wider text-neutral-500 uppercase">Accounts</p>
                     <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{provider.accounts_count}</p>
                 </div>
             </div>
@@ -696,7 +705,7 @@ function ProviderCard({
                     Test
                 </Button>
                 <Button size="sm" variant="outline" onClick={onTemplates} leftIcon={<MessageCircle size={14} />}>
-                    Template
+                    Templates
                 </Button>
                 {!provider.is_default && (
                     <Button
@@ -704,7 +713,7 @@ function ProviderCard({
                         variant="outline"
                         onClick={() => router.put(route('admin.integrations.whatsapp.default', provider.id), {}, { preserveScroll: true })}
                     >
-                        Jadikan utama
+                        Set as primary
                     </Button>
                 )}
                 <Button
@@ -712,12 +721,12 @@ function ProviderCard({
                     variant="danger"
                     leftIcon={<Trash2 size={14} />}
                     onClick={() => {
-                        if (window.confirm(`Hapus provider ${provider.name}?`)) {
+                        if (window.confirm(`Delete provider ${provider.name}?`)) {
                             router.delete(route('admin.integrations.whatsapp.destroy', provider.id), { preserveScroll: true });
                         }
                     }}
                 >
-                    Hapus
+                    Delete
                 </Button>
             </div>
         </Card>
@@ -755,20 +764,19 @@ export default function WhatsAppIntegrations({
         setChecking(message.id);
 
         try {
-            const response = await apiFetch(
-                route('admin.integrations.whatsapp.messages.status', [message.provider_id, message.id]),
-                { method: 'POST' },
-            );
+            const response = await apiFetch(route('admin.integrations.whatsapp.messages.status', [message.provider_id, message.id]), {
+                method: 'POST',
+            });
             const result = await response.json();
 
             if (!response.ok || result.success === false) {
-                throw new Error(result.error ?? 'Status tidak tersedia.');
+                throw new Error(result.error ?? 'Status unavailable.');
             }
 
             toast.success(`Status: ${result.status ?? 'unknown'}`);
             router.reload({ only: ['recent_messages', 'recent_logs', 'stats'] });
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Gagal mengambil status.');
+            toast.error(error instanceof Error ? error.message : 'Failed to fetch status.');
         } finally {
             setChecking(null);
         }
@@ -776,24 +784,24 @@ export default function WhatsAppIntegrations({
 
     return (
         <>
-            <Head title="Integrasi WhatsApp" />
+            <Head title="WhatsApp Integration" />
             <div className="mx-auto max-w-6xl space-y-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Integrasi WhatsApp</h1>
-                        <p className="mt-1 text-sm text-neutral-500">Kelola gateway, kredensial, webhook, template, dan status pengiriman.</p>
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">WhatsApp Integration</h1>
+                        <p className="mt-1 text-sm text-neutral-500">Manage gateways, credentials, webhooks, templates, and delivery status.</p>
                     </div>
                     <Button onClick={openCreate} leftIcon={<Plus size={16} />} className="w-full sm:w-auto">
-                        Tambah provider
+                        Add provider
                     </Button>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <Card className="rounded-none">
-                        <p className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">Pesan hari ini</p>
+                        <p className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">Messages today</p>
                         <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{stats.today.total}</p>
                         <p className="mt-1 text-[11px] text-neutral-500">
-                            {stats.today.sent} terkirim · {stats.today.failed} gagal
+                            {stats.today.sent} sent · {stats.today.failed} failed
                         </p>
                     </Card>
                     <Card className="rounded-none">
@@ -805,10 +813,10 @@ export default function WhatsAppIntegrations({
                         <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{stats.today.read}</p>
                     </Card>
                     <Card className="rounded-none">
-                        <p className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">Total sepanjang waktu</p>
+                        <p className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">All-time total</p>
                         <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{stats.all_time.total}</p>
                         <p className="mt-1 text-[11px] text-neutral-500">
-                            {stats.all_time.outbound} keluar · {stats.all_time.inbound} masuk
+                            {stats.all_time.outbound} outbound · {stats.all_time.inbound} inbound
                         </p>
                     </Card>
                 </div>
@@ -820,8 +828,8 @@ export default function WhatsAppIntegrations({
                                 <MessageCircle size={19} />
                             </span>
                             <div>
-                                <h2 className="font-semibold text-slate-900 dark:text-white">Notifikasi WhatsApp</h2>
-                                <p className="text-sm text-neutral-500">Aktifkan pengiriman notifikasi melalui gateway terpilih.</p>
+                                <h2 className="font-semibold text-slate-900 dark:text-white">WhatsApp Notifications</h2>
+                                <p className="text-sm text-neutral-500">Enable notification delivery through the selected gateway.</p>
                             </div>
                         </div>
                         <Toggle
@@ -829,26 +837,26 @@ export default function WhatsAppIntegrations({
                             onCheckedChange={(checked) =>
                                 router.patch(route('admin.integrations.whatsapp.global'), { enabled: checked }, { preserveScroll: true })
                             }
-                            label="Aktifkan notifikasi WhatsApp"
+                            label="Enable WhatsApp notifications"
                         />
                     </div>
 
                     {!global.is_configured && providers.length === 0 && (
-                        <div className="flex flex-col gap-3 border-t border-neutral-200 pt-5 dark:border-slate-700 sm:flex-row sm:items-center sm:justify-between">
-                            <p className="text-sm text-neutral-500">Konfigurasi WhatsApp lama dapat diimpor sebagai provider baru.</p>
+                        <div className="flex flex-col gap-3 border-t border-neutral-200 pt-5 sm:flex-row sm:items-center sm:justify-between dark:border-slate-700">
+                            <p className="text-sm text-neutral-500">Legacy WhatsApp configuration can be imported as a new provider.</p>
                             <Button
                                 variant="outline"
                                 onClick={() => router.post(route('admin.integrations.whatsapp.import-legacy'), {}, { preserveScroll: true })}
                             >
-                                Import konfigurasi lama
+                                Import legacy configuration
                             </Button>
                         </div>
                     )}
 
                     {!allow_local_endpoints && (
                         <p className="border-t border-neutral-200 pt-4 text-xs text-neutral-500 dark:border-slate-700">
-                            Endpoint lokal/privat diblokir oleh proteksi SSRF. Set <code>WHATSAPP_ALLOW_LOCAL_ENDPOINTS=true</code> untuk gateway
-                            lokal.
+                            Local/private endpoints are blocked by SSRF protection. Set <code>WHATSAPP_ALLOW_LOCAL_ENDPOINTS=true</code> for a local
+                            gateway.
                         </p>
                     )}
                 </Card>
@@ -857,17 +865,17 @@ export default function WhatsAppIntegrations({
 
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Provider terdaftar</h2>
-                        <span className="text-sm text-neutral-500">{providers.length} provider</span>
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Registered providers</h2>
+                        <span className="text-sm text-neutral-500">{providers.length} providers</span>
                     </div>
 
                     {providers.length === 0 ? (
                         <Card className="rounded-none text-center">
                             <Link2 className="mx-auto h-8 w-8 text-neutral-400" />
-                            <p className="mt-3 font-medium text-slate-900 dark:text-white">Belum ada provider WhatsApp</p>
-                            <p className="mt-1 text-sm text-neutral-500">Tambahkan Meta Cloud API, Infobip, Fonnte, atau gateway kustom.</p>
+                            <p className="mt-3 font-medium text-slate-900 dark:text-white">No WhatsApp providers yet</p>
+                            <p className="mt-1 text-sm text-neutral-500">Add Meta Cloud API, Infobip, Fonnte, or a custom gateway.</p>
                             <Button className="mt-4" onClick={openCreate} leftIcon={<Plus size={16} />}>
-                                Tambah provider
+                                Add provider
                             </Button>
                         </Card>
                     ) : (
@@ -885,24 +893,24 @@ export default function WhatsAppIntegrations({
                 </div>
 
                 <Card className="rounded-none">
-                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Pesan terbaru</h2>
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Recent messages</h2>
                     <div className="mt-4 overflow-x-auto">
                         <table className="w-full min-w-[720px] text-left text-sm">
                             <thead>
                                 <tr className="border-b border-neutral-200 text-xs tracking-wider text-neutral-500 uppercase dark:border-slate-700">
-                                    <th className="py-2 pr-3 font-semibold">Arah</th>
+                                    <th className="py-2 pr-3 font-semibold">Direction</th>
                                     <th className="py-2 pr-3 font-semibold">Provider</th>
-                                    <th className="py-2 pr-3 font-semibold">Penerima</th>
-                                    <th className="py-2 pr-3 font-semibold">Isi</th>
+                                    <th className="py-2 pr-3 font-semibold">Recipient</th>
+                                    <th className="py-2 pr-3 font-semibold">Content</th>
                                     <th className="py-2 pr-3 font-semibold">Status</th>
-                                    <th className="py-2 font-semibold">Aksi</th>
+                                    <th className="py-2 font-semibold">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {recent_messages.length === 0 && (
                                     <tr>
                                         <td colSpan={6} className="py-6 text-center text-neutral-500">
-                                            Belum ada pesan.
+                                            No messages yet.
                                         </td>
                                     </tr>
                                 )}
@@ -914,7 +922,9 @@ export default function WhatsAppIntegrations({
                                         <td className="max-w-xs truncate py-2 pr-3 text-xs text-neutral-500">{message.body ?? message.type}</td>
                                         <td className="py-2 pr-3">
                                             <Badge variant={statusVariant(message.status)}>{message.status}</Badge>
-                                            {message.error_message && <p className="mt-1 max-w-[180px] truncate text-[10px] text-red-500">{message.error_message}</p>}
+                                            {message.error_message && (
+                                                <p className="mt-1 max-w-[180px] truncate text-[10px] text-red-500">{message.error_message}</p>
+                                            )}
                                         </td>
                                         <td className="py-2">
                                             {message.provider_id && message.provider_message_id ? (
@@ -925,7 +935,7 @@ export default function WhatsAppIntegrations({
                                                     onClick={() => checkStatus(message)}
                                                     leftIcon={<RefreshCw size={13} />}
                                                 >
-                                                    Cek
+                                                    Check
                                                 </Button>
                                             ) : (
                                                 <span className="text-xs text-neutral-400">—</span>
@@ -939,9 +949,9 @@ export default function WhatsAppIntegrations({
                 </Card>
 
                 <Card className="rounded-none">
-                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Log terbaru</h2>
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Recent logs</h2>
                     <div className="mt-4 space-y-3">
-                        {recent_logs.length === 0 && <p className="text-sm text-neutral-500">Belum ada aktivitas.</p>}
+                        {recent_logs.length === 0 && <p className="text-sm text-neutral-500">No activity yet.</p>}
                         {recent_logs.map((log) => (
                             <div key={log.id} className="flex items-start gap-2">
                                 {log.status === 'success' ? (

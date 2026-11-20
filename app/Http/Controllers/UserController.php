@@ -57,7 +57,7 @@ class UserController extends Controller
         } catch (\Throwable $e) {
             report($e);
 
-            return back()->with('error', 'Gagal menghapus user: '.$e->getMessage());
+            return back()->with('error', 'Failed to delete user: '.$e->getMessage());
         }
     }
 }

@@ -37,12 +37,12 @@ type PaymentProps = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-    pending: 'Menunggu pembayaran',
-    paid: 'Lunas',
-    failed: 'Gagal',
-    expired: 'Kedaluwarsa',
-    refunded: 'Direfund',
-    partial_refund: 'Refund sebagian',
+    pending: 'Awaiting payment',
+    paid: 'Paid',
+    failed: 'Failed',
+    expired: 'Expired',
+    refunded: 'Refunded',
+    partial_refund: 'Partial refund',
     chargeback: 'Chargeback',
 };
 
@@ -71,7 +71,7 @@ export default function PaymentPage(props: PaymentProps) {
 
     return (
         <UserLayout>
-            <Head title={`Pembayaran — ${order?.order_number ?? ''}`} />
+            <Head title={`Payment — ${order?.order_number ?? ''}`} />
 
             <div className="mx-auto max-w-3xl space-y-6">
                 <Link href="/student/courses" className="inline-block">
@@ -81,7 +81,7 @@ export default function PaymentPage(props: PaymentProps) {
                         leftIcon={<ArrowLeft size={16} />}
                         className="!rounded-none !text-slate-500 hover:!text-purple-700 dark:!text-slate-400 dark:hover:!text-purple-400"
                     >
-                        Kembali ke pembelajaran saya
+                        Back to my learning
                     </Button>
                 </Link>
 
@@ -89,30 +89,30 @@ export default function PaymentPage(props: PaymentProps) {
                     {isRefunded ? (
                         <div className="flex flex-col items-center gap-4 py-8 text-center">
                             <RotateCcw className="text-sky-500" size={48} />
-                            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Pembayaran telah direfund</h1>
+                            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Payment refunded</h1>
                             <p className="max-w-md text-sm text-slate-500 dark:text-slate-400">
-                                Dana sudah dikembalikan ke channel pembayaran Anda. Akses course untuk order ini sudah dicabut.
+                                The funds have been returned to your payment channel. Course access for this order has been revoked.
                             </p>
                             <p className="text-sm text-slate-500 dark:text-slate-400">
-                                Nominal refund:{' '}
+                                Refund amount:{' '}
                                 <span className="font-semibold text-slate-900 dark:text-white">
                                     {formatRupiah(Number(order?.refunded_amount ?? payment?.refunded_amount ?? order?.total_price ?? 0))}
                                 </span>
                             </p>
                             <Link href="/student/courses">
-                                <Button variant="outline">Kembali ke pembelajaran saya</Button>
+                                <Button variant="outline">Back to my learning</Button>
                             </Link>
                         </div>
                     ) : isChargeback ? (
                         <div className="flex flex-col items-center gap-4 py-8 text-center">
                             <ShieldAlert className="text-rose-500" size={48} />
-                            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Pembayaran terkena chargeback</h1>
+                            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Payment charged back</h1>
                             <p className="max-w-md text-sm text-slate-500 dark:text-slate-400">
-                                Penerbit kartu atau penyedia pembayaran menarik kembali dana untuk order ini. Akses course sudah dicabut. Hubungi
-                                admin jika Anda merasa ini sebuah kesalahan.
+                                The card issuer or payment provider has reversed the funds for this order. Course access has been revoked. Contact an
+                                admin if you believe this is a mistake.
                             </p>
                             <p className="text-sm text-slate-500 dark:text-slate-400">
-                                Nominal chargeback:{' '}
+                                Chargeback amount:{' '}
                                 <span className="font-semibold text-slate-900 dark:text-white">
                                     {formatRupiah(Number(order?.chargeback_amount ?? payment?.chargeback_amount ?? order?.total_price ?? 0))}
                                 </span>
@@ -121,16 +121,16 @@ export default function PaymentPage(props: PaymentProps) {
                     ) : isPaid || isPartialRefund ? (
                         <div className="flex flex-col items-center gap-4 py-8 text-center">
                             <CheckCircle2 className="text-emerald-500" size={48} />
-                            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Pembayaran berhasil</h1>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Anda sekarang memiliki akses penuh ke course ini.</p>
+                            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Payment successful</h1>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">You now have full access to this course.</p>
                             {isPartialRefund ? (
                                 <p className="text-xs text-sky-700 dark:text-sky-300">
-                                    Sebagian pembayaran telah direfund: {formatRupiah(Number(payment?.refunded_amount ?? 0))}
+                                    Part of the payment has been refunded: {formatRupiah(Number(payment?.refunded_amount ?? 0))}
                                 </p>
                             ) : null}
                             {course ? (
                                 <Link href={`/student/courses/${course.slug}`} className="mt-2">
-                                    <Button>Mulai belajar</Button>
+                                    <Button>Start learning</Button>
                                 </Link>
                             ) : null}
                         </div>
@@ -138,13 +138,13 @@ export default function PaymentPage(props: PaymentProps) {
                         <>
                             <div className="flex items-center gap-3">
                                 <CreditCard className="text-purple-600 dark:text-purple-400" size={22} />
-                                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Selesaikan pembayaran</h1>
+                                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Complete your payment</h1>
                             </div>
 
                             <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
                                 {formatRupiah(Number(payment?.amount ?? order?.total_price ?? 0))}
                             </p>
-                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Nomor order: {order?.order_number}</p>
+                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Order number: {order?.order_number}</p>
                             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                 Status: <span className="font-semibold">{statusLabel}</span>
                             </p>
@@ -154,17 +154,17 @@ export default function PaymentPage(props: PaymentProps) {
 
                             {isOnline ? (
                                 <div className="mt-6 border border-purple-200 bg-purple-50 p-5 text-sm text-purple-950 dark:border-purple-900/60 dark:bg-purple-950/30 dark:text-purple-100">
-                                    <p className="font-semibold">Lanjutkan pembayaran melalui halaman Midtrans yang aman.</p>
+                                    <p className="font-semibold">Continue your payment through the secure Midtrans page.</p>
                                     <p className="mt-1 text-xs">
-                                        Pilih metode pembayaran (QRIS, VA, e-wallet, kartu) di halaman Midtrans. Halaman ini akan mengecek status
-                                        secara otomatis.
+                                        Choose a payment method (QRIS, VA, e-wallet, card) on the Midtrans page. This page will check the status
+                                        automatically.
                                     </p>
                                     <div className="mt-4 flex flex-wrap gap-3">
                                         <a href={gateway?.payment_url ?? '#'} target="_blank" rel="noopener noreferrer">
-                                            <Button type="button">Bayar sekarang</Button>
+                                            <Button type="button">Pay now</Button>
                                         </a>
                                         <Button type="button" variant="outline" onClick={() => router.reload()} leftIcon={<RefreshCw size={15} />}>
-                                            Cek status pembayaran
+                                            Check payment status
                                         </Button>
                                     </div>
                                 </div>
@@ -173,13 +173,13 @@ export default function PaymentPage(props: PaymentProps) {
                             {isFailed ? (
                                 <div className="mt-6 border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-300">
                                     <p className="flex items-center gap-2 font-semibold">
-                                        <AlertTriangle size={16} /> Pembayaran tidak selesai.
+                                        <AlertTriangle size={16} /> Payment not completed.
                                     </p>
-                                    <p className="mt-1 text-xs">Silakan buat order baru untuk melanjutkan pembelian.</p>
+                                    <p className="mt-1 text-xs">Please create a new order to continue your purchase.</p>
                                     {course ? (
                                         <Link href={`/student/courses/${course.slug}/checkout`} className="mt-3 inline-block">
                                             <Button variant="outline" size="sm" className="!rounded-none">
-                                                Ulangi checkout
+                                                Retry checkout
                                             </Button>
                                         </Link>
                                     ) : null}

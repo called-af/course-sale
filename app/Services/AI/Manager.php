@@ -149,7 +149,7 @@ class Manager
                 }
             } catch (Throwable $exception) {
                 $lastException = new ProviderException(
-                    'Provider AI gagal memproses permintaan.',
+                    'The AI provider failed to process the request.',
                     $candidate->name,
                     null,
                     true,
@@ -165,7 +165,7 @@ class Manager
             throw $lastException;
         }
 
-        throw ProviderException::configuration('AI', 'Tidak ada provider AI yang tersedia.');
+        throw ProviderException::configuration('AI', 'No AI provider is available.');
     }
 
     /**
@@ -179,7 +179,7 @@ class Manager
             $config = $this->legacyConfig();
 
             if ($config === null) {
-                throw ProviderException::configuration('AI', 'Belum ada provider AI yang dikonfigurasi.');
+                throw ProviderException::configuration('AI', 'No AI provider is configured yet.');
             }
 
             $adapter = $this->registry->make($config);
@@ -217,7 +217,7 @@ class Manager
                 }
             } catch (Throwable $exception) {
                 $lastException = new ProviderException(
-                    'Provider AI gagal memproses permintaan streaming.',
+                    'The AI provider failed to process the streaming request.',
                     $candidate->name,
                     null,
                     true,
@@ -233,7 +233,7 @@ class Manager
             }
         }
 
-        throw $lastException ?? ProviderException::configuration('AI', 'Tidak ada provider AI yang tersedia.');
+        throw $lastException ?? ProviderException::configuration('AI', 'No AI provider is available.');
     }
 
     /**
@@ -253,7 +253,7 @@ class Manager
         $config = $this->legacyConfig();
 
         if ($config === null) {
-            throw ProviderException::configuration('AI', 'Belum ada provider AI yang dikonfigurasi.');
+            throw ProviderException::configuration('AI', 'No AI provider is configured yet.');
         }
 
         return $this->registry->make($config);
@@ -285,7 +285,7 @@ class Manager
         $config = $this->legacyConfig();
 
         if ($config === null) {
-            throw ProviderException::configuration('AI', 'Belum ada provider AI yang dikonfigurasi.');
+            throw ProviderException::configuration('AI', 'No AI provider is configured yet.');
         }
 
         $adapter = $this->registry->make($config);

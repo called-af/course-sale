@@ -37,12 +37,15 @@ class CourseService
             'creator:id,name', 'categories:id,name', 'tags:id,name,slug', 'resources',
             'modules' => fn ($modules) => $modules->select('id', 'course_id', 'title', 'sort_order', 'status')->orderBy('sort_order')->with([
                 'materials' => fn ($materials) => $materials->orderBy('sort_order')->with([
-                    'contents' => fn ($contents) => $contents->orderBy('sort_order'),
+                    'contents' => fn ($contents) => $contents
+                        ->orderBy('sort_order')
+                        ->with(['quizQuestions.quizOptions']),
                 ]),
             ]),
         ])->append('thumbnail_url');
 
         $course->setRelation('resources', collect(app(CourseResourceService::class)->mergedForCourse($course)));
+        $course->setAttribute('certificate_template', app(CertificateService::class)->templatePayload($course));
 
         return [
             'course' => $course,
@@ -63,6 +66,7 @@ class CourseService
         $course->loadMissing([
             'modules:id,course_id',
             'modules.materials:id,module_id',
+            'modules.materials.contents',
         ]);
 
         $enrollments = $course->enrollments()
@@ -71,10 +75,12 @@ class CourseService
             ->latest('enrolled_at')
             ->get();
 
-        // Progress is tracked per content (lesson/file/video/quiz) — the same
-        // basis the course detail page uses — instead of per material or module.
+        // Progress is tracked per content block — the same basis the course
+        // detail page uses — instead of per material or module.
         $contentIds = $course->modules
-            ->flatMap(fn ($module) => $module->materials->flatMap(fn ($material) => $material->contents->pluck('id')));
+            ->flatMap(fn ($module) => $module->materials)
+            ->flatMap(fn ($material) => $material->contents)
+            ->pluck('id');
         $totalContents = $contentIds->count();
 
         return $enrollments
@@ -119,23 +125,29 @@ class CourseService
 
     public function previewData(Course $course, User $user): array
     {
-        // Quiz contents of the course, flattened for the preview runner.
+        $course->load([
+            'creator:id,name', 'categories:id,name', 'resources',
+            'modules' => fn ($modules) => $modules->select('id', 'course_id', 'title', 'sort_order', 'status')->orderBy('sort_order')->with([
+                'materials' => fn ($materials) => $materials->select('id', 'module_id', 'title', 'sort_order', 'status')->orderBy('sort_order')->with([
+                    'contents' => fn ($contents) => $contents
+                        ->orderBy('sort_order')
+                        ->with(['quizQuestions.quizOptions']),
+                ]),
+            ]),
+        ]);
+
+        $course->append('thumbnail_url');
+        $course->setRelation('resources', collect(app(CourseResourceService::class)->mergedForCourse($course)));
+
+        // Quiz contents of the course for the preview runner.
         $quizContents = $course->modules
-            ->flatMap(fn ($module) => ($module->materials ?? [])->flatMap(fn ($material) => ($material->contents ?? [])))
+            ->flatMap(fn ($module) => ($module->materials ?? []))
+            ->flatMap(fn ($material) => ($material->contents ?? []))
             ->filter(fn ($content) => $content->type === 'quiz')
             ->values();
 
         return [
-            'course' => tap($course->load([
-                'creator:id,name', 'categories:id,name', 'resources',
-                'modules' => fn ($modules) => $modules->select('id', 'course_id', 'title', 'sort_order', 'status')->orderBy('sort_order')->with([
-                    'materials' => fn ($materials) => $materials->select('id', 'module_id', 'title', 'sort_order', 'status')->orderBy('sort_order')->with([
-                        'contents' => fn ($contents) => $contents->orderBy('sort_order')->with('quizQuestions.quizOptions'),
-                    ]),
-                ]),
-            ])->append('thumbnail_url'), function (Course $course) {
-                $course->setRelation('resources', collect(app(CourseResourceService::class)->mergedForCourse($course)));
-            }),
+            'course' => $course,
             'quizStates' => app(QuizService::class)->statesFor($user, $quizContents),
         ];
     }

@@ -39,9 +39,9 @@ class UpdateTagRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'Nama tag wajib diisi.',
-            'name.unique' => 'Nama tag sudah terdaftar.',
-            'name.max' => 'Nama tag maksimal 255 karakter.',
+            'name.required' => 'Tag name is required.',
+            'name.unique' => 'Tag name is already registered.',
+            'name.max' => 'Tag name may not exceed 255 characters.',
         ];
     }
 }

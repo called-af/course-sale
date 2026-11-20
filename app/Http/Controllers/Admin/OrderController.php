@@ -96,7 +96,11 @@ class OrderController extends Controller
     public function markPaid(Request $request, Order $order): RedirectResponse
     {
         if ($order->status === 'paid') {
-            return back()->with('info', 'Pesanan ini sudah dibayar.');
+            return back()->with('info', 'This order has already been paid.');
+        }
+
+        if (in_array($order->status, ['refunded', 'chargeback'], true)) {
+            return back()->with('error', 'Orders that have been refunded or charged back cannot be marked as paid.');
         }
 
         $validated = $request->validate([
@@ -107,7 +111,7 @@ class OrderController extends Controller
         $payment = $order->payments()->where('status', 'pending')->latest()->first();
 
         if (! $payment) {
-            return back()->with('error', 'Tidak ada transaksi pembayaran yang menunggu konfirmasi.');
+            return back()->with('error', 'No pending payment transaction was found.');
         }
 
         $gatewayStatus = 'unknown';
@@ -129,7 +133,7 @@ class OrderController extends Controller
         if ($gatewayStatus !== 'paid' && ! $override) {
             return back()->with(
                 'error',
-                'Midtrans belum mengonfirmasi pembayaran (status: '.$gatewayStatus.'). Gunakan override dengan alasan jika pembayaran benar-benar diterima.'
+                'Midtrans has not confirmed the payment (status: '.$gatewayStatus.'). Use override with a reason if the payment was actually received.'
             );
         }
 
@@ -147,7 +151,7 @@ class OrderController extends Controller
             ],
         ]);
 
-        return back()->with('success', 'Pembayaran berhasil dikonfirmasi.');
+        return back()->with('success', 'Payment confirmed successfully.');
     }
 
     public function refund(Request $request, Order $order): RedirectResponse
@@ -158,7 +162,7 @@ class OrderController extends Controller
         ]);
 
         if (! in_array($order->status, ['paid', 'chargeback'], true)) {
-            return back()->with('error', 'Hanya pesanan yang sudah dibayar yang dapat direfund.');
+            return back()->with('error', 'Only paid orders can be refunded.');
         }
 
         $payment = $order->payments()
@@ -167,13 +171,13 @@ class OrderController extends Controller
             ->first();
 
         if (! $payment) {
-            return back()->with('error', 'Transaksi pembayaran tidak ditemukan.');
+            return back()->with('error', 'No refundable payment transaction was found.');
         }
 
         if (! $payment->supportsApiRefund()) {
             return back()->with(
                 'error',
-                'Channel '.$payment->payment_type.' tidak mendukung refund API Midtrans. Proses refund manual melalui dashboard Midtrans.'
+                'The '.$payment->payment_type.' payment channel does not support Midtrans API refunds. Please process the refund manually in the Midtrans dashboard.'
             );
         }
 
@@ -192,9 +196,9 @@ class OrderController extends Controller
                 'error' => $exception->getMessage(),
             ]);
 
-            return back()->with('error', 'Refund gagal diproses: '.$exception->getMessage());
+            return back()->with('error', 'Refund processing failed: '.$exception->getMessage());
         }
 
-        return back()->with('success', 'Refund berhasil diproses.');
+        return back()->with('success', 'Refund processed successfully.');
     }
 }

@@ -84,7 +84,7 @@ class PayoutController extends Controller
 
                 if ($payout->status === 'pending' && ! $payout->isAvailable()) {
                     $state['ready'] = false;
-                    $state['reason'] = 'Payout baru tersedia pada '
+                    $state['reason'] = 'New payout becomes available on '
                         .($payout->available_at?->translatedFormat('d M Y H:i') ?? '-').'.';
                 }
 
@@ -136,11 +136,11 @@ class PayoutController extends Controller
     public function markPaid(Request $request, InstructorPayout $payout): RedirectResponse
     {
         if ($payout->status !== 'pending') {
-            return back()->with('error', 'Payout ini tidak berstatus pending.');
+            return back()->with('error', 'This payout is not pending.');
         }
 
         if (! $payout->isAvailable()) {
-            return back()->with('error', 'Payout belum bisa dicairkan. Tersedia pada '
+            return back()->with('error', 'This payout cannot be disbursed yet. Available on '
                 .($payout->available_at?->translatedFormat('d M Y H:i') ?? '-').'.');
         }
 
@@ -153,7 +153,7 @@ class PayoutController extends Controller
         $state = $this->instructorState($payout->instructor, $availableTotal, $settings['minimum']);
 
         if (! $state['ready']) {
-            return back()->with('error', $state['reason'] ?? 'Payout belum siap ditransfer.');
+            return back()->with('error', $state['reason'] ?? 'This payout is not ready for transfer.');
         }
 
         $validated = $request->validate([
@@ -174,7 +174,7 @@ class PayoutController extends Controller
             $payout->reference,
         );
 
-        return back()->with('success', 'Payout instruktur ditandai sudah ditransfer.');
+        return back()->with('success', 'Instructor payout marked as transferred.');
     }
 
     public function markBatchPaid(Request $request): RedirectResponse
@@ -196,7 +196,7 @@ class PayoutController extends Controller
                 ->get();
 
             if ($payouts->isEmpty()) {
-                return ['error' => 'Tidak ada payout yang siap ditransfer untuk instruktur ini.'];
+                return ['error' => 'There are no payouts ready to transfer for this instructor.'];
             }
 
             $instructor = $payouts->first()->instructor;
@@ -204,7 +204,7 @@ class PayoutController extends Controller
             $state = $this->instructorState($instructor, $total, $settings['minimum']);
 
             if (! $state['ready']) {
-                return ['error' => $state['reason'] ?? 'Batch payout belum siap ditransfer.'];
+                return ['error' => $state['reason'] ?? 'Batch payout is not ready for transfer.'];
             }
 
             $reference = $validated['reference'] ?? 'BATCH-'.now()->format('YmdHis').'-'.$instructor->id;
@@ -236,7 +236,7 @@ class PayoutController extends Controller
             $result['reference'],
         );
 
-        return back()->with('success', 'Batch payout ('.$result['count'].' ledger) berhasil ditandai sudah ditransfer.');
+        return back()->with('success', 'Batch payout ('.$result['count'].' ledger entries) marked as transferred.');
     }
 
     public function exportCsv(Request $request): StreamedResponse
@@ -279,7 +279,7 @@ class PayoutController extends Controller
         return response()->streamDownload(function () use ($rows): void {
             $handle = fopen('php://output', 'w');
 
-            fputcsv($handle, ['Nama Instruktur', 'Bank', 'No Rekening', 'Atas Nama', 'Jumlah Ledger', 'Total Net', 'Referensi']);
+            fputcsv($handle, ['Instructor Name', 'Bank', 'Account Number', 'Account Holder', 'Ledger Count', 'Net Total', 'Reference']);
 
             foreach ($rows as $row) {
                 fputcsv($handle, [
@@ -324,11 +324,11 @@ class PayoutController extends Controller
         $reason = null;
 
         if (! $bankComplete) {
-            $reason = 'Rekening instruktur belum lengkap.';
+            $reason = 'Instructor bank account details are incomplete.';
         } elseif ($lockedUntil) {
-            $reason = 'Rekening baru diubah, terkunci sampai '.$lockedUntil->translatedFormat('d M Y H:i').'.';
+            $reason = 'Bank account was recently changed and is locked until '.$lockedUntil->translatedFormat('d M Y H:i').'.';
         } elseif (! $meetsMinimum) {
-            $reason = 'Total payout belum mencapai minimum Rp '.number_format($minimum, 0, ',', '.').'.';
+            $reason = 'Total payout has not reached the minimum of IDR '.number_format($minimum, 0, ',', '.').'.';
         }
 
         return [

@@ -25,11 +25,11 @@ class ProviderException extends RuntimeException
     public static function fromResponse(string $provider, int $status, ?string $body = null): self
     {
         $message = match (true) {
-            $status === 401 || $status === 403 => 'Kredensial WhatsApp ditolak.',
-            $status === 404 => 'Endpoint atau resource tidak ditemukan.',
+            $status === 401 || $status === 403 => 'WhatsApp credentials were rejected.',
+            $status === 404 => 'Endpoint or resource not found.',
             $status === 429 => 'Rate limit provider tercapai.',
-            $status >= 500 => 'Provider sedang mengalami gangguan.',
-            default => 'Permintaan ke provider WhatsApp gagal.',
+            $status >= 500 => 'The provider is experiencing issues.',
+            default => 'The request to the WhatsApp provider failed.',
         };
 
         if ($body) {

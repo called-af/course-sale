@@ -2,7 +2,7 @@ import { CalendarClock, Info, ShieldAlert } from 'lucide-react';
 import type { RefundPolicy } from '@/types';
 
 function formatDate(value?: string | null): string {
-    return value ? new Date(value).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+    return value ? new Date(value).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
 }
 
 interface RefundPolicyNoticeProps {
@@ -27,18 +27,16 @@ export default function RefundPolicyNotice({ policy, variant = 'panel', classNam
 
     if (!eligible) {
         if (policy.expired) {
-            reasons.push(`Masa refund ${policy.window_days} hari sudah berakhir pada ${formatDate(policy.deadline)}.`);
+            reasons.push(`The ${policy.window_days}-day refund window ended on ${formatDate(policy.deadline)}.`);
         }
 
         if (policy.over_progress) {
-            reasons.push(
-                `Progres belajar sudah ${policy.progress_percent}% (batas refund ${policy.max_progress_percent}%).`,
-            );
+            reasons.push(`Learning progress is already ${policy.progress_percent}% (refund limit ${policy.max_progress_percent}%).`);
         }
     }
 
     const daysLeft = policy.days_left ?? 0;
-    const daysLeftLabel = daysLeft > 0 ? `Sisa ${daysLeft} hari` : 'Hari terakhir';
+    const daysLeftLabel = daysLeft > 0 ? `${daysLeft} days left` : 'Last day';
 
     if (variant === 'compact') {
         return (
@@ -51,11 +49,11 @@ export default function RefundPolicyNotice({ policy, variant = 'panel', classNam
             >
                 <p className="flex items-start gap-1.5 font-semibold">
                     <Icon size={14} className="mt-0.5 shrink-0" />
-                    {eligible ? `Refund tersedia sampai ${formatDate(policy.deadline)}` : 'Refund sudah tidak dapat diajukan'}
+                    {eligible ? `Refund available until ${formatDate(policy.deadline)}` : 'Refund is no longer available'}
                 </p>
                 <p className="mt-1 leading-relaxed">
                     {eligible
-                        ? `Bisa diajukan selama progres belajar belum melewati ${policy.max_progress_percent}% (sekarang ${policy.progress_percent}%).`
+                        ? `Available while learning progress is below ${policy.max_progress_percent}% (currently ${policy.progress_percent}%).`
                         : reasons.join(' ')}
                 </p>
             </div>
@@ -81,12 +79,8 @@ export default function RefundPolicyNotice({ policy, variant = 'panel', classNam
                     <Icon size={16} />
                 </div>
                 <div>
-                    <p
-                        className={`text-xs font-bold ${
-                            eligible ? 'text-sky-900 dark:text-sky-200' : 'text-amber-900 dark:text-amber-200'
-                        }`}
-                    >
-                        {eligible ? 'Refund masih tersedia' : 'Refund sudah tidak dapat diajukan'}
+                    <p className={`text-xs font-bold ${eligible ? 'text-sky-900 dark:text-sky-200' : 'text-amber-900 dark:text-amber-200'}`}>
+                        {eligible ? 'Refund still available' : 'Refund is no longer available'}
                     </p>
                     <p
                         className={`mt-0.5 text-[11px] leading-relaxed ${
@@ -94,7 +88,7 @@ export default function RefundPolicyNotice({ policy, variant = 'panel', classNam
                         }`}
                     >
                         {eligible
-                            ? `Refund dapat diajukan dalam ${policy.window_days} hari sejak enrollment dan selama progres belajar belum melewati ${policy.max_progress_percent}%.`
+                            ? `A refund can be requested within ${policy.window_days} days of enrollment and while learning progress is below ${policy.max_progress_percent}%.`
                             : reasons.join(' ')}
                     </p>
                 </div>
@@ -106,7 +100,7 @@ export default function RefundPolicyNotice({ policy, variant = 'panel', classNam
                         <CalendarClock size={12} /> {daysLeftLabel}
                     </span>
                     <span className="inline-flex items-center gap-1 border border-sky-300 bg-white px-2 py-1 text-sky-800 dark:border-sky-800 dark:bg-[#1e1f24] dark:text-sky-200">
-                        Progres {policy.progress_percent}% / {policy.max_progress_percent}%
+                        Progress {policy.progress_percent}% / {policy.max_progress_percent}%
                     </span>
                 </div>
             ) : null}

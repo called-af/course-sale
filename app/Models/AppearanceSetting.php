@@ -28,12 +28,14 @@ class AppearanceSetting extends Model
         'app_name',
         'contact_email',
         'logo_path',
+        'certificate_template',
     ];
 
     protected function casts(): array
     {
         return [
             'id' => 'integer',
+            'certificate_template' => 'array',
         ];
     }
 

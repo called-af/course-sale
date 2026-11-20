@@ -72,13 +72,9 @@ export default function TestimonialSection({ testimonials = [] }: TestimonialSec
                                 transition={{ duration: 0.5, delay: Math.min(index, 5) * 0.06, ease: EASE }}
                                 className="group relative z-0 h-full hover:z-10"
                             >
-                                <motion.div
-                                    whileHover={reduceMotion ? undefined : { y: -6 }}
-                                    transition={{ type: 'spring', stiffness: 320, damping: 24 }}
-                                    className="h-full"
-                                >
+                                <div className="h-full">
                                     <CommentCard name={item.name} role={item.role} avatar={item.avatar} comment={item.comment} rating={item.rating} />
-                                </motion.div>
+                                </div>
                             </motion.div>
                         ))}
                     </div>

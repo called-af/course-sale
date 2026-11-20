@@ -74,8 +74,8 @@ class OpenAiCompatibleAdapter extends AbstractAdapter
 
             return ConnectionResult::ok(
                 $models === []
-                    ? 'Endpoint dapat dihubungi. Model belum tersedia untuk dideteksi.'
-                    : 'Koneksi berhasil. '.count($models).' model terdeteksi.',
+                    ? 'Endpoint is reachable. Models are not yet available for detection.'
+                    : 'Connection successful. '.count($models).' models detected.',
                 $latency,
                 ['models_count' => count($models)],
             );
@@ -87,7 +87,7 @@ class OpenAiCompatibleAdapter extends AbstractAdapter
                     $this->ping();
                     $latency = (int) ((microtime(true) - $start) * 1000);
 
-                    return ConnectionResult::ok('Koneksi berhasil (model listing tidak tersedia).', $latency);
+                    return ConnectionResult::ok('Connection successful (model listing unavailable).', $latency);
                 } catch (ProviderException $pingException) {
                     return ConnectionResult::failed($pingException->getMessage());
                 }
@@ -159,7 +159,7 @@ class OpenAiCompatibleAdapter extends AbstractAdapter
                 ->withHeaders($this->headers())
                 ->post($url, $payload);
         } catch (ConnectionException $exception) {
-            throw new ProviderException('Tidak dapat terhubung ke '.$this->name().'.', $this->name(), null, true, 'connection_error', $exception);
+            throw new ProviderException('Unable to connect to '.$this->name().'.', $this->name(), null, true, 'connection_error', $exception);
         }
 
         if ($response->failed()) {

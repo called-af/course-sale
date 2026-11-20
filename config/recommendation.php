@@ -16,23 +16,10 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Recommendation Engine Driver
-    |--------------------------------------------------------------------------
-    |
-    | Supported drivers:
-    | - "python"  : Uses the FastAPI Python microservice (with automatic fallback to Laravel)
-    | - "laravel" : Uses the native PHP Content-Based + Popularity filtering engine directly
-    |
-    */
-
-    'driver' => env('RECOMMENDATION_DRIVER', 'python'),
-
-    /*
-    |--------------------------------------------------------------------------
     | Cache Settings
     |--------------------------------------------------------------------------
     |
-    | Duration in seconds to cache computed recommendations in Redis/Cache store.
+    | Duration in seconds to cache computed recommendations.
     |
     */
 
@@ -43,8 +30,7 @@ return [
     | Cache Store
     |--------------------------------------------------------------------------
     |
-    | Leave empty to use the application's default cache store. Set to "redis"
-    | only when the phpredis extension (or predis) is installed.
+    | Leave empty to use the application's default cache store.
     |
     */
 
@@ -52,26 +38,11 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Python Microservice Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Connection details for the Python FastAPI recommendation service.
-    |
-    */
-
-    'python' => [
-        'url' => env('RECOMMENDATION_PYTHON_URL', 'http://127.0.0.1:8001'),
-        'timeout' => (float) env('RECOMMENDATION_PYTHON_TIMEOUT', 2.0), // seconds
-        'retry' => (int) env('RECOMMENDATION_PYTHON_RETRY', 1),
-        'fallback_to_laravel' => env('RECOMMENDATION_FALLBACK_TO_LARAVEL', true),
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | Native Laravel Engine Weights & Rules
     |--------------------------------------------------------------------------
     |
-    | Event weights used for implicit interaction scoring in the Laravel fallback.
+    | Event weights and popularity signals used by the Laravel recommendation
+    | engine (content-based + popularity fallback).
     |
     */
 

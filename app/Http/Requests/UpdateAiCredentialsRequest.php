@@ -49,7 +49,7 @@ class UpdateAiCredentialsRequest extends FormRequest
                 'string',
                 function (string $attribute, mixed $value, callable $fail): void {
                     if (! is_string($value) || ! Hash::check($value, $this->user()->getAuthPassword())) {
-                        $fail('Password yang dimasukkan salah.');
+                        $fail('The password you entered is incorrect.');
                     }
                 },
             ],
@@ -59,36 +59,36 @@ class UpdateAiCredentialsRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'base_url.required' => 'Base URL wajib diisi.',
-            'base_url.url' => 'Base URL tidak valid.',
-            'base_url.max' => 'Base URL terlalu panjang.',
-            'base_url.secure_https_url' => 'Base URL harus memakai HTTPS yang aman.',
-            'model.required' => 'Nama model wajib diisi.',
-            'model.max' => 'Nama model terlalu panjang.',
-            'api_key.required' => 'API key wajib diisi untuk konfigurasi pertama.',
-            'api_key.min' => 'API key minimal 8 karakter.',
-            'current_password.required' => 'Konfirmasi password wajib diisi.',
+            'base_url.required' => 'Base URL is required.',
+            'base_url.url' => 'Base URL is invalid.',
+            'base_url.max' => 'Base URL is too long.',
+            'base_url.secure_https_url' => 'Base URL must use secure HTTPS.',
+            'model.required' => 'Model name is required.',
+            'model.max' => 'Model name is too long.',
+            'api_key.required' => 'API key is required for the initial configuration.',
+            'api_key.min' => 'API key must be at least 8 characters.',
+            'current_password.required' => 'Password confirmation is required.',
         ];
     }
 
     private function validateSecureHttpsUrl(mixed $value, callable $fail): void
     {
         if (! is_string($value) || ! str_starts_with(strtolower($value), 'https://')) {
-            $fail('Base URL harus memakai HTTPS.');
+            $fail('Base URL must use HTTPS.');
 
             return;
         }
 
         $host = parse_url($value, PHP_URL_HOST);
         if (! $host) {
-            $fail('Base URL tidak memiliki host yang valid.');
+            $fail('Base URL does not have a valid host.');
 
             return;
         }
 
         $resolved = @gethostbyname($host);
         if (! $resolved || $resolved === $host) {
-            $fail('Host Base URL tidak dapat diakses.');
+            $fail('The Base URL host cannot be reached.');
 
             return;
         }
@@ -104,7 +104,7 @@ class UpdateAiCredentialsRequest extends FormRequest
                 || $octets[0] === 0
                 || ($octets[0] === 169 && $octets[1] === 254)
             ) {
-                $fail('Base URL tidak boleh mengarah ke host pribadi atau reserved.');
+                $fail('Base URL must not point to a private or reserved host.');
             }
         }
     }

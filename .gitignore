@@ -25,6 +25,5 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
-/recommendation-service/venv
 task.md
 design.md

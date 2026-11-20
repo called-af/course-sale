@@ -50,9 +50,9 @@ export default function AppearanceSettingsPanel({ initialPalette }: AppearanceSe
         <section className="space-y-5" aria-labelledby="appearance-heading">
             <div>
                 <h2 id="appearance-heading" className="text-lg font-semibold text-slate-900 dark:text-white">
-                    Palet warna
+                    Color palette
                 </h2>
-                <p className="mt-1 text-sm text-neutral-500">Pilihan ini mengubah aksen warna untuk semua pengguna.</p>
+                <p className="mt-1 text-sm text-neutral-500">This choice changes the accent color for all users.</p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -99,7 +99,7 @@ export default function AppearanceSettingsPanel({ initialPalette }: AppearanceSe
 
             <div className="flex items-start gap-3 border-t border-neutral-200 pt-4 text-sm text-neutral-500 dark:border-slate-700">
                 <Palette className="mt-0.5 h-4 w-4 shrink-0 text-purple-800 dark:text-purple-400" />
-                <p>Latar terang memakai abu-abu lembut. Mode gelap memakai charcoal berundertone ungu dengan aksen yang lebih terang.</p>
+                <p>Light background uses soft gray. Dark mode uses purple-toned charcoal with brighter accents.</p>
             </div>
         </section>
     );

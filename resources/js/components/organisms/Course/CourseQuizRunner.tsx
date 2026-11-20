@@ -18,7 +18,7 @@ export interface QuizQuestion {
 }
 
 export interface QuizState {
-    status: 'none' | 'in_progress' | 'completed' | 'pending_review';
+    status: 'none' | 'in_progress' | 'completed' | 'pending_review' | 'expired';
     attempt_id?: number | null;
     answers?: Record<number, number | string>;
     answered?: number;
@@ -27,13 +27,22 @@ export interface QuizState {
     correct?: number | null;
     score?: number | null;
     needs_review?: boolean;
+    is_timed?: boolean;
+    duration_minutes?: number | null;
+    time_limit_seconds?: number | null;
+    started_at?: string | null;
+    ends_at?: string | null;
+    remaining_seconds?: number | null;
+    time_spent?: number | null;
+    timed_out?: boolean;
 }
 
 interface QuizResult {
-    score: number;
+    score: number | null;
     correct: number;
     total: number;
     total_questions: number;
+    timed_out?: boolean;
     state?: QuizState;
     details?: {
         question_id: number;
@@ -91,6 +100,13 @@ function isAnswered(question: QuizQuestion, value: number | string | undefined |
     return typeof value === 'string' && value.trim().length > 0;
 }
 
+function formatCountdown(totalSeconds: number): string {
+    const safe = Math.max(0, Math.floor(totalSeconds));
+    const minutes = Math.floor(safe / 60);
+    const seconds = safe % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
 export default function CourseQuizRunner({
     title,
     duration,
@@ -109,11 +125,14 @@ export default function CourseQuizRunner({
     const [error, setError] = useState<string | null>(null);
     const [result, setResult] = useState<QuizResult | null>(null);
     const [showReview, setShowReview] = useState(false);
+    const [timerState, setTimerState] = useState<QuizState | null>(initialState ?? null);
+    const [remainingSeconds, setRemainingSeconds] = useState<number | null>(initialState?.remaining_seconds ?? null);
     const answersRef = useRef(answers);
     const onStateChangeRef = useRef(onStateChange);
     const skipUnmountSaveRef = useRef(false);
     const submittingRef = useRef(false);
     const phaseRef = useRef<Phase>(phase);
+    const timeoutHandledRef = useRef(false);
 
     const baseUrl = courseSlug && contentId ? `/student/courses/${courseSlug}/quiz/${contentId}` : null;
     const baseUrlRef = useRef(baseUrl);
@@ -134,6 +153,13 @@ export default function CourseQuizRunner({
         onStateChangeRef.current = onStateChange;
     }, [onStateChange]);
 
+    useEffect(() => {
+        setTimerState(initialState ?? null);
+        if (phase === 'intro') {
+            setRemainingSeconds(initialState?.remaining_seconds ?? (initialState?.is_timed ? (initialState.time_limit_seconds ?? null) : null));
+        }
+    }, [initialState, phase]);
+
     const answeredCount = useMemo(
         () => quizQuestions.filter((question) => isAnswered(question, answers[question.id])).length,
         [quizQuestions, answers],
@@ -143,21 +169,38 @@ export default function CourseQuizRunner({
     const currentQuestion = quizQuestions[currentIndex];
     const isLastQuestion = currentIndex >= quizQuestions.length - 1;
 
-    const resetLocalState = (nextAnswers: Record<number, number | string> = {}) => {
+    const activeIsTimed = Boolean(timerState?.is_timed || (duration && duration > 0 && phase === 'active' && baseUrl));
+
+    const syncTimerFromState = (state: QuizState | null | undefined) => {
+        if (!state) return;
+        setTimerState(state);
+        if (typeof state.remaining_seconds === 'number') {
+            setRemainingSeconds(state.remaining_seconds);
+        } else if (state.is_timed && state.time_limit_seconds) {
+            setRemainingSeconds(state.time_limit_seconds);
+        }
+    };
+
+    const resetLocalState = (nextAnswers: Record<number, number | string> = {}, nextState?: QuizState | null) => {
+        timeoutHandledRef.current = false;
         setAnswers(nextAnswers);
         setCurrentIndex(0);
         setResult(null);
         setShowReview(false);
         setError(null);
         setSaveStatus('idle');
+        if (nextState !== undefined) {
+            syncTimerFromState(nextState);
+        }
     };
 
     const startQuiz = async (mode: 'start' | 'reset' = 'start') => {
         submittingRef.current = false;
+        timeoutHandledRef.current = false;
 
         if (!baseUrl) {
             skipUnmountSaveRef.current = false;
-            resetLocalState();
+            resetLocalState({}, null);
             setPhase('active');
             return;
         }
@@ -168,9 +211,16 @@ export default function CourseQuizRunner({
         try {
             const data = await postJson<{ state: QuizState }>(`${baseUrl}/${mode}`, {});
             skipUnmountSaveRef.current = false;
-            resetLocalState(data.state.answers ?? {});
+            resetLocalState(data.state.answers ?? {}, data.state);
             onStateChange?.(data.state);
-            setPhase('active');
+
+            if (data.state.status === 'in_progress') {
+                setPhase('active');
+            } else if (data.state.status === 'completed' || data.state.status === 'pending_review' || data.state.status === 'expired') {
+                setPhase('intro');
+            } else {
+                setPhase('active');
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to start the quiz.');
         } finally {
@@ -178,23 +228,150 @@ export default function CourseQuizRunner({
         }
     };
 
+    // Countdown timer for timed quizzes.
+    useEffect(() => {
+        if (phase !== 'active' || !timerState?.is_timed) return;
+
+        let endMs: number | null = null;
+        if (timerState.ends_at) {
+            endMs = new Date(timerState.ends_at).getTime();
+        } else if (typeof timerState.remaining_seconds === 'number') {
+            endMs = Date.now() + timerState.remaining_seconds * 1000;
+        } else if (timerState.time_limit_seconds) {
+            endMs = Date.now() + timerState.time_limit_seconds * 1000;
+        }
+
+        if (!endMs || Number.isNaN(endMs)) return;
+
+        const tick = () => {
+            const seconds = Math.max(0, Math.ceil((endMs! - Date.now()) / 1000));
+            setRemainingSeconds(seconds);
+        };
+
+        tick();
+        const interval = window.setInterval(tick, 1000);
+        return () => window.clearInterval(interval);
+    }, [phase, timerState?.ends_at, timerState?.is_timed, timerState?.remaining_seconds, timerState?.time_limit_seconds]);
+
+    const submitQuiz = async (isTimeout = false) => {
+        if (!isTimeout && !allAnswered) return;
+        if (submittingRef.current) return;
+
+        if (!baseUrl) {
+            const details = quizQuestions.map((question) => {
+                const correctOption = question.quiz_options?.find((option) => option.is_correct);
+                const selected = answersRef.current[question.id];
+                const isCorrect =
+                    question.type === 'multiple_choice'
+                        ? selected !== undefined && correctOption !== undefined && Number(selected) === correctOption.id
+                        : null;
+
+                return {
+                    question_id: question.id,
+                    type: question.type,
+                    selected_option_id: typeof selected === 'number' ? selected : null,
+                    correct_option_id: correctOption?.id ?? null,
+                    is_correct: isCorrect,
+                };
+            });
+
+            const scoredQuestions = quizQuestions.filter((question) => question.type === 'multiple_choice');
+            const correct = details.filter((detail) => detail.is_correct === true).length;
+            const score = scoredQuestions.length > 0 ? Math.round((correct / scoredQuestions.length) * 100) : 100;
+
+            setResult({
+                score,
+                correct,
+                total: scoredQuestions.length,
+                total_questions: quizQuestions.length,
+                details,
+                timed_out: isTimeout,
+            });
+            skipUnmountSaveRef.current = true;
+            setPhase('result');
+            onStateChange?.({
+                status: 'completed',
+                answers: answersRef.current,
+                answered: quizQuestions.length,
+                total_questions: quizQuestions.length,
+                total: scoredQuestions.length,
+                correct,
+                score,
+            });
+            return;
+        }
+
+        setProcessing(true);
+        setError(null);
+        submittingRef.current = true;
+        skipUnmountSaveRef.current = true;
+
+        try {
+            const data = await postJson<{ data: QuizResult }>(`${baseUrl}/submit`, { answers: answersRef.current });
+            const payload = data.data;
+            setResult(payload);
+            setPhase('result');
+            setSaveStatus('idle');
+            if (payload.state) {
+                syncTimerFromState(payload.state);
+                onStateChange?.(payload.state);
+            }
+            onContentCompleted?.();
+        } catch (err) {
+            submittingRef.current = false;
+            skipUnmountSaveRef.current = false;
+            setError(err instanceof Error ? err.message : 'Failed to submit the quiz.');
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    // Auto-submit when timed quiz runs out.
+    useEffect(() => {
+        if (phase !== 'active' || !timerState?.is_timed) return;
+        if (remainingSeconds === null || remainingSeconds > 0) return;
+        if (timeoutHandledRef.current || submittingRef.current) return;
+
+        timeoutHandledRef.current = true;
+        setError('Time is up. Submitting your answers...');
+        void submitQuiz(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [phase, remainingSeconds, timerState?.is_timed]);
+
     // Autosave every answer change so the student can leave and continue later.
     useEffect(() => {
         if (phase !== 'active' || !baseUrl || submittingRef.current) return;
+        if (timerState?.is_timed && remainingSeconds !== null && remainingSeconds <= 0) return;
 
         setSaveStatus('saving');
         const timer = window.setTimeout(async () => {
             try {
                 const data = await postJson<{ state: QuizState }>(`${baseUrl}/draft`, { answers });
                 setSaveStatus('saved');
+                syncTimerFromState(data.state);
                 onStateChangeRef.current?.(data.state);
+
+                if (data.state.status === 'completed' || data.state.status === 'expired') {
+                    skipUnmountSaveRef.current = true;
+                    submittingRef.current = true;
+                    setPhase('result');
+                    setResult({
+                        score: data.state.score ?? null,
+                        correct: data.state.correct ?? 0,
+                        total: data.state.total ?? 0,
+                        total_questions: data.state.total_questions ?? quizQuestions.length,
+                        timed_out: true,
+                        state: data.state,
+                    });
+                    onContentCompleted?.();
+                }
             } catch {
                 setSaveStatus('error');
             }
         }, 450);
 
         return () => window.clearTimeout(timer);
-    }, [answers, phase, baseUrl]);
+    }, [answers, phase, baseUrl, timerState?.is_timed, remainingSeconds, quizQuestions.length, onContentCompleted]);
 
     // Best-effort save when the tab is closed or the user navigates away.
     useEffect(() => {
@@ -245,73 +422,6 @@ export default function CourseQuizRunner({
         };
     }, []);
 
-    const submitQuiz = async () => {
-        if (!allAnswered) return;
-
-        if (!baseUrl) {
-            const details = quizQuestions.map((question) => {
-                const correctOption = question.quiz_options?.find((option) => option.is_correct);
-                const selected = answers[question.id];
-                const isCorrect =
-                    question.type === 'multiple_choice'
-                        ? selected !== undefined && correctOption !== undefined && Number(selected) === correctOption.id
-                        : null;
-
-                return {
-                    question_id: question.id,
-                    type: question.type,
-                    selected_option_id: typeof selected === 'number' ? selected : null,
-                    correct_option_id: correctOption?.id ?? null,
-                    is_correct: isCorrect,
-                };
-            });
-
-            const scoredQuestions = quizQuestions.filter((question) => question.type === 'multiple_choice');
-            const correct = details.filter((detail) => detail.is_correct === true).length;
-
-            setResult({
-                score: scoredQuestions.length > 0 ? Math.round((correct / scoredQuestions.length) * 100) : 100,
-                correct,
-                total: scoredQuestions.length,
-                total_questions: quizQuestions.length,
-                details,
-            });
-            skipUnmountSaveRef.current = true;
-            setPhase('result');
-            // Keep the score available when the student leaves and re-opens the quiz.
-            onStateChange?.({
-                status: 'completed',
-                answers,
-                answered: quizQuestions.length,
-                total_questions: quizQuestions.length,
-                total: scoredQuestions.length,
-                correct,
-                score: scoredQuestions.length > 0 ? Math.round((correct / scoredQuestions.length) * 100) : 100,
-            });
-            return;
-        }
-
-        setProcessing(true);
-        setError(null);
-        submittingRef.current = true;
-        skipUnmountSaveRef.current = true;
-
-        try {
-            const data = await postJson<{ data: QuizResult }>(`${baseUrl}/submit`, { answers });
-            setResult(data.data);
-            setPhase('result');
-            setSaveStatus('idle');
-            if (data.data.state) onStateChange?.(data.data.state);
-            onContentCompleted?.();
-        } catch (err) {
-            submittingRef.current = false;
-            skipUnmountSaveRef.current = false;
-            setError(err instanceof Error ? err.message : 'Failed to submit the quiz.');
-        } finally {
-            setProcessing(false);
-        }
-    };
-
     const resetQuiz = async () => {
         await startQuiz('reset');
     };
@@ -329,6 +439,8 @@ export default function CourseQuizRunner({
     };
 
     const progressPercent = quizQuestions.length > 0 ? Math.round((answeredCount / quizQuestions.length) * 100) : 0;
+    const isTimeLow = activeIsTimed && remainingSeconds !== null && remainingSeconds <= 60;
+    const canSubmit = allAnswered || (activeIsTimed && remainingSeconds !== null && remainingSeconds <= 0);
 
     return (
         <div
@@ -348,12 +460,23 @@ export default function CourseQuizRunner({
                     </span>
                 </div>
                 <div className="flex items-center gap-2">
-                    {duration && (
+                    {phase === 'active' && activeIsTimed && remainingSeconds !== null ? (
+                        <span
+                            className={`inline-flex items-center gap-1.5 border px-2.5 py-1 text-[11px] font-bold tabular-nums ${
+                                isTimeLow
+                                    ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-400'
+                                    : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300'
+                            }`}
+                        >
+                            <Clock className="h-3.5 w-3.5" />
+                            {formatCountdown(remainingSeconds)}
+                        </span>
+                    ) : duration ? (
                         <span className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
                             <Clock className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
                             {duration}m
                         </span>
-                    )}
+                    ) : null}
                     {phase === 'active' && baseUrl && (
                         <span
                             className={`inline-flex items-center gap-1.5 border px-2.5 py-1 text-[11px] font-semibold ${
@@ -384,7 +507,7 @@ export default function CourseQuizRunner({
             ) : phase === 'intro' ? (
                 <IntroScreen
                     totalQuestions={quizQuestions.length}
-                    duration={duration}
+                    duration={duration ?? initialState?.duration_minutes ?? null}
                     state={initialState}
                     processing={processing}
                     error={error}
@@ -483,8 +606,8 @@ export default function CourseQuizRunner({
                                     variant="primary"
                                     size="sm"
                                     isLoading={processing}
-                                    disabled={!allAnswered}
-                                    onClick={submitQuiz}
+                                    disabled={!canSubmit}
+                                    onClick={() => void submitQuiz(false)}
                                     leftIcon={<CheckCircle2 className="h-3.5 w-3.5" />}
                                     className="!rounded-none"
                                 >
@@ -494,7 +617,7 @@ export default function CourseQuizRunner({
                         </div>
                     </div>
 
-                    {!allAnswered && isLastQuestion && (
+                    {!allAnswered && isLastQuestion && !(activeIsTimed && remainingSeconds !== null && remainingSeconds <= 0) && (
                         <p className="text-right text-[11px] font-medium text-amber-600 dark:text-amber-400">
                             Answer every question before submitting ({answeredCount}/{quizQuestions.length} answered).
                         </p>
@@ -591,6 +714,23 @@ function IntroScreen({
                             Reset Test
                         </Button>
                     </>
+                ) : status === 'expired' ? (
+                    <>
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Time&apos;s up</h3>
+                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Your quiz time has ended. Start over to try again.</p>
+                        </div>
+                        <Button
+                            variant="primary"
+                            size="md"
+                            isLoading={processing}
+                            onClick={onReset}
+                            leftIcon={<RotateCcw className="h-4 w-4" />}
+                            className="!rounded-none"
+                        >
+                            Start Over
+                        </Button>
+                    </>
                 ) : status === 'in_progress' ? (
                     <>
                         <div>
@@ -641,17 +781,22 @@ function IntroScreen({
                                 <ListChecks className="h-3.5 w-3.5 text-purple-500" />
                                 {totalQuestions} questions
                             </span>
-                            {duration && (
+                            {duration ? (
                                 <span className="inline-flex items-center gap-1.5 border border-slate-200 px-3 py-1.5 dark:border-slate-700">
                                     <Clock className="h-3.5 w-3.5 text-purple-500" />
                                     {duration} minutes
                                 </span>
-                            )}
+                            ) : null}
                             <span className="inline-flex items-center gap-1.5 border border-slate-200 px-3 py-1.5 dark:border-slate-700">
                                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
                                 {autosaveEnabled ? 'Autosave' : 'Preview'}
                             </span>
                         </div>
+                        {duration ? (
+                            <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                                The timer starts when you press Start and will auto-submit when time runs out.
+                            </p>
+                        ) : null}
                         <Button
                             variant="primary"
                             size="md"
@@ -693,7 +838,7 @@ function ResultScreen({
     processing: boolean;
     error: string | null;
 }) {
-    const roundedScore = Math.round(result.score);
+    const roundedScore = Math.round(result.score ?? 0);
 
     return (
         <div className="space-y-5 py-4">
@@ -702,16 +847,29 @@ function ResultScreen({
                     <CheckCircle2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Quiz submitted</h3>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                        {result.timed_out ? "Time's up — Quiz submitted" : 'Quiz submitted'}
+                    </h3>
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                        Great job! Here is your result. You can reset the test and try again anytime.
+                        {result.timed_out
+                            ? 'Your time ran out, so your current answers were submitted automatically.'
+                            : 'Great job! Here is your result. You can reset the test and try again anytime.'}
                     </p>
                 </div>
 
-                <div className="text-5xl font-black tracking-tight text-purple-600 dark:text-purple-400">{roundedScore}%</div>
-                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                    {result.correct} correct out of {result.total} scored questions
-                </p>
+                {result.score !== null ? (
+                    <>
+                        <div className="text-5xl font-black tracking-tight text-purple-600 dark:text-purple-400">{roundedScore}%</div>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                            {result.correct} correct out of {result.total} scored questions
+                        </p>
+                    </>
+                ) : (
+                    <div className="inline-flex items-center gap-2 border border-amber-200 bg-amber-50 px-4 py-2 dark:border-amber-900/50 dark:bg-amber-950/30">
+                        <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                        <span className="text-sm font-bold text-amber-700 dark:text-amber-300">Awaiting review</span>
+                    </div>
+                )}
 
                 <div className="flex flex-col justify-center gap-2 sm:flex-row">
                     <Button

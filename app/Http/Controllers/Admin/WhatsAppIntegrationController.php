@@ -147,7 +147,7 @@ class WhatsAppIntegrationController extends Controller
             $this->audit($provider, 'created', ['name', 'driver', 'base_url', 'config', 'credentials', 'enabled', 'is_default']);
         });
 
-        return back()->with('success', 'Provider WhatsApp berhasil ditambahkan.');
+        return back()->with('success', 'WhatsApp provider added successfully.');
     }
 
     public function update(Request $request, WhatsAppProvider $provider): RedirectResponse
@@ -204,7 +204,7 @@ class WhatsAppIntegrationController extends Controller
             $this->audit($provider, 'updated', array_keys($data));
         });
 
-        return back()->with('success', 'Provider WhatsApp diperbarui.');
+        return back()->with('success', 'WhatsApp provider updated.');
     }
 
     public function destroy(WhatsAppProvider $provider): RedirectResponse
@@ -212,7 +212,7 @@ class WhatsAppIntegrationController extends Controller
         $this->authorize('manage-settings');
 
         if (WhatsAppProvider::query()->count() <= 1) {
-            return back()->with('error', 'Minimal satu provider WhatsApp harus tetap tersedia.');
+            return back()->with('error', 'At least one WhatsApp provider must remain available.');
         }
 
         DB::transaction(function () use ($provider) {
@@ -228,7 +228,7 @@ class WhatsAppIntegrationController extends Controller
             }
         });
 
-        return back()->with('success', 'Provider WhatsApp dihapus.');
+        return back()->with('success', 'WhatsApp provider deleted.');
     }
 
     public function toggle(Request $request, WhatsAppProvider $provider): RedirectResponse
@@ -256,7 +256,7 @@ class WhatsAppIntegrationController extends Controller
             $this->audit($provider, $enabled ? 'enabled' : 'disabled', ['enabled']);
         });
 
-        return back()->with('success', $enabled ? 'Provider WhatsApp diaktifkan.' : 'Provider WhatsApp dinonaktifkan.');
+        return back()->with('success', $enabled ? 'WhatsApp provider enabled.' : 'WhatsApp provider disabled.');
     }
 
     public function setDefault(WhatsAppProvider $provider): RedirectResponse
@@ -269,7 +269,7 @@ class WhatsAppIntegrationController extends Controller
             $this->audit($provider, 'set_default', ['is_default']);
         });
 
-        return back()->with('success', 'Provider WhatsApp utama diperbarui.');
+        return back()->with('success', 'Primary WhatsApp provider updated.');
     }
 
     public function test(WhatsAppProvider $provider): JsonResponse
@@ -295,10 +295,10 @@ class WhatsAppIntegrationController extends Controller
         $recipient = PhoneNumber::normalize($data['phone_number']);
 
         if ($recipient === '') {
-            return response()->json(['success' => false, 'error' => 'Nomor WhatsApp tidak valid.'], 422);
+            return response()->json(['success' => false, 'error' => 'Invalid WhatsApp number.'], 422);
         }
 
-        $body = $data['message'] ?? 'Halo! Ini adalah pesan uji coba dari dashboard integrasi WhatsApp.';
+        $body = $data['message'] ?? 'Hello! This is a test message from the WhatsApp integration dashboard.';
         $idempotencyKey = 'test-'.Str::uuid();
 
         $message = WhatsAppMessage::create([
@@ -383,7 +383,7 @@ class WhatsAppIntegrationController extends Controller
             ],
         );
 
-        return back()->with('success', 'Template WhatsApp disimpan.');
+        return back()->with('success', 'WhatsApp template saved.');
     }
 
     public function destroyTemplate(WhatsAppProvider $provider, WhatsAppMessageTemplate $template): RedirectResponse
@@ -393,7 +393,7 @@ class WhatsAppIntegrationController extends Controller
 
         $template->delete();
 
-        return back()->with('success', 'Template WhatsApp dihapus.');
+        return back()->with('success', 'WhatsApp template deleted.');
     }
 
     public function importLegacy(): RedirectResponse
@@ -401,7 +401,7 @@ class WhatsAppIntegrationController extends Controller
         $this->authorize('manage-settings');
 
         if (WhatsAppProvider::query()->exists()) {
-            return back()->with('error', 'Provider sudah tersedia. Import hanya dapat dilakukan saat daftar kosong.');
+            return back()->with('error', 'Providers already exist. Import is only available when the list is empty.');
         }
 
         $legacy = WhatsAppSetting::current();
@@ -451,7 +451,7 @@ class WhatsAppIntegrationController extends Controller
 
         $this->audit($provider, 'imported_legacy', ['provider']);
 
-        return back()->with('success', 'Konfigurasi WhatsApp lama berhasil diimpor sebagai provider.');
+        return back()->with('success', 'Legacy WhatsApp configuration imported as a provider.');
     }
 
     public function toggleGlobal(Request $request): RedirectResponse
@@ -462,7 +462,7 @@ class WhatsAppIntegrationController extends Controller
         $setting = WhatsAppSetting::current();
         $setting->forceFill(['enabled' => $enabled])->save();
 
-        return back()->with('success', $enabled ? 'Notifikasi WhatsApp diaktifkan.' : 'Notifikasi WhatsApp dinonaktifkan.');
+        return back()->with('success', $enabled ? 'WhatsApp notifications enabled.' : 'WhatsApp notifications disabled.');
     }
 
     protected function validateProvider(Request $request, ?WhatsAppProvider $provider = null): array
@@ -485,13 +485,13 @@ class WhatsAppIntegrationController extends Controller
         $driver = $data['driver'] ?? $preset['driver'] ?? $provider?->driver ?? 'custom';
 
         if (! in_array($driver, array_keys(config('whatsapp_providers.drivers', [])), true)) {
-            throw ValidationException::withMessages(['driver' => 'Driver WhatsApp tidak dikenal.']);
+            throw ValidationException::withMessages(['driver' => 'Unknown WhatsApp driver.']);
         }
 
         $baseUrl = $data['base_url'] ?? $preset['base_url'] ?? $provider?->base_url;
 
         if (blank($baseUrl)) {
-            throw ValidationException::withMessages(['base_url' => 'Base URL wajib diisi untuk provider ini.']);
+            throw ValidationException::withMessages(['base_url' => 'Base URL is required for this provider.']);
         }
 
         $urlError = UrlGuard::error((string) $baseUrl, (bool) config('whatsapp_providers.allow_local_endpoints', false));
@@ -509,7 +509,7 @@ class WhatsAppIntegrationController extends Controller
             $existing = $provider?->hasCredential($key) ?? false;
 
             if (blank($provided) && ! $existing) {
-                throw ValidationException::withMessages(["credentials.{$key}" => ($field['label'] ?? $key).' wajib diisi.']);
+                throw ValidationException::withMessages(["credentials.{$key}" => ($field['label'] ?? $key).' is required.']);
             }
         }
 
@@ -524,7 +524,7 @@ class WhatsAppIntegrationController extends Controller
             $default = $field['default'] ?? null;
 
             if (blank($provided) && blank($existing) && blank($default)) {
-                throw ValidationException::withMessages(["config.{$key}" => ($field['label'] ?? $key).' wajib diisi.']);
+                throw ValidationException::withMessages(["config.{$key}" => ($field['label'] ?? $key).' is required.']);
             }
         }
 
@@ -676,7 +676,7 @@ class WhatsAppIntegrationController extends Controller
             'user_id' => auth()->id(),
             'action' => $action,
             'status' => 'success',
-            'message' => 'Perubahan konfigurasi provider WhatsApp.',
+            'message' => 'WhatsApp provider configuration changed.',
             'context' => ['changed_fields' => array_values(array_unique($fields))],
             'ip' => request()->ip(),
         ]);

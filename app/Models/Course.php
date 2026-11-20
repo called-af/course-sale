@@ -110,7 +110,8 @@ class Course extends Model
         }
 
         // A course needs at least one lesson that students can actually open:
-        // a published module containing a published material with published content.
+        // a published module containing a published material with at least one
+        // published content block.
         return $this->modules()
             ->where('status', 'published')
             ->whereHas('materials', fn ($materials) => $materials

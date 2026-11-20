@@ -32,7 +32,7 @@ class GeminiAdapter extends AbstractAdapter
             $models = $this->listModels();
 
             return ConnectionResult::ok(
-                'Koneksi Gemini berhasil. '.count($models).' model terdeteksi.',
+                'Gemini connection successful. '.count($models).' models detected.',
                 (int) ((microtime(true) - $start) * 1000),
                 ['models_count' => count($models)],
             );

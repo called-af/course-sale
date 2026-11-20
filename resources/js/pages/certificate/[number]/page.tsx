@@ -91,7 +91,7 @@ function ValidCertificate({ certificate }: { certificate: CertificateData }) {
                 </div>
 
                 {/* Details row */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-white/10">
+                <div className="grid grid-cols-1 divide-y divide-white/10 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-3">
                     <div className="px-4 py-4 text-center">
                         <p className="mb-1 text-[9px] tracking-widest text-slate-500 uppercase">Issued On</p>
                         <div className="flex items-center justify-center gap-1.5 text-xs font-medium text-slate-300">

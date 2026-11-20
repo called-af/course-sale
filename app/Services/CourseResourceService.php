@@ -95,8 +95,8 @@ class CourseResourceService
     }
 
     /**
-     * Manual resources plus resources collected automatically from lesson
-     * materials (uploaded or linked files of type file/ppt).
+     * Manual resources plus resources collected automatically from course
+     * contents (uploaded or linked files of type file/ppt).
      *
      * @return array<int, array<string, mixed>>
      */
@@ -120,7 +120,7 @@ class CourseResourceService
     }
 
     /**
-     * Build read-only resource entries from file-type lesson contents.
+     * Build read-only resource entries from file-type contents.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -130,7 +130,11 @@ class CourseResourceService
 
         foreach ($course->modules->sortBy('sort_order') as $module) {
             foreach ($module->materials->sortBy('sort_order') as $material) {
-                foreach ($material->contents->sortBy('sort_order') as $content) {
+                $contents = $material->contents
+                    ->sortBy('sort_order')
+                    ->values();
+
+                foreach ($contents as $content) {
                     if (! in_array($content->type, self::AUTOMATIC_CONTENT_TYPES, true)) {
                         continue;
                     }

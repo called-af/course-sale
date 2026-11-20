@@ -25,9 +25,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'google_id',
         'role',
         'avatar',
         'bio',
+        'headline',
         'whatsapp_number',
         'whatsapp_notification_enabled',
         'payout_bank_name',
@@ -41,9 +43,15 @@ class User extends Authenticatable
 
     public function getAvatarUrlAttribute(): ?string
     {
-        return $this->avatar
-            ? asset('storage/'.$this->avatar)
-            : null;
+        if (! $this->avatar) {
+            return null;
+        }
+
+        if (str_starts_with($this->avatar, 'http://') || str_starts_with($this->avatar, 'https://')) {
+            return $this->avatar;
+        }
+
+        return asset('storage/'.$this->avatar);
     }
 
     /**

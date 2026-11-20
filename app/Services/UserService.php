@@ -61,6 +61,7 @@ class UserService
                 'password' => Hash::make($data['password']),
                 'role' => $data['role'],
                 'bio' => $data['bio'] ?? null,
+                'headline' => $data['headline'] ?? null,
             ]);
         });
     }

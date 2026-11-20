@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Material;
 use App\Models\MaterialContent;
-use DomainException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -20,20 +19,18 @@ class MaterialContentService
     protected const UPLOAD_DIRECTORY = 'materials/contents';
 
     /**
-     * Create a new class instance.
+     * Create a new typed content block under a material.
      */
     public function create(Material $material, array $data): MaterialContent
     {
         return DB::transaction(function () use ($material, $data) {
 
-            $sortOrder = (
-                MaterialContent::where('material_id', $material->id)
-                    ->max('sort_order') ?? 0
-            ) + 1;
-
+            $type = $data['type'] ?? 'text';
             $file = $data['file'] ?? null;
+
             $contentUrl = $data['content_url'] ?? null;
             $previewUrl = null;
+            $contentText = $this->normalizeContentText($data['content_text'] ?? null);
 
             if ($file instanceof UploadedFile) {
                 $stored = $this->storeUploadedFile($file);
@@ -41,108 +38,72 @@ class MaterialContentService
                 $previewUrl = $stored['preview_url'];
             }
 
+            if (in_array($type, ['file', 'ppt'], true) && $file === null) {
+                $previewUrl = $previewUrl ?: $contentUrl;
+            }
+
             return MaterialContent::create([
                 'material_id' => $material->id,
+                'type' => $type,
                 'title' => $data['title'],
-                'type' => $data['type'] ?? 'text',
                 'content_url' => $contentUrl,
                 'preview_url' => $previewUrl,
-                'content_text' => $this->normalizeContentText($data['content_text'] ?? null),
-                'duration' => $data['duration'] ?? null,
-                'sort_order' => $sortOrder,
+                'content_text' => $contentText,
+                'duration' => $type === 'quiz' ? ($data['duration'] ?? null) : null,
+                'sort_order' => $this->nextSortOrder($material->id),
                 'status' => $data['status'] ?? 'draft',
             ]);
         });
     }
 
-    public function move(MaterialContent $materialContent, string $direction): void
-    {
-        DB::transaction(function () use ($materialContent, $direction) {
-
-            $query = MaterialContent::where('material_id', $materialContent->material_id)
-                ->whereNotNull('sort_order');
-
-            if ($direction === 'up') {
-                $swapWith = (clone $query)
-                    ->where('sort_order', '<', $materialContent->sort_order)
-                    ->orderByDesc('sort_order')
-                    ->first();
-            }
-
-            if ($direction === 'down') {
-                $swapWith = (clone $query)
-                    ->where('sort_order', '>', $materialContent->sort_order)
-                    ->orderBy('sort_order')
-                    ->first();
-            }
-
-            if (! isset($swapWith)) {
-                return;
-            }
-
-            $currentOrder = $materialContent->sort_order;
-
-            $materialContent->update([
-                'sort_order' => $swapWith->sort_order,
-            ]);
-
-            $swapWith->update([
-                'sort_order' => $currentOrder,
-            ]);
-        });
-    }
-
+    /**
+     * Update a typed content block.
+     */
     public function update(MaterialContent $content, array $data): MaterialContent
     {
         return DB::transaction(function () use ($content, $data) {
 
-            $newStatus = $data['status'] ?? $content->status;
-            $isPublishing = $newStatus === 'published' && ! $content->isPublished();
-
+            $newType = $data['type'] ?? $content->type;
             $file = $data['file'] ?? null;
-            $hasContentUrl = array_key_exists('content_url', $data);
 
-            $contentUrl = $hasContentUrl ? $data['content_url'] : $content->content_url;
+            $contentUrl = array_key_exists('content_url', $data)
+                ? $data['content_url']
+                : $content->content_url;
+            $previewUrl = $content->preview_url;
             $contentText = array_key_exists('content_text', $data)
                 ? $this->normalizeContentText($data['content_text'])
                 : $content->content_text;
 
-            // A new upload always wins over a pasted URL. Remove the previous
-            // managed upload (and its generated preview) so storage does not
-            // fill up with orphaned files.
             if ($file instanceof UploadedFile) {
                 $this->deleteUploadedFile($content->content_url);
                 $this->deleteUploadedFile($content->preview_url);
+
                 $stored = $this->storeUploadedFile($file);
                 $contentUrl = $stored['url'];
                 $previewUrl = $stored['preview_url'];
-            } elseif ($hasContentUrl && $contentUrl !== $content->content_url) {
+            } elseif ($contentUrl !== $content->content_url) {
                 $this->deleteUploadedFile($content->content_url);
                 $this->deleteUploadedFile($content->preview_url);
+
+                $previewUrl = in_array($newType, ['file', 'ppt'], true)
+                    ? $contentUrl
+                    : null;
+            } elseif (! in_array($newType, ['file', 'ppt'], true)) {
+                $this->deleteUploadedFile($content->preview_url);
                 $previewUrl = null;
-            } else {
-                $previewUrl = $content->preview_url;
             }
 
-            if ($isPublishing) {
-                $isQuiz = ($data['type'] ?? $content->type) === 'quiz';
-
-                if (! $isQuiz && empty($contentUrl) && empty($contentText)) {
-                    throw new DomainException('This content is incomplete. Add a file, URL, or text before publishing.');
-                }
-
-                if ($isQuiz && ! $content->quizQuestions()->exists()) {
-                    throw new DomainException('This quiz is incomplete. Add at least one question before publishing.');
-                }
-            }
+            $duration = array_key_exists('duration', $data)
+                ? $data['duration']
+                : $content->duration;
 
             $content->update([
+                'type' => $newType,
                 'title' => $data['title'] ?? $content->title,
-                'type' => $data['type'] ?? $content->type,
                 'content_url' => $contentUrl,
                 'preview_url' => $previewUrl,
                 'content_text' => $contentText,
-                'duration' => $data['duration'] ?? $content->duration,
+                'duration' => $newType === 'quiz' ? $duration : null,
                 'status' => $data['status'] ?? $content->status,
             ]);
 
@@ -150,22 +111,57 @@ class MaterialContentService
         });
     }
 
+    /**
+     * Delete a content block and any files attached to it.
+     */
     public function delete(MaterialContent $content): void
     {
         DB::transaction(function () use ($content) {
-
-            $deletedOrder = $content->sort_order;
-            $materialId = $content->material_id;
-
             $this->deleteUploadedFile($content->content_url);
             $this->deleteUploadedFile($content->preview_url);
-
             $content->delete();
-
-            MaterialContent::where('material_id', $materialId)
-                ->where('sort_order', '>', $deletedOrder)
-                ->decrement('sort_order');
         });
+    }
+
+    /**
+     * Move a content block up or down inside its material.
+     */
+    public function move(MaterialContent $content, string $direction): void
+    {
+        DB::transaction(function () use ($content, $direction) {
+
+            if (is_null($content->sort_order)) {
+                return;
+            }
+
+            $query = $this->siblingQuery($content);
+
+            $swapWith = $direction === 'up'
+                ? (clone $query)->where('sort_order', '<', $content->sort_order)->orderByDesc('sort_order')->first()
+                : (clone $query)->where('sort_order', '>', $content->sort_order)->orderBy('sort_order')->first();
+
+            if (! $swapWith) {
+                return;
+            }
+
+            $currentOrder = $content->sort_order;
+
+            $content->update(['sort_order' => $swapWith->sort_order]);
+            $swapWith->update(['sort_order' => $currentOrder]);
+        });
+    }
+
+    /**
+     * All contents that share the same ordering scope (the same material).
+     */
+    protected function siblingQuery(MaterialContent $content)
+    {
+        return MaterialContent::where('material_id', $content->material_id);
+    }
+
+    protected function nextSortOrder(int $materialId): int
+    {
+        return (MaterialContent::where('material_id', $materialId)->max('sort_order') ?? 0) + 1;
     }
 
     /**

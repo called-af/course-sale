@@ -28,6 +28,7 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
         email: user.email,
         role: user.role,
         bio: user.bio ?? '',
+        headline: user.headline ?? '',
         password: '',
         avatar: null as File | null,
     });
@@ -71,6 +72,16 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
                         <div className="text-sm font-medium text-neutral-600 dark:text-slate-300">Account Information</div>
                         <InputField label="Name" value={data.name} onChange={(e) => setData('name', e.target.value)} error={errors.name} />
                         <InputField label="Email" value={data.email} onChange={(e) => setData('email', e.target.value)} error={errors.email} />
+                        {isInstructorOrAdmin && (
+                            <InputField
+                                label="Headline"
+                                value={data.headline}
+                                maxLength={120}
+                                placeholder="e.g. Senior Product Designer — shown as your role on the landing page"
+                                onChange={(e) => setData('headline', e.target.value)}
+                                error={errors.headline}
+                            />
+                        )}
                         <TextAreaField
                             label="Bio"
                             rows={4}
@@ -101,7 +112,7 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
                                     <Badge variant="purple" className="px-2.5 py-1 text-xs font-semibold capitalize">
                                         {data.role}
                                     </Badge>
-                                    <span className="text-xs text-neutral-400 dark:text-slate-500">(Role akun ditetapkan sebagai {data.role})</span>
+                                    <span className="text-xs text-neutral-400 dark:text-slate-500">(Account role is set to {data.role})</span>
                                 </div>
                             </div>
                         )}
@@ -176,7 +187,7 @@ export default function UserProfile({ user, submitUrl, canChangeRole = false }: 
                                         <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
                                             Enrolled{' '}
                                             {enrollment.enrolled_at
-                                                ? new Date(enrollment.enrolled_at).toLocaleDateString('id-ID', { dateStyle: 'medium' })
+                                                ? new Date(enrollment.enrolled_at).toLocaleDateString('en-US', { dateStyle: 'medium' })
                                                 : '—'}
                                         </p>
                                     </div>

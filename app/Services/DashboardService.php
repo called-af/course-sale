@@ -6,7 +6,9 @@ use App\Models\AppearanceSetting;
 use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\Material;
 use App\Models\MaterialContent;
+use App\Models\MaterialContentProgress;
 use App\Models\MaterialProgress;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -20,18 +22,60 @@ class DashboardService
 {
     public function adminData(): array
     {
+        $courseStatusCounts = Course::query()
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $recentOrders = Order::query()
+            ->with(['user:id,name', 'items.course:id,title,slug'])
+            ->latest('created_at')
+            ->take(5)
+            ->get()
+            ->map(fn (Order $order) => [
+                'id' => $order->id,
+                'order_number' => $order->order_number,
+                'status' => $order->status,
+                'total_price' => (float) $order->total_price,
+                'currency' => $order->currency ?? 'IDR',
+                'created_at' => $order->created_at?->toDateTimeString(),
+                'paid_at' => $order->paid_at?->toDateTimeString(),
+                'user' => $order->user ? [
+                    'id' => $order->user->id,
+                    'name' => $order->user->name,
+                ] : null,
+                'items_count' => $order->items->count(),
+                'course_title' => $order->items->first()?->course_title ?? $order->items->first()?->course?->title,
+            ])
+            ->values();
+
         return [
             'metrics' => [
                 'totalUsers' => User::count(),
                 'totalCourses' => Course::count(),
                 'activeEnrollments' => Enrollment::where('status', 'active')->count(),
                 'revenue' => (float) Order::where('status', 'paid')->sum('total_price'),
+                'revenueThisMonth' => (float) Order::where('status', 'paid')
+                    ->where('paid_at', '>=', now()->startOfMonth())
+                    ->sum('total_price'),
+                'paidOrders' => Order::where('status', 'paid')->count(),
+                'pendingOrders' => Order::where('status', 'pending')->count(),
+                'pendingReviews' => (int) ($courseStatusCounts['review'] ?? 0),
+                'totalInstructors' => User::where('role', 'instructor')->count(),
+                'totalStudents' => User::where('role', 'student')->count(),
+            ],
+            'courseStatusCounts' => [
+                'published' => (int) ($courseStatusCounts['published'] ?? 0),
+                'review' => (int) ($courseStatusCounts['review'] ?? 0),
+                'draft' => (int) ($courseStatusCounts['draft'] ?? 0),
+                'archived' => (int) ($courseStatusCounts['archived'] ?? 0),
             ],
             'topCourses' => Course::withCount(['enrollments' => fn ($query) => $query->where('status', 'active')])
                 ->orderByDesc('enrollments_count')->take(5)->get(['id', 'title', 'slug']),
             'recentEnrollments' => Enrollment::where('status', 'active')
                 ->with(['user:id,name', 'course:id,title,slug'])->latest('enrolled_at')->take(5)->get(),
             'recentCourses' => Course::latest()->take(5)->get(['id', 'title', 'slug', 'status', 'created_at']),
+            'recentOrders' => $recentOrders,
         ];
     }
 
@@ -71,33 +115,78 @@ class DashboardService
             ->get()
             ->keyBy('material_id');
 
+        $contentIds = $enrollments
+            ->flatMap(fn ($enrollment) => $enrollment->course->modules)
+            ->flatMap(fn ($module) => $module->materials)
+            ->flatMap(fn ($material) => $material->contents)
+            ->pluck('id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $userCompletedContentProgress = $contentIds->isEmpty()
+            ? collect()
+            : MaterialContentProgress::query()
+                ->where('user_id', $user->id)
+                ->whereIn('material_content_id', $contentIds)
+                ->where('is_completed', true)
+                ->get()
+                ->keyBy('material_content_id');
+
         $userCertificates = Certificate::where('user_id', $user->id)
             ->get()
             ->keyBy('course_id');
 
-        $enrolledCourses = $enrollments->map(function ($enrollment) use ($userCompletedMaterials, $userCertificates) {
+        $enrolledCourses = $enrollments->map(function ($enrollment) use ($userCompletedMaterials, $userCompletedContentProgress, $userCertificates) {
             $course = $enrollment->course;
             $course->append('thumbnail_url');
 
-            $allMaterials = $course->modules->flatMap(fn ($module) => $module->materials);
+            $allMaterials = $course->modules->flatMap(fn ($module) => $module->materials)->values();
             $total = $allMaterials->count();
 
-            $completedMaterials = $allMaterials->filter(fn ($m) => isset($userCompletedMaterials[$m->id]));
+            $effectiveCompletedMaterialIds = [];
+            $effectiveMaterialCompletedAt = [];
+
+            foreach ($allMaterials as $material) {
+                $materialProgress = $userCompletedMaterials->get($material->id);
+                $isCompleted = (bool) ($materialProgress?->is_completed);
+                $completedAt = $materialProgress?->completed_at;
+
+                if (! $isCompleted) {
+                    $contents = $material->contents;
+                    if ($contents->isNotEmpty() && $contents->every(fn ($content) => $userCompletedContentProgress->has($content->id))) {
+                        $isCompleted = true;
+                        $completedAt = $contents
+                            ->map(fn ($content) => $userCompletedContentProgress->get($content->id)?->completed_at)
+                            ->filter()
+                            ->max();
+                    }
+                }
+
+                if ($isCompleted) {
+                    $effectiveCompletedMaterialIds[$material->id] = true;
+                    $effectiveMaterialCompletedAt[$material->id] = $completedAt;
+                }
+            }
+
+            $completedMaterials = $allMaterials->filter(fn (Material $m) => isset($effectiveCompletedMaterialIds[$m->id]));
             $completedCount = $completedMaterials->count();
             $progressPercent = $total ? (int) round(($completedCount / $total) * 100) : 0;
 
             // Find resume target / next unfinished lesson
             $nextMaterial = null;
             if ($progressPercent < 100) {
-                $firstUnfinished = $allMaterials->first(fn ($m) => ! isset($userCompletedMaterials[$m->id]));
+                $firstUnfinished = $allMaterials->first(fn (Material $m) => ! isset($effectiveCompletedMaterialIds[$m->id]));
                 if ($firstUnfinished) {
-                    $firstContent = $firstUnfinished->contents->first();
+                    $firstContent = $firstUnfinished->contents
+                        ->first(fn ($content) => ! $userCompletedContentProgress->has($content->id))
+                        ?? $firstUnfinished->contents->first();
                     $nextMaterial = [
                         'id' => $firstUnfinished->id,
                         'title' => $firstUnfinished->title,
                         'content_id' => $firstContent?->id,
                         'content_title' => $firstContent?->title,
-                        'content_type' => $firstContent?->type ?? 'lesson',
+                        'content_type' => $firstContent?->type ?? 'text',
                     ];
                 }
             }
@@ -105,7 +194,10 @@ class DashboardService
             $cert = $userCertificates->get($course->id);
 
             // Latest completed timestamp for sorting recently active courses
-            $lastActivity = $completedMaterials->map(fn ($m) => $userCompletedMaterials[$m->id]->completed_at)->max()
+            $lastActivity = $completedMaterials
+                ->map(fn (Material $m) => $effectiveMaterialCompletedAt[$m->id] ?? null)
+                ->filter()
+                ->max()
                 ?? $enrollment->enrolled_at;
 
             return [
@@ -130,7 +222,34 @@ class DashboardService
         $continueLearningCourse = $inProgressCourses->sortByDesc(fn ($item) => $item['course']['last_activity'])->first()
             ?? $enrolledCourses->first();
 
-        $completedMaterialIds = $userCompletedMaterials->keys();
+        $allMaterials = $enrollments->flatMap(fn ($enrollment) => $enrollment->course->modules->flatMap(fn ($module) => $module->materials));
+
+        $effectiveCompletedMaterialMap = [];
+        foreach ($allMaterials as $material) {
+            $materialProgress = $userCompletedMaterials->get($material->id);
+            $isCompleted = (bool) ($materialProgress?->is_completed);
+            $completedAt = $materialProgress?->completed_at;
+
+            if (! $isCompleted) {
+                $contents = $material->contents;
+                if ($contents->isNotEmpty() && $contents->every(fn ($content) => $userCompletedContentProgress->has($content->id))) {
+                    $isCompleted = true;
+                    $completedAt = $contents
+                        ->map(fn ($content) => $userCompletedContentProgress->get($content->id)?->completed_at)
+                        ->filter()
+                        ->max();
+                }
+            }
+
+            if ($isCompleted) {
+                $existing = $effectiveCompletedMaterialMap[$material->id] ?? null;
+                if (! $existing || ($completedAt && (! $existing || $completedAt > $existing))) {
+                    $effectiveCompletedMaterialMap[$material->id] = $completedAt;
+                }
+            }
+        }
+
+        $completedMaterialIds = collect(array_keys($effectiveCompletedMaterialMap));
         $recommendedCourses = app(RecommendationService::class)->getRecommendations($user, 4);
 
         // Calculate certificates
@@ -154,17 +273,18 @@ class DashboardService
                 ],
             ]);
 
-        // Weekly activity (last 7 days)
+        // Weekly activity (last 7 days) based on effective material completions.
         $englishDays = ['Sunday' => 'Sun', 'Monday' => 'Mon', 'Tuesday' => 'Tue', 'Wednesday' => 'Wed', 'Thursday' => 'Thu', 'Friday' => 'Fri', 'Saturday' => 'Sat'];
         $weeklyActivity = collect();
+        $effectiveCompletionDates = collect($effectiveCompletedMaterialMap)
+            ->filter()
+            ->map(fn ($date) => Carbon::parse($date)->toDateString());
+
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
             $dateStr = $date->toDateString();
             $dayName = $englishDays[$date->format('l')] ?? $date->format('D');
-            $count = MaterialProgress::where('user_id', $user->id)
-                ->where('is_completed', true)
-                ->whereDate('completed_at', $dateStr)
-                ->count();
+            $count = $effectiveCompletionDates->filter(fn ($d) => $d === $dateStr)->count();
             $weeklyActivity->push([
                 'date' => $dateStr,
                 'day_name' => $dayName,
@@ -235,14 +355,18 @@ class DashboardService
             ])
             ->values();
 
+        $completedMaterialIdList = $completedMaterialIds->values()->all();
+
         return [
             'enrolledCourses' => $enrolledCourses->values(),
             'orders' => $orders,
             'continueLearningCourse' => $continueLearningCourse,
             'totalCompleted' => $totalCompleted,
             'overallProgress' => $overallProgress,
-            'completedMaterials' => $completedMaterialIds->count(),
-            'learningMinutes' => (int) MaterialContent::whereIn('material_id', $completedMaterialIds)->sum('duration'),
+            'completedMaterials' => count($completedMaterialIdList),
+            'learningMinutes' => empty($completedMaterialIdList)
+                ? 0
+                : (int) MaterialContent::whereIn('material_id', $completedMaterialIdList)->sum('duration'),
             'totalCertificates' => Certificate::where('user_id', $user->id)->count(),
             'recentCertificates' => $recentCertificates,
             'weeklyActivity' => $weeklyActivity,

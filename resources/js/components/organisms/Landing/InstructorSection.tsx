@@ -1,4 +1,3 @@
-import { Link } from '@inertiajs/react';
 import { ArrowRight, BookOpen, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
 import { useEffect, useState } from 'react';
@@ -7,56 +6,14 @@ import Badge from '@/components/atoms/Badge';
 import Button from '@/components/atoms/Button';
 import Title from '@/components/atoms/Title';
 import LandingSectionHeader from '@/components/molecules/LandingSectionHeader';
+import SectionLink from '@/components/molecules/SectionLink';
+import { useLanding } from '@/hooks/useLanding';
 
-interface Instructor {
-    name: string;
-    slug: string;
-    role: string;
-    bio: string;
-    expertise: string[];
-    courses: number;
-    students: string;
+import type { LandingInstructor } from '@/types';
+
+interface Props {
+    instructors: LandingInstructor[];
 }
-
-/** Static content for now — will be replaced by real instructor data later. */
-const INSTRUCTORS: Instructor[] = [
-    {
-        name: 'Andini Prameswari',
-        slug: 'andini-prameswari',
-        role: 'Senior Product Designer',
-        bio: 'Led design teams at two unicorns and now teaches product design end to end, from research to handoff.',
-        expertise: ['UI/UX', 'Design Systems'],
-        courses: 8,
-        students: '12,400',
-    },
-    {
-        name: 'Bagas Nugroho',
-        slug: 'bagas-nugroho',
-        role: 'Full-stack Engineer',
-        bio: 'Ten years building production apps with Laravel and React. Explains architecture in plain, practical language.',
-        expertise: ['Laravel', 'React'],
-        courses: 11,
-        students: '18,900',
-    },
-    {
-        name: 'Citra Halimah',
-        slug: 'citra-halimah',
-        role: 'Growth Marketing Lead',
-        bio: 'Helped early-stage startups scale from zero to their first hundred thousand users with content and paid ads.',
-        expertise: ['SEO', 'Performance Ads'],
-        courses: 6,
-        students: '9,700',
-    },
-    {
-        name: 'Dimas Saputra',
-        slug: 'dimas-saputra',
-        role: 'Data Scientist',
-        bio: 'Works on recommendation systems daily and mentors learners transitioning into data careers.',
-        expertise: ['Python', 'Machine Learning'],
-        courses: 5,
-        students: '7,300',
-    },
-];
 
 const AUTOPLAY_MS = 6000;
 
@@ -75,35 +32,95 @@ const imageVariants: Variants = {
 };
 
 function initialsOf(name: string) {
-    return name
+    const initials = name
         .split(' ')
+        .filter(Boolean)
         .map((part) => part[0])
         .join('');
+
+    return initials || '?';
 }
 
-export default function InstructorSection() {
+function InstructorPortrait({ instructor, direction, reduceMotion }: { instructor: LandingInstructor; direction: number; reduceMotion: boolean }) {
+    const [failed, setFailed] = useState(false);
+    const photo = instructor.avatar_url;
+
+    useEffect(() => setFailed(false), [photo]);
+
+    return (
+        <motion.div
+            key={instructor.slug}
+            custom={direction}
+            variants={imageVariants}
+            initial={reduceMotion ? false : 'enter'}
+            animate="center"
+            exit={reduceMotion ? undefined : 'exit'}
+            transition={{ type: 'spring', visualDuration: 0.48, bounce: 0.1 }}
+            className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-200 via-purple-100 to-indigo-200 dark:from-purple-900/60 dark:via-[#1e1f24] dark:to-indigo-900/50"
+        >
+            {photo && !failed ? (
+                <motion.img
+                    key={photo}
+                    src={photo}
+                    alt={instructor.name}
+                    initial={{ opacity: 0, scale: 1.06 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.6, ease: EASE }}
+                    onError={() => setFailed(true)}
+                    className="h-full w-full object-cover"
+                />
+            ) : (
+                <span className="relative font-display text-[8rem] leading-none text-purple-700/80 select-none sm:text-[11rem] dark:text-purple-200/80">
+                    {initialsOf(instructor.name)}
+                </span>
+            )}
+
+            <span
+                aria-hidden
+                className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_60%_at_50%_25%,rgba(255,255,255,0.4),transparent_70%)] dark:bg-[radial-gradient(60%_60%_at_50%_25%,rgba(255,255,255,0.08),transparent_70%)]"
+            />
+        </motion.div>
+    );
+}
+
+export default function InstructorSection({ instructors }: Props) {
     const reduceMotion = useReducedMotion();
+    const { instructor: copy } = useLanding();
     const [[activeIndex, direction], setPage] = useState<[number, number]>([0, 0]);
     const [paused, setPaused] = useState(false);
 
+    const count = instructors.length;
+    const canCycle = count > 1;
+
     const paginate = (step: number) => {
-        setPage(([index]) => [(index + step + INSTRUCTORS.length) % INSTRUCTORS.length, step]);
+        if (!canCycle) {
+            return;
+        }
+
+        setPage(([index]) => [(index + step + count) % count, step]);
     };
 
-    // Auto-advance to the next instructor every few seconds (paused on hover).
+    // Keep the active slide in range when the admin changes the selection.
     useEffect(() => {
-        if (reduceMotion || paused) {
+        if (count > 0 && activeIndex >= count) {
+            setPage([0, 0]);
+        }
+    }, [activeIndex, count]);
+
+    // Auto-advance between real instructors, paused on hover.
+    useEffect(() => {
+        if (reduceMotion || paused || !canCycle) {
             return;
         }
 
         const timer = window.setInterval(() => {
-            setPage(([index]) => [(index + 1) % INSTRUCTORS.length, 1]);
+            setPage(([index]) => [(index + 1) % count, 1]);
         }, AUTOPLAY_MS);
 
         return () => window.clearInterval(timer);
-    }, [reduceMotion, paused, activeIndex]);
+    }, [reduceMotion, paused, canCycle, count]);
 
-    const instructor = INSTRUCTORS[activeIndex];
+    const instructor = instructors[activeIndex] ?? instructors[0];
 
     return (
         <section id="instructors" className="relative overflow-hidden bg-gray-100 py-24 dark:bg-[#141416]">
@@ -118,65 +135,75 @@ export default function InstructorSection() {
                             transition={{ duration: 0.7, ease: EASE }}
                         >
                             <LandingSectionHeader
-                                badge="Instructors"
-                                titleLead="Learn From "
-                                titleHighlight="Practitioners"
-                                description="Every course is taught by someone who does the work, not just talks about it."
+                                badge={copy.badge}
+                                titleLead={copy.title_lead}
+                                titleHighlight={copy.title_highlight}
+                                description={copy.description}
                             />
                         </motion.div>
 
-                        <div className="min-h-[220px]">
-                            <AnimatePresence mode="wait" initial={false} custom={direction}>
-                                <motion.div
-                                    key={instructor.slug}
-                                    custom={direction}
-                                    variants={textVariants}
-                                    initial={reduceMotion ? false : 'enter'}
-                                    animate="center"
-                                    exit={reduceMotion ? undefined : 'exit'}
-                                    transition={{ duration: 0.4, ease: EASE }}
-                                    className="flex flex-col gap-4"
-                                >
-                                    <div className="flex items-center gap-2.5">
-                                        <span className="h-2 w-2 rounded-full bg-purple-500" />
-                                        <span className="text-[11px] font-semibold tracking-[0.18em] text-purple-600 uppercase dark:text-purple-400">
-                                            {instructor.role}
-                                        </span>
-                                    </div>
+                        {instructor ? (
+                            <>
+                                <div className="min-h-[220px]">
+                                    <AnimatePresence mode="wait" initial={false} custom={direction}>
+                                        <motion.div
+                                            key={instructor.slug}
+                                            custom={direction}
+                                            variants={textVariants}
+                                            initial={reduceMotion ? false : 'enter'}
+                                            animate="center"
+                                            exit={reduceMotion ? undefined : 'exit'}
+                                            transition={{ type: 'spring', visualDuration: 0.42, bounce: 0.12 }}
+                                            className="flex flex-col gap-4"
+                                        >
+                                            <div className="flex items-center gap-2.5">
+                                                <span className="h-2 w-2 rounded-full bg-purple-500" />
+                                                <span className="text-[11px] font-semibold tracking-[0.18em] text-purple-600 uppercase dark:text-purple-400">
+                                                    {instructor.role}
+                                                </span>
+                                            </div>
 
-                                    <Title as="h3" className="text-2xl text-gray-900 sm:text-3xl dark:text-white">
-                                        {instructor.name}
-                                    </Title>
+                                            <Title as="h3" className="text-2xl text-gray-900 sm:text-3xl dark:text-white">
+                                                {instructor.name}
+                                            </Title>
 
-                                    <p className="max-w-md text-sm leading-relaxed text-gray-500 dark:text-slate-400">{instructor.bio}</p>
+                                            <p className="max-w-md text-sm leading-relaxed text-gray-500 dark:text-slate-400">{instructor.bio}</p>
 
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {instructor.expertise.map((skill) => (
-                                            <Badge key={skill}>{skill}</Badge>
-                                        ))}
-                                    </div>
+                                            {instructor.expertise.length > 0 && (
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {instructor.expertise.map((skill) => (
+                                                        <Badge key={skill}>{skill}</Badge>
+                                                    ))}
+                                                </div>
+                                            )}
 
-                                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-1 text-xs text-gray-400 dark:text-slate-500">
-                                        <span className="inline-flex items-center gap-1.5">
-                                            <BookOpen size={13} />
-                                            {instructor.courses} courses
-                                        </span>
-                                        <span className="inline-flex items-center gap-1.5">
-                                            <Users size={13} />
-                                            {instructor.students} students
-                                        </span>
-                                    </div>
-                                </motion.div>
-                            </AnimatePresence>
-                        </div>
+                                            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-1 text-xs text-gray-400 dark:text-slate-500">
+                                                <span className="inline-flex items-center gap-1.5">
+                                                    <BookOpen size={13} />
+                                                    {instructor.courses} course{instructor.courses === 1 ? '' : 's'}
+                                                </span>
+                                                <span className="inline-flex items-center gap-1.5">
+                                                    <Users size={13} />
+                                                    {instructor.students_label} student{instructor.students === 1 ? '' : 's'}
+                                                </span>
+                                            </div>
+                                        </motion.div>
+                                    </AnimatePresence>
+                                </div>
 
-                        <div>
-                            <Link href="/course">
-                                <Button variant="outline" rightIcon={<ArrowRight size={16} />} className="px-6 py-2.5">
-                                    Browse all instructors
-                                </Button>
-                            </Link>
-                        </div>
+                                <div>
+                                    <SectionLink href={copy.cta_href}>
+                                        <Button variant="outline" rightIcon={<ArrowRight size={16} />} className="px-6 py-2.5">
+                                            {copy.cta_label}
+                                        </Button>
+                                    </SectionLink>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="border border-dashed border-slate-300 bg-white/60 p-8 text-sm text-gray-500 dark:border-slate-700 dark:bg-[#1e1f24]/60 dark:text-slate-400">
+                                No instructors have been published yet. Add an instructor account to fill this section.
+                            </div>
+                        )}
                     </div>
 
                     {/* Right — big image with overlaid controls */}
@@ -190,7 +217,7 @@ export default function InstructorSection() {
                         className="relative"
                     >
                         <motion.div
-                            drag={reduceMotion ? false : 'x'}
+                            drag={reduceMotion || !canCycle ? false : 'x'}
                             dragConstraints={{ left: 0, right: 0 }}
                             dragElastic={0.18}
                             onDragEnd={(_, info) => {
@@ -200,68 +227,77 @@ export default function InstructorSection() {
                                     paginate(-1);
                                 }
                             }}
-                            className="relative aspect-[5/4] w-full cursor-grab overflow-hidden border border-slate-200/80 bg-gradient-to-br from-purple-200 via-purple-100 to-indigo-200 shadow-sm active:cursor-grabbing dark:border-slate-700 dark:from-purple-900/60 dark:via-[#1e1f24] dark:to-indigo-900/50"
+                            className={`relative aspect-[5/4] w-full overflow-hidden border border-slate-200/80 bg-gradient-to-br from-purple-200 via-purple-100 to-indigo-200 shadow-sm dark:border-slate-700 dark:from-purple-900/60 dark:via-[#1e1f24] dark:to-indigo-900/50 ${
+                                canCycle ? 'cursor-grab active:cursor-grabbing' : ''
+                            }`}
                         >
-                            <AnimatePresence initial={false} custom={direction}>
-                                <motion.div
-                                    key={instructor.slug}
-                                    custom={direction}
-                                    variants={imageVariants}
-                                    initial={reduceMotion ? false : 'enter'}
-                                    animate="center"
-                                    exit={reduceMotion ? undefined : 'exit'}
-                                    transition={{ duration: 0.45, ease: EASE }}
-                                    className="absolute inset-0 flex items-center justify-center"
-                                >
-                                    <span
-                                        aria-hidden
-                                        className="absolute inset-0 bg-[radial-gradient(60%_60%_at_50%_25%,rgba(255,255,255,0.55),transparent_70%)] dark:bg-[radial-gradient(60%_60%_at_50%_25%,rgba(255,255,255,0.08),transparent_70%)]"
-                                    />
-                                    <span className="relative font-display text-[8rem] leading-none text-purple-700/80 select-none sm:text-[11rem] dark:text-purple-200/80">
-                                        {initialsOf(instructor.name)}
-                                    </span>
-                                </motion.div>
+                            <AnimatePresence initial={false} custom={direction} mode="wait">
+                                {instructor && (
+                                    <InstructorPortrait instructor={instructor} direction={direction} reduceMotion={Boolean(reduceMotion)} />
+                                )}
                             </AnimatePresence>
 
-                            {/* Label */}
-                            <span className="absolute top-4 left-4 inline-flex items-center gap-1.5 bg-white/80 px-2.5 py-1 text-[10px] font-semibold tracking-[0.14em] text-purple-700 uppercase backdrop-blur-sm dark:bg-[#141416]/80 dark:text-purple-300">
-                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-purple-500" />
-                                Instructor
-                            </span>
+                            {!instructor && (
+                                <div className="absolute inset-0 flex items-center justify-center text-sm text-purple-700/60 dark:text-purple-200/60">
+                                    Instructor photo
+                                </div>
+                            )}
 
-                            {/* Prev / next arrows overlaid on the image */}
-                            <button
-                                type="button"
-                                onClick={() => paginate(-1)}
-                                aria-label="Previous instructor"
-                                className="absolute top-1/2 left-4 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition-colors hover:bg-black/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-                            >
-                                <ChevronLeft size={20} />
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => paginate(1)}
-                                aria-label="Next instructor"
-                                className="absolute top-1/2 right-4 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition-colors hover:bg-black/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-                            >
-                                <ChevronRight size={20} />
-                            </button>
+                            {instructor && (
+                                <>
+                                    <span className="absolute top-4 left-4 inline-flex items-center gap-1.5 bg-white/80 px-2.5 py-1 text-[10px] font-semibold tracking-[0.14em] text-purple-700 uppercase backdrop-blur-sm dark:bg-[#141416]/80 dark:text-purple-300">
+                                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-purple-500" />
+                                        Instructor
+                                    </span>
 
-                            {/* Dots — bottom right of the image */}
-                            <div className="absolute right-4 bottom-4 z-10 flex items-center gap-2">
-                                {INSTRUCTORS.map((item, index) => (
-                                    <button
-                                        key={item.slug}
-                                        type="button"
-                                        onClick={() => setPage([index, index >= activeIndex ? 1 : -1])}
-                                        aria-label={`Go to instructor ${index + 1}: ${item.name}`}
-                                        aria-current={index === activeIndex}
-                                        className={`h-2 rounded-full transition-colors duration-300 ${
-                                            index === activeIndex ? 'w-6 bg-purple-500' : 'w-2 bg-white/60 hover:bg-white'
-                                        }`}
-                                    />
-                                ))}
-                            </div>
+                                    {canCycle && (
+                                        <>
+                                            <button
+                                                type="button"
+                                                onClick={() => paginate(-1)}
+                                                aria-label="Previous instructor"
+                                                className="absolute top-1/2 left-4 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition-colors hover:bg-black/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                                            >
+                                                <ChevronLeft size={20} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => paginate(1)}
+                                                aria-label="Next instructor"
+                                                className="absolute top-1/2 right-4 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition-colors hover:bg-black/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                                            >
+                                                <ChevronRight size={20} />
+                                            </button>
+
+                                            {!reduceMotion && !paused && (
+                                                <motion.span
+                                                    key={instructor.slug}
+                                                    aria-hidden
+                                                    initial={{ scaleX: 0 }}
+                                                    animate={{ scaleX: 1 }}
+                                                    transition={{ duration: AUTOPLAY_MS / 1000, ease: 'linear' }}
+                                                    className="absolute inset-x-4 bottom-0 h-0.5 origin-left bg-purple-500/80"
+                                                />
+                                            )}
+
+                                            <div className="absolute right-4 bottom-4 z-10 flex items-center gap-2">
+                                                {instructors.map((item, index) => (
+                                                    <button
+                                                        key={item.slug}
+                                                        type="button"
+                                                        onClick={() => setPage([index, index >= activeIndex ? 1 : -1])}
+                                                        aria-label={`Go to instructor ${index + 1}: ${item.name}`}
+                                                        aria-current={index === activeIndex}
+                                                        className={`h-2 rounded-full transition-colors duration-300 ${
+                                                            index === activeIndex ? 'w-6 bg-purple-500' : 'w-2 bg-white/60 hover:bg-white'
+                                                        }`}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
+                                </>
+                            )}
                         </motion.div>
                     </motion.div>
                 </div>

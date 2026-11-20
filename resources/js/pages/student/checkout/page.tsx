@@ -27,14 +27,14 @@ export default function CheckoutPage({
                         leftIcon={<ArrowLeft size={16} />}
                         className="!rounded-none !text-slate-500 hover:!text-purple-700 dark:!text-slate-400 dark:hover:!text-purple-400"
                     >
-                        Kembali ke course
+                        Back to course
                     </Button>
                 </Link>
 
                 <div>
                     <Title as="h3">Checkout</Title>
                     <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                        Periksa pesanan Anda. Metode pembayaran dipilih di halaman Midtrans setelah menekan tombol lanjut.
+                        Review your order. You will choose a payment method on the Midtrans page after continuing.
                     </p>
                 </div>
 

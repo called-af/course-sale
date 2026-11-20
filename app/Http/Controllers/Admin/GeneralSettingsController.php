@@ -72,7 +72,7 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
             return back()->with('error', $exception->getMessage());
         }
 
-        return back()->with('success', 'Pengaturan pembayaran berhasil disimpan.');
+        return back()->with('success', 'Payment settings saved successfully.');
     }
 
     public function updateAppearance(Request $request): RedirectResponse
@@ -85,7 +85,7 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
 
         AppearanceSetting::current()->forceFill($validated)->save();
 
-        return back()->with('success', 'Palet tampilan berhasil disimpan.');
+        return back()->with('success', 'Appearance palette saved successfully.');
     }
 
     public function updateIdentity(Request $request): RedirectResponse
@@ -99,7 +99,7 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
 
         AppearanceSetting::current()->forceFill($validated)->save();
 
-        return back()->with('success', 'Identitas aplikasi berhasil disimpan.');
+        return back()->with('success', 'Application identity saved successfully.');
     }
 
     public function updateLogo(Request $request): RedirectResponse
@@ -121,7 +121,7 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
             Storage::disk('public')->delete($oldLogo);
         }
 
-        return back()->with('success', 'Logo aplikasi berhasil diperbarui.');
+        return back()->with('success', 'Application logo updated successfully.');
     }
 
     public function destroyLogo(): RedirectResponse
@@ -136,7 +136,7 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
 
         $setting->forceFill(['logo_path' => null])->save();
 
-        return back()->with('success', 'Logo aplikasi dikembalikan ke default.');
+        return back()->with('success', 'Application logo reset to default.');
     }
 
     public function verifyPassword(Request $request): JsonResponse
@@ -149,7 +149,7 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
 
         if (! $isValid) {
             return response()->json([
-                'errors' => ['current_password' => 'Password yang dimasukkan salah.'],
+                'errors' => ['current_password' => 'The password you entered is incorrect.'],
             ], 422);
         }
 
@@ -172,8 +172,8 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
         $this->recordAudit($request, ['enabled']);
 
         return back()->with('success', $result
-            ? 'Fitur AI diaktifkan.'
-            : 'Fitur AI dimatikan.');
+            ? 'AI features enabled.'
+            : 'AI features disabled.');
     }
 
     public function toggleRecommendation(Request $request): RedirectResponse
@@ -185,8 +185,8 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
         $setting->forceFill(['enabled' => $enabled])->save();
 
         return back()->with('success', $enabled
-            ? 'Rekomendasi Python AI diaktifkan.'
-            : 'Rekomendasi Python AI dimatikan.');
+            ? 'Recommendation system enabled.'
+            : 'Recommendation system disabled.');
     }
 
     public function updateAi(UpdateAiCredentialsRequest $request): RedirectResponse
@@ -220,7 +220,7 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
 
         $this->recordAudit($request, $changedFields);
 
-        return back()->with('success', 'Konfigurasi AI disimpan.');
+        return back()->with('success', 'AI configuration saved.');
     }
 
     public function toggleWhatsapp(Request $request): RedirectResponse
@@ -234,8 +234,8 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
         app(WhatsAppService::class)->loadConfiguration();
 
         return back()->with('success', $enabled
-            ? 'Notifikasi WhatsApp diaktifkan.'
-            : 'Notifikasi WhatsApp dimatikan.');
+            ? 'WhatsApp notifications enabled.'
+            : 'WhatsApp notifications disabled.');
     }
 
     public function updateWhatsapp(UpdateWhatsAppCredentialsRequest $request): RedirectResponse
@@ -258,7 +258,7 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
 
         app(WhatsAppService::class)->loadConfiguration();
 
-        return back()->with('success', 'Konfigurasi WhatsApp berhasil disimpan.');
+        return back()->with('success', 'WhatsApp configuration saved successfully.');
     }
 
     public function testWhatsapp(Request $request, WhatsAppService $whatsAppService): JsonResponse
@@ -273,13 +273,13 @@ class GeneralSettingsController extends \App\Http\Controllers\Controller
         if (empty($recipient)) {
             return response()->json([
                 'success' => false,
-                'error' => 'Format nomor WhatsApp tidak valid.',
+                'error' => 'Invalid WhatsApp phone number format.',
             ], 422);
         }
 
         $appName = AppearanceSetting::current()->displayName();
         $time = now()->translatedFormat('d M Y, H:i');
-        $message = "Halo! Ini adalah pesan uji coba (Test WhatsApp) dari Admin Panel {$appName} via WhatsApp Gateway.\n\nWaktu: {$time}\nStatus: Konfigurasi DB Aktif & Terhubung.";
+        $message = "Hello! This is a WhatsApp test message from the {$appName} Admin Panel via the WhatsApp Gateway.\n\nTime: {$time}\nStatus: Database configuration active and connected.";
 
         $result = $whatsAppService->sendInfobipTextMessage($recipient, $message);
 

@@ -11,6 +11,7 @@ interface LearningPageProps {
     certificate?: { id: number; certificate_number: string } | null;
     currentMaterial?: Material | null;
     currentContent?: MaterialContent | null;
+    currentSectionId?: number | null;
     resume?: { material_id: number; content_id?: number | null } | null;
     resources?: CourseResource[];
     resourcesUnlocked?: boolean;

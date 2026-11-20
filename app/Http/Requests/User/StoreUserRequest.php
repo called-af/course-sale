@@ -27,6 +27,7 @@ class StoreUserRequest extends FormRequest
             'password' => ['required', 'min:8'],
             'role' => ['required', 'in:student,instructor,admin'],
             'bio' => ['nullable', 'string', 'max:1000'],
+            'headline' => ['nullable', 'string', 'max:120'],
         ];
     }
 }

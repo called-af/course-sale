@@ -83,7 +83,7 @@ export default function ResetPassword() {
                                 disabled={processing}
                                 className="w-full bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
                             >
-                                {processing ? 'Menyimpan...' : 'Reset Password'}
+                                {processing ? 'Saving...' : 'Reset Password'}
                             </button>
                         </form>
                     </div>

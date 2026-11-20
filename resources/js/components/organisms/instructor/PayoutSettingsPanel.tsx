@@ -63,8 +63,7 @@ export default function PayoutSettingsPanel({ payout, payment, platform_fee_perc
                 <div className="border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
                     <p className="font-semibold">Rekening baru saja diubah.</p>
                     <p className="mt-1">
-                        Payout ke rekening ini dikunci hingga{' '}
-                        {new Date(payout.account_locked_until).toLocaleString('id-ID')} untuk alasan keamanan.
+                        Payout ke rekening ini dikunci hingga {new Date(payout.account_locked_until).toLocaleString('id-ID')} untuk alasan keamanan.
                     </p>
                 </div>
             ) : null}
@@ -91,9 +90,9 @@ export default function PayoutSettingsPanel({ payout, payment, platform_fee_perc
                             <p className="mt-1 text-sm text-neutral-500">
                                 Rekening tujuan transfer pendapatan course. Pembayaran siswa diproses melalui{' '}
                                 {payment?.gateway === 'midtrans' ? 'Midtrans' : 'gateway aktif'}
-                                {payment?.mode ? ` (${payment.mode})` : ''}. Setelah order lunas, {platform_fee_percent ?? 20}% akan dipotong
-                                sebagai fee platform, dana ditahan {payout.hold_days ?? 7} hari sebelum bisa dicairkan, dan payout dikirim
-                                setelah total mencapai {formatRupiah(payout.minimum_payout ?? 100000)}.
+                                {payment?.mode ? ` (${payment.mode})` : ''}. Setelah order lunas, {platform_fee_percent ?? 20}% akan dipotong sebagai
+                                fee platform, dana ditahan {payout.hold_days ?? 7} hari sebelum bisa dicairkan, dan payout dikirim setelah total
+                                mencapai {formatRupiah(payout.minimum_payout ?? 100000)}.
                             </p>
                         </div>
                     </div>
@@ -172,7 +171,10 @@ export default function PayoutSettingsPanel({ payout, payment, platform_fee_perc
 
                         {configured ? (
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200" htmlFor="payout_current_password">
+                                <label
+                                    className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200"
+                                    htmlFor="payout_current_password"
+                                >
                                     Password Akun
                                 </label>
                                 <input
@@ -186,9 +188,7 @@ export default function PayoutSettingsPanel({ payout, payment, platform_fee_perc
                                     className="w-full border border-gray-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 dark:border-slate-600 dark:bg-[#1e1f24] dark:text-white"
                                     disabled={processing}
                                 />
-                                {errors.current_password && (
-                                    <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.current_password}</p>
-                                )}
+                                {errors.current_password && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.current_password}</p>}
                                 <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                                     Demi keamanan, perubahan rekening yang sudah tersimpan memerlukan password akun Anda.
                                 </p>

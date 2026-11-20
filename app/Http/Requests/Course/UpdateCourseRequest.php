@@ -57,23 +57,23 @@ class UpdateCourseRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'title.string' => 'Judul course harus berupa teks.',
-            'title.max' => 'Judul course maksimal 255 karakter.',
+            'title.string' => 'Course title must be text.',
+            'title.max' => 'Course title may not exceed 255 characters.',
 
-            'description.string' => 'Deskripsi harus berupa teks.',
+            'description.string' => 'Description must be text.',
 
-            'level.in' => 'Level course tidak valid.',
+            'level.in' => 'Course level is invalid.',
 
-            'type.in' => 'Tipe course tidak valid.',
+            'type.in' => 'Course type is invalid.',
 
-            'price.required' => 'Harga wajib diisi untuk course berbayar.',
-            'price.numeric' => 'Harga harus berupa angka.',
-            'price.min' => 'Harga tidak boleh negatif.',
+            'price.required' => 'Price is required for paid courses.',
+            'price.numeric' => 'Price must be a number.',
+            'price.min' => 'Price must not be negative.',
 
-            'thumbnail.image' => 'Thumbnail harus berupa gambar.',
-            'thumbnail.max' => 'Ukuran thumbnail maksimal 2MB.',
+            'thumbnail.image' => 'Thumbnail must be an image.',
+            'thumbnail.max' => 'Thumbnail size may not exceed 2MB.',
 
-            'status.in' => 'Status course tidak valid.',
+            'status.in' => 'Course status is invalid.',
         ];
     }
 }

@@ -20,11 +20,11 @@ class ProviderException extends RuntimeException
     public static function fromResponse(string $provider, int $status, ?string $body = null, ?string $errorCode = null): self
     {
         $message = match (true) {
-            $status === 401 || $status === 403 => 'Kredensial provider ditolak.',
-            $status === 404 => 'Endpoint atau model tidak ditemukan.',
+            $status === 401 || $status === 403 => 'Provider credentials were rejected.',
+            $status === 404 => 'Endpoint or model not found.',
             $status === 429 => 'Rate limit provider tercapai.',
-            $status >= 500 => 'Provider sedang mengalami gangguan.',
-            default => 'Permintaan ke provider gagal.',
+            $status >= 500 => 'The provider is experiencing issues.',
+            default => 'The request to the provider failed.',
         };
 
         if ($body) {

@@ -8,20 +8,23 @@ import {
     ChevronLeft,
     ChevronRight,
     Circle,
-    Clock3,
     Download,
     FileText,
     FolderDown,
     GraduationCap,
+    HelpCircle,
     Moon,
     PanelLeftClose,
     PanelLeftOpen,
     PlayCircle,
+    Presentation,
     Sun,
+    Video,
     X,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ToastContainer } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
+import AppLogo from '@/components/atoms/AppLogo';
 import Badge from '@/components/atoms/Badge';
 import Button from '@/components/atoms/Button';
 import PreviewFileViewer from '@/components/molecules/course-preview/PreviewFileViewer';
@@ -39,9 +42,8 @@ type LessonContent = MaterialContent & {
     quiz_questions?: QuizQuestion[];
 };
 
-type Lesson = {
-    content: LessonContent;
-    material: Material;
+type MaterialPage = {
+    material: Material & { contents?: LessonContent[] };
     module: Module;
 };
 
@@ -51,8 +53,9 @@ interface CourseLearningTemplateProps {
     contentProgress?: Record<number, boolean>;
     quizStates?: Record<number, QuizState>;
     certificate?: { id: number; certificate_number: string } | null;
-    currentMaterial?: Material | null;
+    currentMaterial?: (Material & { contents?: LessonContent[] }) | null;
     currentContent?: LessonContent | null;
+    currentSectionId?: number | null;
     resume?: { material_id: number; content_id?: number | null } | null;
     resources?: CourseResource[];
     resourcesUnlocked?: boolean;
@@ -64,12 +67,17 @@ function getCsrfToken(): string {
     return document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
 }
 
+function publishedContents(material: Material & { contents?: LessonContent[] }, isPreview: boolean): LessonContent[] {
+    return ((material.contents ?? []) as LessonContent[]).filter((content) => isPreview || content.status === 'published');
+}
+
 export default function CourseLearningTemplate({
     course,
     progress = {},
     contentProgress,
     quizStates,
     certificate,
+    currentMaterial,
     currentContent,
     resume,
     resources = [],
@@ -86,19 +94,63 @@ export default function CourseLearningTemplate({
     const exitHref = isPreview ? `/${rolePrefix}/courses/${course.slug}` : '/student/courses';
     const exitTitle = isPreview ? 'Exit preview and return to course management' : 'Quit course and return to My Learning';
 
-    const lessons = useMemo<Lesson[]>(
+    const pages = useMemo<MaterialPage[]>(
         () =>
             (course.modules ?? []).flatMap((mod) =>
-                (mod.materials ?? []).flatMap((mat) => (mat.contents ?? []).map((con) => ({ content: con, material: mat, module: mod }))),
+                ((mod.materials ?? []) as (Material & { contents?: LessonContent[] })[])
+                    .filter((mat) => isPreview || mat.status === 'published')
+                    .map((material) => ({ material, module: mod })),
             ),
-        [course],
+        [course, isPreview],
     );
 
-    const [selectedContentId, setSelectedContentId] = useState<number | null>(
-        currentContent?.id ?? resume?.content_id ?? lessons[0]?.content.id ?? null,
-    );
+    const allContentBlocks = useMemo(() => pages.flatMap((page) => publishedContents(page.material, isPreview)), [pages, isPreview]);
+
+    const [selectedMaterialId, setSelectedMaterialId] = useState<number | null>(() => {
+        if (currentMaterial?.id && pages.some((page) => page.material.id === currentMaterial.id)) {
+            return currentMaterial.id;
+        }
+
+        if (currentContent?.id) {
+            const found = pages.find((page) => publishedContents(page.material, isPreview).some((content) => content.id === currentContent.id));
+            if (found) return found.material.id;
+        }
+
+        if (resume?.material_id && pages.some((page) => page.material.id === resume.material_id)) {
+            return resume.material_id;
+        }
+
+        if (resume?.content_id) {
+            const found = pages.find((page) => publishedContents(page.material, isPreview).some((content) => content.id === resume.content_id));
+            if (found) return found.material.id;
+        }
+
+        return pages[0]?.material.id ?? null;
+    });
+
+    const [pendingBlockId, setPendingBlockId] = useState<number | null>(() => {
+        if (currentContent?.id && allContentBlocks.some((content) => content.id === currentContent.id)) {
+            return currentContent.id;
+        }
+
+        if (resume?.content_id && allContentBlocks.some((content) => content.id === resume.content_id)) {
+            return resume.content_id;
+        }
+
+        return null;
+    });
+
     const [expandedModules, setExpandedModules] = useState<Record<number, boolean>>(() =>
         Object.fromEntries((course.modules ?? []).map((m) => [m.id, true])),
+    );
+    const [expandedMaterials, setExpandedMaterials] = useState<Record<number, boolean>>(() =>
+        Object.fromEntries(
+            (course.modules ?? []).flatMap((mod) =>
+                ((mod.materials ?? []) as (Material & { contents?: LessonContent[] })[])
+                    .filter((mat) => isPreview || mat.status === 'published')
+                    .map((mat) => [mat.id, true]),
+            ),
+        ),
     );
     const [sidebarOpen, setSidebarOpen] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 1024 : true));
     const [sidebarTab, setSidebarTab] = useState<'modules' | 'resources'>('modules');
@@ -108,10 +160,15 @@ export default function CourseLearningTemplate({
     const completingContentRef = useRef<Set<number>>(new Set());
     const pendingCompletionsRef = useRef<Map<number, Promise<unknown>>>(new Map());
     const autoCompletedMaterialsRef = useRef<Set<number>>(new Set());
+    const contentProgressRef = useRef<Record<number, boolean>>(contentProgress ?? {});
 
     useEffect(() => {
         setContentProgressState(contentProgress ?? {});
     }, [contentProgress]);
+
+    useEffect(() => {
+        contentProgressRef.current = contentProgressState;
+    }, [contentProgressState]);
 
     useEffect(() => {
         setQuizStatesState(quizStates ?? {});
@@ -121,56 +178,93 @@ export default function CourseLearningTemplate({
         setSidebarTab('modules');
     }, [course.id]);
 
-    useEffect(() => {
-        scrollRef.current?.scrollTo({ top: 0 });
-    }, [selectedContentId]);
+    const scrollToBlock = (blockId: number) => {
+        const el = document.getElementById(`content-block-${blockId}`);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return true;
+        }
 
-    const activeIndex = lessons.findIndex((l) => l.content.id === selectedContentId);
-    const activeLesson = lessons[activeIndex] ?? lessons[0];
-    const isVideo = activeLesson?.content.type === 'video';
+        return false;
+    };
+
+    useEffect(() => {
+        if (!selectedMaterialId) return;
+        scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [selectedMaterialId]);
+
+    useEffect(() => {
+        if (!pendingBlockId) return;
+
+        let attempts = 0;
+        const tryScroll = () => {
+            if (scrollToBlock(pendingBlockId)) {
+                setPendingBlockId(null);
+                return;
+            }
+
+            attempts += 1;
+            if (attempts < 20) {
+                window.setTimeout(tryScroll, 75);
+            }
+        };
+
+        const timer = window.setTimeout(tryScroll, 50);
+
+        return () => window.clearTimeout(timer);
+    }, [pendingBlockId, selectedMaterialId]);
+
+    const activeIndex = pages.findIndex((page) => page.material.id === selectedMaterialId);
+    const activePage = pages[activeIndex] ?? pages[0];
+    const activeBlocks = activePage ? publishedContents(activePage.material, isPreview) : [];
     const courseResources = resources.length > 0 ? resources : (course.resources ?? []);
 
-    const materials = (course.modules ?? []).flatMap((m) => m.materials ?? []);
+    const materials = pages.map((page) => page.material);
     const completedCount = materials.filter((m) => progress[m.id]).length;
     const progressPercent = materials.length ? Math.round((completedCount / materials.length) * 100) : 0;
 
-    // The progress bars follow lesson-level completion so they move as soon as
-    // a video is played, a file is opened, a text is read, or a quiz is submitted.
-    const totalContents = lessons.length;
-    const completedContents = lessons.filter((lesson) => Boolean(contentProgressState[lesson.content.id])).length;
+    const totalContents = allContentBlocks.length;
+    const completedContents = allContentBlocks.filter((block) => Boolean(contentProgressState[block.id])).length;
     const contentPercent = totalContents ? Math.round((completedContents / totalContents) * 100) : 0;
 
-    const selectContent = (contentId: number) => setSelectedContentId(contentId);
-    const selectMaterial = (material: Material) => {
-        const first = material.contents?.[0];
-        if (first) setSelectedContentId(first.id);
+    const closeSidebarOnMobile = () => {
+        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+            setSidebarOpen(false);
+        }
     };
 
-    const completeMaterialWhenReady = async (contentId: number, progressMap: Record<number, boolean>, pendingPromise?: Promise<unknown>) => {
-        // Preview mode never persists progress.
+    const selectMaterial = (materialId: number, blockId?: number | null) => {
+        const ownerPage = pages.find((page) => page.material.id === materialId);
+        if (ownerPage) {
+            setExpandedModules((prev) => ({ ...prev, [ownerPage.module.id]: true }));
+            setExpandedMaterials((prev) => ({ ...prev, [materialId]: true }));
+        }
+
+        setSelectedMaterialId(materialId);
+        setPendingBlockId(blockId ?? null);
+        closeSidebarOnMobile();
+    };
+
+    const completeMaterialWhenReady = async (contentId: number, progressMap: Record<number, boolean>) => {
         if (isPreview) {
             return;
         }
 
-        const lesson = lessons.find((item) => item.content.id === contentId);
-
-        if (!lesson) {
+        const ownerPage = pages.find((page) => publishedContents(page.material, isPreview).some((block) => block.id === contentId));
+        if (!ownerPage) {
             return;
         }
 
-        const materialId = lesson.material.id;
-        const materialContents = lessons.filter((item) => item.material.id === materialId).map((item) => item.content);
-        const allContentsDone = materialContents.length > 0 && materialContents.every((content) => Boolean(progressMap[content.id]));
+        const materialId = ownerPage.material.id;
+        const blocks = publishedContents(ownerPage.material, isPreview);
+        const mergedProgress = { ...contentProgressRef.current, ...progressMap };
+        const allContentsDone = blocks.length > 0 && blocks.every((block) => Boolean(mergedProgress[block.id]));
 
         if (!allContentsDone || progress[materialId] || autoCompletedMaterialsRef.current.has(materialId)) {
             return;
         }
 
         autoCompletedMaterialsRef.current.add(materialId);
-
-        if (pendingPromise) {
-            await Promise.allSettled([pendingPromise]);
-        }
 
         router.post(
             `/student/courses/${course.slug}/progress`,
@@ -190,7 +284,6 @@ export default function CourseLearningTemplate({
         const nextProgress = { ...contentProgressState, [contentId]: true };
         setContentProgressState(nextProgress);
 
-        // Preview mode keeps the visual state only — nothing is saved.
         if (isPreview) {
             return;
         }
@@ -211,12 +304,31 @@ export default function CourseLearningTemplate({
                 'X-CSRF-TOKEN': getCsrfToken(),
             },
         })
+            .then(async (response) => {
+                let data: { success?: boolean } = {};
+
+                try {
+                    data = await response.json();
+                } catch {
+                    data = {};
+                }
+
+                if (!response.ok || data.success === false) {
+                    throw new Error('Content completion was not saved.');
+                }
+
+                return true;
+            })
             .catch(() => {
                 setContentProgressState((prev) => {
                     const next = { ...prev };
                     delete next[contentId];
                     return next;
                 });
+
+                toast.error('Failed to save progress. Please try again.');
+
+                return false;
             })
             .finally(() => {
                 completingContentRef.current.delete(contentId);
@@ -224,68 +336,96 @@ export default function CourseLearningTemplate({
             });
 
         pendingCompletionsRef.current.set(contentId, request);
-        void completeMaterialWhenReady(contentId, nextProgress, request).then(
-            () => undefined,
-            () => undefined,
-        );
+        void request.then((ok) => {
+            if (ok) {
+                return completeMaterialWhenReady(contentId, nextProgress);
+            }
+
+            return undefined;
+        });
     };
 
-    const maybeCompleteText = () => {
-        if (!activeLesson || activeLesson.content.type !== 'text') return;
+    const scrollToNextBlock = (currentBlockId: number) => {
+        if (!activePage) return;
+        const index = activeBlocks.findIndex((block) => block.id === currentBlockId);
+        if (index >= 0 && index < activeBlocks.length - 1) {
+            scrollToBlock(activeBlocks[index + 1].id);
+        }
+    };
 
-        const element = scrollRef.current;
-        if (!element) return;
+    const handleScroll = () => {
+        const container = scrollRef.current;
+        if (!container) return;
 
-        const reachedBottom = element.scrollHeight - element.scrollTop - element.clientHeight <= 48;
+        const blockElements = container.querySelectorAll<HTMLElement>('[data-content-block-id]');
+        if (blockElements.length === 0) return;
 
-        if (reachedBottom) {
-            completeContent(activeLesson.content.id);
+        const containerRect = container.getBoundingClientRect();
+
+        for (const el of blockElements) {
+            const blockId = Number(el.dataset.contentBlockId);
+            const blockType = el.dataset.contentBlockType;
+            if (blockType === 'text' && !contentProgressState[blockId]) {
+                const rect = el.getBoundingClientRect();
+                if (rect.bottom <= containerRect.bottom + 40) {
+                    completeContent(blockId);
+                }
+            }
+        }
+    };
+
+    const maybeCompleteVisibleTextBlocks = () => {
+        const container = scrollRef.current;
+        if (!container) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const blockElements = container.querySelectorAll<HTMLElement>('[data-content-block-id][data-content-block-type="text"]');
+
+        for (const el of blockElements) {
+            const blockId = Number(el.dataset.contentBlockId);
+            if (!blockId || contentProgressState[blockId]) continue;
+
+            const rect = el.getBoundingClientRect();
+            const fullyVisible = rect.bottom <= containerRect.bottom + 40;
+            const shortEnough = rect.height <= container.clientHeight + 40;
+
+            if (fullyVisible || (shortEnough && rect.top >= containerRect.top - 40)) {
+                completeContent(blockId);
+            }
         }
     };
 
     useEffect(() => {
-        if (activeLesson?.content.type !== 'text') return;
+        if (!activeBlocks.some((block) => block.type === 'text')) return;
 
-        const timer = window.setTimeout(maybeCompleteText, 300);
+        const timer = window.setTimeout(maybeCompleteVisibleTextBlocks, 300);
 
         return () => window.clearTimeout(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedContentId, activeLesson?.content.type]);
+    }, [selectedMaterialId, activeBlocks.length]);
 
     return (
         <>
             <Head title={isPreview ? `Preview: ${course.title}` : `${course.title} — Learning`} />
 
-            {/* Focused course bar: replaces the normal user navbar while learning. */}
-            <header className="flex h-14 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 dark:border-slate-700 dark:bg-[#1e1f24]">
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => router.visit(exitHref)}
-                    title={exitTitle}
-                    aria-label={exitTitle}
-                    leftIcon={<X size={17} />}
-                    className="!h-8 !w-8 shrink-0 !rounded-none !border-slate-200 !p-0 !text-slate-500 hover:!border-rose-300 hover:!bg-rose-50 hover:!text-rose-600 dark:!border-slate-700 dark:!text-slate-400 dark:hover:!border-rose-900 dark:hover:!bg-rose-950/40 dark:hover:!text-rose-400"
-                />
-
-                <div className="flex min-w-0 flex-1 items-center gap-2">
-                    <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{course.title}</p>
-                    {isPreview && (
-                        <Badge variant="purple" className="!rounded-none">
-                            Preview Mode
-                        </Badge>
-                    )}
+            <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-slate-200 bg-white px-3 sm:gap-3 sm:px-4 dark:border-slate-700 dark:bg-[#1e1f24]">
+                <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                    <Link href="/" className="flex shrink-0 items-center" aria-label="Go to home">
+                        <AppLogo className="h-7 w-auto sm:h-8" />
+                    </Link>
+                    <div className="flex min-w-0 items-center gap-2">
+                        <p className="max-w-[10rem] truncate text-xs font-semibold text-slate-800 sm:max-w-xs sm:text-sm md:max-w-md lg:max-w-xl dark:text-slate-100">
+                            {course.title}
+                        </p>
+                        {isPreview && (
+                            <Badge variant="purple" className="shrink-0 !rounded-none">
+                                Preview
+                            </Badge>
+                        )}
+                    </div>
                 </div>
 
                 <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-                    <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-100 sm:w-32 dark:bg-slate-700">
-                        <div className="h-full rounded-full bg-purple-500 transition-all" style={{ width: `${contentPercent}%` }} />
-                    </div>
-                    <span className="text-xs font-bold text-purple-600 dark:text-purple-400">{contentPercent}%</span>
-                    <span className="hidden text-xs text-slate-400 sm:inline dark:text-slate-500">
-                        {completedContents}/{totalContents} done
-                    </span>
                     <Button
                         type="button"
                         variant="outline"
@@ -306,23 +446,29 @@ export default function CourseLearningTemplate({
                         leftIcon={isDark ? <Sun size={16} /> : <Moon size={16} />}
                         className="!h-8 !w-8 shrink-0 !rounded-none !border-slate-200 !p-0 !text-slate-500 hover:!border-purple-300 hover:!bg-purple-50 hover:!text-purple-600 dark:!border-slate-700 dark:!text-slate-400 dark:hover:!border-purple-600 dark:hover:!bg-purple-950/40 dark:hover:!text-purple-400"
                     />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.visit(exitHref)}
+                        title={exitTitle}
+                        aria-label={exitTitle}
+                        leftIcon={<X size={17} />}
+                        className="!h-8 !w-8 shrink-0 !rounded-none !border-slate-200 !p-0 !text-slate-500 hover:!border-rose-300 hover:!bg-rose-50 hover:!text-rose-600 dark:!border-slate-700 dark:!text-slate-400 dark:hover:!border-rose-900 dark:hover:!bg-rose-950/40 dark:hover:!text-rose-400"
+                    />
                 </div>
             </header>
 
-            {/* Content + Sidebar — fills the remaining viewport height. */}
             <div className="flex flex-1 overflow-hidden">
-                {/* Left: scrollable content */}
                 <div
                     ref={scrollRef}
-                    onScroll={maybeCompleteText}
-                    className="flex min-w-0 flex-1 flex-col overflow-y-auto bg-gray-100 dark:bg-[#1e1f24]"
+                    onScroll={handleScroll}
+                    className="flex min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-black"
                 >
-                    {/* Refund policy notice — only for paid, enrolled courses. */}
                     {!isPreview && <RefundPolicyNotice policy={refundPolicy} />}
 
-                    {/* Certificate banner */}
                     {progressPercent === 100 && (
-                        <div className="flex flex-col gap-4 border-b border-amber-200 bg-amber-50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-amber-900/50 dark:bg-amber-950/30">
+                        <div className="flex flex-col gap-4 border-b border-amber-200 bg-amber-50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 dark:border-amber-900/50 dark:bg-amber-950/30">
                             <div className="flex items-center gap-3">
                                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-950/60">
                                     <Award size={18} className="text-amber-600 dark:text-amber-400" />
@@ -332,7 +478,7 @@ export default function CourseLearningTemplate({
                                     <p className="text-xs text-amber-700 dark:text-amber-400">Your certificate is ready to download.</p>
                                 </div>
                             </div>
-                            <div className="flex shrink-0 gap-2">
+                            <div className="flex shrink-0 flex-wrap gap-2">
                                 {certificate && (
                                     <a href={`/student/certificates/${certificate.id}/download`} download>
                                         <Button
@@ -357,107 +503,150 @@ export default function CourseLearningTemplate({
                         </div>
                     )}
 
-                    {!activeLesson ? (
+                    {!activePage ? (
                         <div className="flex flex-1 flex-col items-center justify-center text-slate-400 dark:text-slate-500">
                             <GraduationCap className="mb-3 h-12 w-12 text-slate-300 dark:text-slate-600" />
                             <p className="text-sm">No lesson available yet.</p>
                         </div>
                     ) : (
-                        <div className="mx-auto w-full max-w-7xl space-y-5 p-6 sm:p-8">
-                            {/* Content viewer */}
-                            <div
-                                className={`overflow-hidden border border-slate-200 shadow-xs dark:border-slate-700 ${
-                                    isVideo ? 'bg-[#141416]' : 'bg-white dark:bg-[#1e1f24]'
-                                }`}
-                            >
-                                <LessonViewer
-                                    lesson={activeLesson}
-                                    courseSlug={isPreview ? undefined : course.slug}
-                                    quizState={quizStatesState?.[activeLesson.content.id]}
-                                    onQuizStateChange={(state) =>
-                                        setQuizStatesState((prev) => ({
-                                            ...prev,
-                                            [activeLesson.content.id]: state,
-                                        }))
-                                    }
-                                    onVideoCompleted={() => completeContent(activeLesson.content.id)}
-                                    onOpenAttachment={() => completeContent(activeLesson.content.id)}
-                                    onQuizCompleted={() => completeContent(activeLesson.content.id, true)}
-                                />
-                            </div>
-
-                            {/* Lesson header + navigation — placed below the content */}
-                            <div className="flex flex-col gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:items-start sm:justify-between dark:border-slate-700">
-                                <div>
-                                    <p className="mb-1 text-[11px] font-semibold tracking-widest text-purple-500 uppercase dark:text-purple-400">
-                                        {activeLesson.module.title}
-                                    </p>
-                                    <h1 className="text-xl leading-snug font-bold text-slate-900 sm:text-2xl dark:text-white">
-                                        {activeLesson.content.title}
-                                    </h1>
-                                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                                        <Badge variant="purple">{activeLesson.content.type}</Badge>
-                                        {activeLesson.material.title !== activeLesson.content.title && (
-                                            <span className="text-xs text-slate-400 dark:text-slate-500">{activeLesson.material.title}</span>
-                                        )}
-                                        {activeLesson.content.type === 'quiz' && activeLesson.content.duration && (
-                                            <span className="flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500">
-                                                <Clock3 size={12} /> {activeLesson.content.duration}m
-                                            </span>
-                                        )}
+                        <div className="mx-auto w-full max-w-7xl p-2 sm:p-4">
+                            <div className="overflow-hidden border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-[#1e1f24]">
+                                <div className="border-b border-slate-100 p-3 sm:p-5 dark:border-slate-700">
+                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                        <div className="min-w-0 space-y-1">
+                                            <p className="text-[10px] leading-relaxed font-semibold tracking-wide text-purple-600 uppercase sm:text-[11px] sm:tracking-widest dark:text-purple-400">
+                                                {activePage.module.title}
+                                            </p>
+                                            <h1 className="text-lg leading-snug font-bold text-slate-900 sm:text-2xl dark:text-white">
+                                                {activePage.material.title}
+                                            </h1>
+                                            {activePage.material.description ? (
+                                                <p className="text-sm text-slate-500 dark:text-slate-400">{activePage.material.description}</p>
+                                            ) : null}
+                                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                                                <Badge variant="purple">
+                                                    {activeBlocks.length} {activeBlocks.length === 1 ? 'content block' : 'content blocks'}
+                                                </Badge>
+                                                {progress[activePage.material.id] ? <Badge variant="success">Completed</Badge> : null}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Prev / Next */}
-                                <div className="flex shrink-0 items-center gap-2">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={activeIndex <= 0}
-                                        onClick={() => activeIndex > 0 && setSelectedContentId(lessons[activeIndex - 1].content.id)}
-                                        leftIcon={<ChevronLeft size={14} />}
-                                        className="!rounded-none"
-                                    >
-                                        Prev
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={activeIndex >= lessons.length - 1}
-                                        onClick={() => activeIndex < lessons.length - 1 && setSelectedContentId(lessons[activeIndex + 1].content.id)}
-                                        rightIcon={<ChevronRight size={14} />}
-                                        className="!rounded-none"
-                                    >
-                                        Next
-                                    </Button>
+                                {activeBlocks.length === 0 ? (
+                                    <div className="p-8 text-center text-sm text-slate-500 sm:p-12 dark:text-slate-400">
+                                        <FileText className="mx-auto mb-3 h-8 w-8 text-slate-300 dark:text-slate-600" />
+                                        <p className="font-semibold text-slate-700 dark:text-slate-200">No content yet</p>
+                                        <p className="mt-1 text-xs text-slate-400">This material does not have any published content yet.</p>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        {activeBlocks.map((block) => {
+                                            const isBlockVideo = block.type === 'video';
+                                            const blockDone = Boolean(contentProgressState[block.id]);
+
+                                            return (
+                                                <section
+                                                    key={block.id}
+                                                    id={`content-block-${block.id}`}
+                                                    data-content-block-id={block.id}
+                                                    data-content-block-type={block.type}
+                                                    className="min-w-0 scroll-mt-6 border-b border-slate-100 last:border-b-0 dark:border-slate-700"
+                                                >
+                                                    <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/60 px-3 py-2.5 sm:px-5 dark:border-slate-700 dark:bg-slate-800/40">
+                                                        {blockDone ? (
+                                                            <CheckCircle2 size={14} className="shrink-0 text-emerald-500" />
+                                                        ) : (
+                                                            <SectionTypeIcon type={block.type} className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                                                        )}
+                                                        <span className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-700 sm:text-sm dark:text-slate-200">
+                                                            {block.title}
+                                                        </span>
+                                                        <span className="shrink-0 text-[10px] font-semibold tracking-wide text-slate-400 uppercase dark:text-slate-500">
+                                                            {block.type}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className={isBlockVideo ? 'bg-[#141416]' : 'bg-white dark:bg-[#1e1f24]'}>
+                                                        <LessonViewer
+                                                            content={block}
+                                                            courseSlug={isPreview ? undefined : course.slug}
+                                                            quizState={quizStatesState?.[block.id]}
+                                                            onQuizStateChange={(state) =>
+                                                                setQuizStatesState((prev) => ({
+                                                                    ...prev,
+                                                                    [block.id]: state,
+                                                                }))
+                                                            }
+                                                            onVideoCompleted={() => {
+                                                                completeContent(block.id, false);
+                                                                scrollToNextBlock(block.id);
+                                                            }}
+                                                            onOpenAttachment={() => completeContent(block.id)}
+                                                            onQuizCompleted={() => {
+                                                                completeContent(block.id, true);
+                                                                scrollToNextBlock(block.id);
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </section>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                <div className="flex flex-col gap-4 border-t border-slate-100 p-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4 dark:border-slate-700">
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={activeIndex <= 0}
+                                            onClick={() => activeIndex > 0 && selectMaterial(pages[activeIndex - 1].material.id)}
+                                            leftIcon={<ChevronLeft size={14} />}
+                                            title="Previous material"
+                                            aria-label="Previous material"
+                                            className="!h-8 !w-8 !rounded-none !p-0"
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={activeIndex >= pages.length - 1}
+                                            onClick={() => activeIndex < pages.length - 1 && selectMaterial(pages[activeIndex + 1].material.id)}
+                                            leftIcon={<ChevronRight size={14} />}
+                                            title="Next material"
+                                            aria-label="Next material"
+                                            className="!h-8 !w-8 !rounded-none !p-0"
+                                        />
+                                    </div>
+
+                                    <p className="text-center text-xs text-slate-400 sm:text-right dark:text-slate-500">
+                                        Discussion & reviews on the{' '}
+                                        <Link
+                                            href={`/course/${course.slug}`}
+                                            className="font-medium text-purple-600 hover:underline dark:text-purple-400"
+                                        >
+                                            course page
+                                        </Link>
+                                    </p>
                                 </div>
                             </div>
-
-                            <p className="pb-4 text-center text-xs text-slate-400 dark:text-slate-500">
-                                Discussion & reviews on the{' '}
-                                <Link href={`/course/${course.slug}`} className="font-medium text-purple-600 hover:underline dark:text-purple-400">
-                                    course page
-                                </Link>
-                            </p>
                         </div>
                     )}
                 </div>
 
-                {/* Right: sidebar */}
                 {sidebarOpen ? (
                     <>
                         <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
                         <aside
                             className={clsx(
-                                'fixed inset-y-0 right-0 z-50 flex w-80 shrink-0 flex-col border-l border-slate-200 bg-white lg:static xl:w-80 dark:border-slate-700 dark:bg-[#1e1f24]',
+                                'fixed inset-y-0 right-0 z-50 flex w-[85vw] max-w-80 shrink-0 flex-col border-l border-slate-200 bg-white lg:static lg:w-80 dark:border-slate-700 dark:bg-[#1e1f24]',
                                 'transform transition-transform duration-300',
                                 sidebarOpen ? 'translate-x-0' : '-translate-x-full',
                                 'lg:translate-x-0',
                             )}
                         >
-                            {/* Sidebar header */}
                             <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-700">
                                 <div className="flex items-center gap-2">
                                     <BookOpen size={14} className="text-purple-600" />
@@ -477,7 +666,6 @@ export default function CourseLearningTemplate({
                                 />
                             </div>
 
-                            {/* Progress */}
                             <div className="shrink-0 border-b border-slate-100 px-4 py-3 dark:border-slate-700">
                                 <div className="mb-1.5 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
                                     <span>Progress</span>
@@ -491,7 +679,6 @@ export default function CourseLearningTemplate({
                                 </p>
                             </div>
 
-                            {/* Sidebar tabs: Modules / Resources */}
                             <div className="shrink-0 border-b border-slate-100 px-4 dark:border-slate-700">
                                 <div className="flex">
                                     <button
@@ -526,7 +713,6 @@ export default function CourseLearningTemplate({
                                 </div>
                             </div>
 
-                            {/* Module list — takes all remaining height and scrolls */}
                             {sidebarTab === 'modules' && (
                                 <div className="flex-1 overflow-y-auto">
                                     {(course.modules ?? []).map((mod, modIdx) => {
@@ -555,68 +741,113 @@ export default function CourseLearningTemplate({
 
                                                 {expanded && (
                                                     <div className="py-1">
-                                                        {(mod.materials ?? []).map((mat) => {
-                                                            const done = Boolean(progress[mat.id]);
-                                                            const activeMat = activeLesson?.material.id === mat.id;
+                                                        {((mod.materials ?? []) as (Material & { contents?: LessonContent[] })[])
+                                                            .filter((mat) => isPreview || mat.status === 'published')
+                                                            .map((mat) => {
+                                                                const done = Boolean(progress[mat.id]);
+                                                                const activeMat = activePage?.material.id === mat.id;
+                                                                const blocks = publishedContents(mat, isPreview);
+                                                                const materialExpanded = expandedMaterials[mat.id] ?? true;
 
-                                                            return (
-                                                                <div key={mat.id}>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => selectMaterial(mat)}
-                                                                        className={`flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-xs font-semibold transition-colors ${
-                                                                            activeMat
-                                                                                ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400'
-                                                                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
-                                                                        }`}
-                                                                    >
-                                                                        {done ? (
-                                                                            <CheckCircle2 size={13} className="shrink-0 text-emerald-500" />
-                                                                        ) : (
-                                                                            <Circle
-                                                                                size={13}
-                                                                                className="shrink-0 text-slate-300 dark:text-slate-600"
-                                                                            />
-                                                                        )}
-                                                                        <span className="truncate">{mat.title}</span>
-                                                                    </button>
-
-                                                                    {(mat.contents ?? []).length > 1 && (
-                                                                        <div className="pr-4 pl-10">
-                                                                            {(mat.contents ?? []).map((con) => {
-                                                                                const activeCon = activeLesson?.content.id === con.id;
-                                                                                const contentDone = Boolean(contentProgressState[con.id]);
-
-                                                                                return (
-                                                                                    <button
-                                                                                        key={con.id}
-                                                                                        type="button"
-                                                                                        onClick={() => selectContent(con.id)}
-                                                                                        className={`flex w-full items-center gap-1.5 py-1.5 text-left text-[11px] transition-colors ${
-                                                                                            activeCon
-                                                                                                ? 'font-semibold text-purple-600 dark:text-purple-400'
-                                                                                                : 'text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200'
-                                                                                        }`}
-                                                                                    >
-                                                                                        {contentDone ? (
-                                                                                            <CheckCircle2
-                                                                                                size={11}
-                                                                                                className="shrink-0 text-emerald-500"
-                                                                                            />
-                                                                                        ) : con.type === 'video' ? (
-                                                                                            <PlayCircle size={11} className="shrink-0" />
-                                                                                        ) : (
-                                                                                            <FileText size={11} className="shrink-0" />
+                                                                return (
+                                                                    <div key={mat.id}>
+                                                                        <div
+                                                                            className={`flex items-center transition-colors ${
+                                                                                activeMat
+                                                                                    ? 'bg-purple-50 dark:bg-purple-950/40'
+                                                                                    : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+                                                                            }`}
+                                                                        >
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => selectMaterial(mat.id)}
+                                                                                className={`flex min-w-0 flex-1 items-center gap-2.5 px-4 py-2.5 text-left text-xs font-semibold transition-colors ${
+                                                                                    activeMat
+                                                                                        ? 'text-purple-700 dark:text-purple-400'
+                                                                                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'
+                                                                                }`}
+                                                                            >
+                                                                                {done ? (
+                                                                                    <CheckCircle2 size={13} className="shrink-0 text-emerald-500" />
+                                                                                ) : (
+                                                                                    <Circle
+                                                                                        size={13}
+                                                                                        className="shrink-0 text-slate-300 dark:text-slate-600"
+                                                                                    />
+                                                                                )}
+                                                                                <span className="truncate">{mat.title}</span>
+                                                                            </button>
+                                                                            {blocks.length > 0 && (
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={(event) => {
+                                                                                        event.stopPropagation();
+                                                                                        setExpandedMaterials((prev) => ({
+                                                                                            ...prev,
+                                                                                            [mat.id]: !(prev[mat.id] ?? true),
+                                                                                        }));
+                                                                                    }}
+                                                                                    aria-label={
+                                                                                        materialExpanded
+                                                                                            ? 'Collapse content blocks'
+                                                                                            : 'Expand content blocks'
+                                                                                    }
+                                                                                    title={
+                                                                                        materialExpanded
+                                                                                            ? 'Collapse content blocks'
+                                                                                            : 'Expand content blocks'
+                                                                                    }
+                                                                                    className="mr-2 shrink-0 rounded p-1 text-slate-400 transition-colors hover:bg-slate-200/70 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-slate-300"
+                                                                                >
+                                                                                    <ChevronDown
+                                                                                        size={13}
+                                                                                        className={clsx(
+                                                                                            'transition-transform',
+                                                                                            materialExpanded ? 'rotate-180' : '',
                                                                                         )}
-                                                                                        <span className="truncate">{con.title}</span>
-                                                                                    </button>
-                                                                                );
-                                                                            })}
+                                                                                    />
+                                                                                </button>
+                                                                            )}
                                                                         </div>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        })}
+
+                                                                        {blocks.length > 0 && materialExpanded && (
+                                                                            <div className="pr-3 pb-1 pl-9">
+                                                                                {blocks.map((block) => {
+                                                                                    const blockDone = Boolean(contentProgressState[block.id]);
+
+                                                                                    return (
+                                                                                        <button
+                                                                                            key={block.id}
+                                                                                            type="button"
+                                                                                            onClick={() => selectMaterial(mat.id, block.id)}
+                                                                                            className={clsx(
+                                                                                                'flex w-full items-center gap-1.5 py-1.5 text-left text-[11px] transition-colors',
+                                                                                                activeMat
+                                                                                                    ? 'text-slate-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-400'
+                                                                                                    : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200',
+                                                                                            )}
+                                                                                            title={block.title}
+                                                                                        >
+                                                                                            {blockDone ? (
+                                                                                                <CheckCircle2
+                                                                                                    size={10}
+                                                                                                    className="shrink-0 text-emerald-500"
+                                                                                                />
+                                                                                            ) : (
+                                                                                                <SectionTypeIcon
+                                                                                                    type={block.type}
+                                                                                                    className="h-2.5 w-2.5 shrink-0"
+                                                                                                />
+                                                                                            )}
+                                                                                            <span className="truncate">{block.title}</span>
+                                                                                        </button>
+                                                                                    );
+                                                                                })}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                );
+                                                            })}
                                                     </div>
                                                 )}
                                             </div>
@@ -625,7 +856,6 @@ export default function CourseLearningTemplate({
                                 </div>
                             )}
 
-                            {/* Resources tab */}
                             {sidebarTab === 'resources' && (
                                 <div className="flex-1 overflow-y-auto px-4 py-3">
                                     {courseResources.length > 0 ? (
@@ -681,7 +911,6 @@ export default function CourseLearningTemplate({
                         </aside>
                     </>
                 ) : (
-                    /* Floating pill — visible on mobile too */
                     <div className="pointer-events-none fixed top-1/2 right-0 z-50 -translate-y-1/2 lg:block">
                         <button
                             type="button"
@@ -704,8 +933,19 @@ export default function CourseLearningTemplate({
     );
 }
 
+function SectionTypeIcon({ type, className }: { type: string; className?: string }) {
+    const cls = className ?? 'h-3.5 w-3.5';
+
+    if (type === 'video') return <Video className={cls} />;
+    if (type === 'quiz') return <HelpCircle className={cls} />;
+    if (type === 'ppt') return <Presentation className={cls} />;
+    if (type === 'file') return <FileText className={cls} />;
+
+    return <PlayCircle className={cls} />;
+}
+
 function LessonViewer({
-    lesson,
+    content,
     courseSlug,
     quizState,
     onQuizStateChange,
@@ -713,7 +953,7 @@ function LessonViewer({
     onOpenAttachment,
     onQuizCompleted,
 }: {
-    lesson: Lesson;
+    content: LessonContent;
     courseSlug?: string;
     quizState?: QuizState;
     onQuizStateChange: (state: QuizState) => void;
@@ -721,15 +961,13 @@ function LessonViewer({
     onOpenAttachment: () => void;
     onQuizCompleted: () => void;
 }) {
-    const { content } = lesson;
-
     if (content.type === 'video') {
         return <PreviewVideoViewer title={content.title} contentUrl={content.content_url} onCompleted={onVideoCompleted} />;
     }
 
     if (content.type === 'text') {
         return (
-            <div className="p-6 sm:p-8">
+            <div className="p-4 sm:p-8">
                 <PreviewTextViewer contentText={content.content_text} />
             </div>
         );
@@ -747,7 +985,7 @@ function LessonViewer({
 
     if (content.type === 'quiz') {
         return (
-            <div className="p-6">
+            <div className="p-2 sm:p-6">
                 <CourseQuizRunner
                     title={content.title}
                     duration={content.duration}
@@ -768,7 +1006,7 @@ function LessonViewer({
 /** Shared full-screen layout used by the student player and both preview pages. */
 export function CourseLearningLayout({ children }: { children: React.ReactNode }) {
     return (
-        <div className="flex h-dvh flex-col overflow-hidden bg-gray-100 dark:bg-[#1e1f24]">
+        <div className="flex h-dvh flex-col overflow-hidden bg-gray-100 dark:bg-black">
             {children}
             <ToastContainer position="top-right" autoClose={4000} newestOnTop pauseOnHover closeOnClick />
         </div>

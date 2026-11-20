@@ -8,12 +8,14 @@ import type { User } from '@/types/user';
 export default function InstructorProfile({ user }: { user: User }) {
     return (
         <>
-            <Head title={`Profil Instruktur - ${user.name}`} />
+            <Head title={`Instructor Profile - ${user.name}`} />
 
             <div className="space-y-6">
                 <div>
-                    <Title as="h3">Profil Instruktur</Title>
-                    <p className="mt-1 text-sm text-neutral-500">Kelola data akun, informasi keamanan, dan pantau kursus yang Anda buat.</p>
+                    <Title as="h3">Instructor Profile</Title>
+                    <p className="mt-1 text-sm text-neutral-500">
+                        Manage your account details, security information, and monitor the courses you created.
+                    </p>
                 </div>
 
                 <UserProfile user={user} submitUrl={route('instructor.profile.update')} canChangeRole={false} />

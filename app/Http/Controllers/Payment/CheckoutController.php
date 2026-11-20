@@ -72,7 +72,7 @@ class CheckoutController extends Controller
         $method ??= $this->paymentService->defaultMethod();
 
         if (! $method) {
-            return back()->with('error', 'Belum ada metode pembayaran aktif. Hubungi admin.');
+            return back()->with('error', 'No active payment methods available. Please contact an admin.');
         }
 
         try {
@@ -80,14 +80,14 @@ class CheckoutController extends Controller
         } catch (\Throwable $exception) {
             report($exception);
 
-            return back()->with('error', 'Checkout gagal diproses. Silakan coba lagi atau hubungi admin.');
+            return back()->with('error', 'Checkout could not be processed. Please try again or contact an admin.');
         }
 
         // A free course returns an enrollment instead of an order.
         if ($order instanceof Enrollment) {
             return redirect()
                 ->route('student.courses.show', $course->slug)
-                ->with('success', 'Anda sudah terdaftar di course ini.');
+                ->with('success', 'You are already enrolled in this course.');
         }
 
         if ($order->status === 'paid') {
@@ -115,6 +115,6 @@ class CheckoutController extends Controller
     {
         return redirect()
             ->route('student.courses.show', $course->slug)
-            ->with('info', 'Anda sudah terdaftar di course ini. Akses belajar sudah aktif.');
+            ->with('info', 'You are already enrolled in this course. Learning access is already active.');
     }
 }

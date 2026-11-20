@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Middleware\EnsureRoleSelected;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,9 +15,24 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $trustedProxies = env('TRUSTED_PROXIES');
+
+        $middleware->trustProxies(
+            at: $trustedProxies === '*'
+                ? '*'
+                : ($trustedProxies ? array_map('trim', explode(',', (string) $trustedProxies)) : null),
+            headers: Request::HEADER_X_FORWARDED_FOR
+                | Request::HEADER_X_FORWARDED_HOST
+                | Request::HEADER_X_FORWARDED_PORT
+                | Request::HEADER_X_FORWARDED_PROTO
+                | Request::HEADER_X_FORWARDED_PREFIX
+                | Request::HEADER_X_FORWARDED_AWS_ELB,
+        );
+
         $middleware->web(append: [
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            EnsureRoleSelected::class,
         ]);
         $middleware->validateCsrfTokens(except: [
             'payments/midtrans/webhook',
@@ -23,7 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
-            'role.selected' => \App\Http\Middleware\EnsureRoleSelected::class,
+            'role.selected' => EnsureRoleSelected::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

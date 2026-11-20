@@ -27,26 +27,26 @@ export default function StudentSettings() {
 
     return (
         <UserLayout>
-            <Head title="Pengaturan" />
+            <Head title="Settings" />
 
             <div className="mx-auto max-w-3xl space-y-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Pengaturan</h1>
-                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Kelola preferensi notifikasi WhatsApp Anda.</p>
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Settings</h1>
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Manage your WhatsApp notification preferences.</p>
                 </div>
 
                 <form onSubmit={submit} className="space-y-6 border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="space-y-2">
-                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Notifikasi WhatsApp</h2>
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">WhatsApp Notifications</h2>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Kami mengirimkan pengingatan kelas dan notifikasi progres belajar melalui WhatsApp.
+                            We send class reminders and learning progress notifications via WhatsApp.
                         </p>
                     </div>
 
                     <div className="flex items-start justify-between gap-4 border-t border-slate-100 pt-4 dark:border-slate-700">
                         <div>
-                            <p className="text-sm font-semibold text-slate-900 dark:text-white">Aktifkan notifikasi WhatsApp</p>
-                            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Notifikasi dikirim ke nomor yang terdaftar.</p>
+                            <p className="text-sm font-semibold text-slate-900 dark:text-white">Enable WhatsApp notifications</p>
+                            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Notifications are sent to the registered number.</p>
                         </div>
                         <Toggle
                             checked={data.whatsapp_notification_enabled}
@@ -56,7 +56,7 @@ export default function StudentSettings() {
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-700 dark:text-slate-200" htmlFor="whatsapp_number">
-                            Nomor WhatsApp
+                            WhatsApp Number
                         </label>
                         <input
                             id="whatsapp_number"
@@ -72,10 +72,10 @@ export default function StudentSettings() {
 
                     <div className="flex justify-end">
                         <Button type="submit" disabled={processing} isLoading={processing}>
-                            Simpan
+                            Save
                         </Button>
                     </div>
-                    {recentlySuccessful ? <p className="text-sm text-emerald-600 dark:text-emerald-400">Pengaturan berhasil disimpan.</p> : null}
+                    {recentlySuccessful ? <p className="text-sm text-emerald-600 dark:text-emerald-400">Settings saved successfully.</p> : null}
                 </form>
             </div>
         </UserLayout>

@@ -33,7 +33,7 @@ class ReplicateAdapter extends AbstractAdapter
         try {
             $this->request('GET', $this->endpoint('account'), [], $this->headers());
 
-            return ConnectionResult::ok('Koneksi Replicate berhasil.', (int) ((microtime(true) - $start) * 1000));
+            return ConnectionResult::ok('Replicate connection successful.', (int) ((microtime(true) - $start) * 1000));
         } catch (ProviderException $exception) {
             return ConnectionResult::failed($exception->getMessage());
         }
@@ -74,7 +74,7 @@ class ReplicateAdapter extends AbstractAdapter
         }
 
         if (($json['status'] ?? null) === 'failed') {
-            throw new ProviderException('Replicate gagal menjalankan model: '.(string) ($json['error'] ?? 'unknown'), $this->name(), null, false, 'prediction_failed');
+            throw new ProviderException('Replicate failed to run the model: '.(string) ($json['error'] ?? 'unknown'), $this->name(), null, false, 'prediction_failed');
         }
 
         $output = $json['output'] ?? '';

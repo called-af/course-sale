@@ -73,14 +73,14 @@ export default function AiSettingsPanel({ initialAi, flash }: AiSettingsPanelPro
             const result = await response.json();
 
             if (!response.ok) {
-                setPasswordError(result.errors?.current_password ?? 'Password yang dimasukkan salah.');
+                setPasswordError(result.errors?.current_password ?? 'The password you entered is incorrect.');
                 return;
             }
 
             setShowPasswordModal(false);
             setIsEditing(true);
         } catch {
-            setPasswordError('Tidak dapat memverifikasi password. Silakan coba lagi.');
+            setPasswordError('Unable to verify the password. Please try again.');
         } finally {
             setIsVerifyingPassword(false);
         }
@@ -95,7 +95,7 @@ export default function AiSettingsPanel({ initialAi, flash }: AiSettingsPanelPro
 
     return (
         <section className="space-y-6">
-            <Head title="Pengaturan AI" />
+            <Head title="AI Settings" />
 
             <Card className="overflow-hidden rounded-none">
                 <div className="flex flex-col gap-5 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
@@ -104,19 +104,19 @@ export default function AiSettingsPanel({ initialAi, flash }: AiSettingsPanelPro
                             <Sparkles size={21} />
                         </span>
                         <div>
-                            <h2 className="font-semibold text-slate-900 dark:text-white">Fitur AI</h2>
-                            <p className="mt-1 text-sm text-neutral-500">Aktifkan integrasi AI pada sistem.</p>
+                            <h2 className="font-semibold text-slate-900 dark:text-white">AI Feature</h2>
+                            <p className="mt-1 text-sm text-neutral-500">Enable AI integration on the platform.</p>
                         </div>
                     </div>
 
-                    <Toggle checked={data.enabled} onCheckedChange={updateEnabled} disabled={processing} label="Aktifkan atau nonaktifkan fitur AI" />
+                    <Toggle checked={data.enabled} onCheckedChange={updateEnabled} disabled={processing} label="Enable or disable the AI feature" />
                 </div>
 
                 <div className="border-t border-neutral-200 bg-neutral-50/70 p-4 sm:p-6 dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h3 className="font-semibold text-slate-900 dark:text-white">Konfigurasi AI</h3>
-                            <p className="mt-1 text-sm text-neutral-500">Base URL, model, dan API key untuk koneksi AI.</p>
+                            <h3 className="font-semibold text-slate-900 dark:text-white">AI Configuration</h3>
+                            <p className="mt-1 text-sm text-neutral-500">Base URL, model, and API key for the AI connection.</p>
                         </div>
                         {!isEditing && (
                             <Button type="button" variant="secondary" onClick={startEditing} className="w-full sm:w-auto">
@@ -136,17 +136,17 @@ export default function AiSettingsPanel({ initialAi, flash }: AiSettingsPanelPro
                             <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1e1f24]">
                                 <p className="text-xs font-medium tracking-wide text-neutral-500 uppercase">Base URL</p>
                                 <p className="mt-2 text-sm font-medium break-all text-slate-900 dark:text-white">
-                                    {data.base_url || 'Belum dikonfigurasi'}
+                                    {data.base_url || 'Not configured'}
                                 </p>
                             </div>
                             <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1e1f24]">
                                 <p className="text-xs font-medium tracking-wide text-neutral-500 uppercase">Model</p>
-                                <p className="mt-2 text-sm font-medium text-slate-900 dark:text-white">{data.model || 'Belum dikonfigurasi'}</p>
+                                <p className="mt-2 text-sm font-medium text-slate-900 dark:text-white">{data.model || 'Not configured'}</p>
                             </div>
                             <div className="border border-neutral-200 bg-white p-4 dark:border-slate-700 dark:bg-[#1e1f24]">
                                 <p className="text-xs font-medium tracking-wide text-neutral-500 uppercase">API Key</p>
                                 <p className="mt-2 text-sm font-medium text-slate-900 dark:text-white">
-                                    {initialAi.has_api_key ? `••••••••${initialAi.api_key_hint?.slice(-4) ?? ''}` : 'Tidak tersedia'}
+                                    {initialAi.has_api_key ? `••••••••${initialAi.api_key_hint?.slice(-4) ?? ''}` : 'Not available'}
                                 </p>
                             </div>
                         </div>
@@ -183,12 +183,12 @@ export default function AiSettingsPanel({ initialAi, flash }: AiSettingsPanelPro
                             />
                             {baseUrlChanged && (
                                 <p className="-mt-3 text-xs font-medium text-amber-600 md:col-span-2 dark:text-amber-400">
-                                    Base URL berubah. API key wajib diisi ulang untuk keamanan.
+                                    The Base URL changed. Re-enter the API key for security.
                                 </p>
                             )}
 
                             <InputField
-                                label="Nama model"
+                                label="Model name"
                                 name="model"
                                 value={data.model}
                                 onChange={(event) => setData('model', event.target.value)}
@@ -209,7 +209,7 @@ export default function AiSettingsPanel({ initialAi, flash }: AiSettingsPanelPro
                                         type={showKey ? 'text' : 'password'}
                                         value={data.api_key}
                                         onChange={(event) => setData('api_key', event.target.value)}
-                                        placeholder={initialAi.has_api_key ? `••••${initialAi.api_key_hint?.slice(-4) ?? ''}` : 'Masukkan API key'}
+                                        placeholder={initialAi.has_api_key ? `••••${initialAi.api_key_hint?.slice(-4) ?? ''}` : 'Enter API key'}
                                         className="w-full border border-gray-300 bg-white py-2 pr-10 pl-9 text-sm text-slate-900 outline-none focus:border-purple-700 focus:ring-1 focus:ring-purple-700 dark:border-slate-600 dark:bg-[#1e1f24] dark:text-white"
                                         disabled={processing}
                                     />
@@ -217,13 +217,13 @@ export default function AiSettingsPanel({ initialAi, flash }: AiSettingsPanelPro
                                         type="button"
                                         onClick={() => setShowKey(!showKey)}
                                         className="absolute top-2 right-3 text-neutral-500 hover:text-slate-900 dark:hover:text-white"
-                                        aria-label="Tampilkan atau sembunyikan API key"
+                                        aria-label="Show or hide API key"
                                     >
                                         {showKey ? <EyeOff size={17} /> : <Eye size={17} />}
                                     </button>
                                 </div>
                                 {initialAi.has_api_key && (
-                                    <p className="mt-1 text-xs text-neutral-500">API key lama tersedia. Biarkan kosong untuk mempertahankannya.</p>
+                                    <p className="mt-1 text-xs text-neutral-500">An existing API key is available. Leave blank to keep it.</p>
                                 )}
                                 {errors.api_key && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.api_key}</p>}
                             </div>
@@ -236,10 +236,10 @@ export default function AiSettingsPanel({ initialAi, flash }: AiSettingsPanelPro
                                     disabled={processing}
                                     className="w-full sm:w-auto"
                                 >
-                                    Keluar edit mode
+                                    Exit edit mode
                                 </Button>
                                 <Button type="submit" disabled={processing} isLoading={processing} className="w-full sm:w-auto">
-                                    Simpan konfigurasi
+                                    Save configuration
                                 </Button>
                             </div>
                         </form>
@@ -250,30 +250,30 @@ export default function AiSettingsPanel({ initialAi, flash }: AiSettingsPanelPro
             <Modal
                 open={showPasswordModal}
                 onClose={() => !isVerifyingPassword && setShowPasswordModal(false)}
-                title="Verifikasi password akun"
+                title="Verify account password"
                 footer={
                     <>
                         <Button variant="ghost" onClick={() => setShowPasswordModal(false)} disabled={isVerifyingPassword}>
-                            Batal
+                            Cancel
                         </Button>
                         <Button onClick={verifyPassword} isLoading={isVerifyingPassword} disabled={!data.current_password}>
-                            Buka edit mode
+                            Unlock edit mode
                         </Button>
                     </>
                 }
             >
                 <InputField
-                    label="Password akun"
+                    label="Account password"
                     name="current_password"
                     type="password"
                     value={data.current_password}
                     onChange={(event) => setData('current_password', event.target.value)}
-                    placeholder="Masukkan password akun yang sedang login"
+                    placeholder="Enter the password of the logged-in account"
                     error={passwordError ?? errors.current_password}
                     autoComplete="current-password"
                     disabled={isVerifyingPassword}
                 />
-                <p className="mt-3 text-xs text-neutral-500">Password hanya digunakan untuk memverifikasi akses sebelum fitur edit dibuka.</p>
+                <p className="mt-3 text-xs text-neutral-500">The password is only used to verify access before edit mode is unlocked.</p>
             </Modal>
         </section>
     );

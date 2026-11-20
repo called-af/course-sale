@@ -13,7 +13,7 @@ class RecommendationSettingsFeatureTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_python_recommendation_can_be_disabled_without_changing_ai_settings(): void
+    public function test_recommendation_can_be_disabled(): void
     {
         RecommendationSetting::create([
             'id' => 1,
@@ -25,7 +25,7 @@ class RecommendationSettingsFeatureTest extends TestCase
         $this->assertSame([], $service->getRecommendations(null, 2));
     }
 
-    public function test_admin_can_toggle_python_recommendation_from_general_settings(): void
+    public function test_admin_can_toggle_recommendation_from_general_settings(): void
     {
         $user = User::factory()->create([
             'role' => 'admin',

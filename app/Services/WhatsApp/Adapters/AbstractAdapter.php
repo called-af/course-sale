@@ -38,7 +38,7 @@ abstract class AbstractAdapter implements WhatsAppProviderContract
         try {
             $response = $this->http($headers)->post($url, $payload);
         } catch (ConnectionException $exception) {
-            throw new ProviderException('Tidak dapat terhubung ke '.$this->name().'.', $this->name(), null, true, 'connection_error', $exception);
+            throw new ProviderException('Unable to connect to '.$this->name().'.', $this->name(), null, true, 'connection_error', $exception);
         }
 
         if ($response->failed()) {
@@ -53,7 +53,7 @@ abstract class AbstractAdapter implements WhatsAppProviderContract
         try {
             $response = $this->http($headers)->get($url);
         } catch (ConnectionException $exception) {
-            throw new ProviderException('Tidak dapat terhubung ke '.$this->name().'.', $this->name(), null, true, 'connection_error', $exception);
+            throw new ProviderException('Unable to connect to '.$this->name().'.', $this->name(), null, true, 'connection_error', $exception);
         }
 
         if ($response->failed()) {

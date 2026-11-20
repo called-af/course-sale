@@ -886,14 +886,16 @@ class CourseSeeder extends Seeder
                         'status' => 'published',
                     ]);
 
-                    foreach ($matData['contents'] as $cntIndex => $cntData) {
+                    $contents = $this->contentsForMaterial($matData, $ytUrl, $pdfUrl, $pptUrl);
+
+                    foreach ($contents as $cntIndex => $cntData) {
                         $contentType = $cntData['type'];
 
                         $contentPayload = [
                             'material_id' => $material->id,
                             'type' => $contentType,
                             'title' => $cntData['title'],
-                            'duration' => $cntData['duration'] ?? 10,
+                            'duration' => $cntData['duration'] ?? null,
                             'status' => 'published',
                             'sort_order' => $cntIndex + 1,
                         ];
@@ -912,31 +914,90 @@ class CourseSeeder extends Seeder
                             ];
                         }
 
-                        $materialContent = MaterialContent::create($contentPayload);
+                        $content = MaterialContent::create($contentPayload);
 
-                        // Quiz questions & options
                         if ($contentType === 'quiz' && isset($cntData['questions'])) {
-                            foreach ($cntData['questions'] as $qIndex => $qData) {
-                                $quizQuestion = QuizQuestion::create([
-                                    'material_content_id' => $materialContent->id,
-                                    'question' => $qData['q'],
-                                    'type' => $qData['type'],
-                                    'image' => null,
-                                    'sort_order' => $qIndex + 1,
-                                ]);
-
-                                if ($qData['type'] === 'multiple_choice' && isset($qData['options'])) {
-                                    foreach ($qData['options'] as $optData) {
-                                        QuizOption::create([
-                                            'quiz_question_id' => $quizQuestion->id,
-                                            'option_text' => $optData['text'],
-                                            'is_correct' => $optData['correct'],
-                                        ]);
-                                    }
-                                }
-                            }
+                            $this->seedQuizQuestions($content, $cntData['questions']);
                         }
                     }
+                }
+            }
+        }
+    }
+
+    /**
+     * Keep the authored contents, then top up any missing base content type so
+     * that every seeded material genuinely contains several different content
+     * blocks (video, text, file, ppt, plus quiz when authored).
+     *
+     * @param  array<string, mixed>  $matData
+     * @return array<int, array<string, mixed>>
+     */
+    private function contentsForMaterial(array $matData, string $ytUrl, string $pdfUrl, string $pptUrl): array
+    {
+        $contents = $matData['contents'];
+        $existingTypes = array_column($contents, 'type');
+
+        $fallbacks = [
+            'video' => [
+                'type' => 'video',
+                'title' => "{$matData['title']} — Walkthrough Video",
+                'url' => $ytUrl,
+                'duration' => 12,
+            ],
+            'text' => [
+                'type' => 'text',
+                'title' => "{$matData['title']} — Key Takeaways",
+                'text' => $matData['desc'] ?? 'Key points and summary for this lesson.',
+                'duration' => 8,
+            ],
+            'file' => [
+                'type' => 'file',
+                'title' => "{$matData['title']} — Reference Sheet (PDF)",
+                'url' => $pdfUrl,
+                'duration' => 5,
+            ],
+            'ppt' => [
+                'type' => 'ppt',
+                'title' => "{$matData['title']} — Slide Deck",
+                'url' => $pptUrl,
+                'duration' => 10,
+            ],
+        ];
+
+        foreach ($fallbacks as $type => $fallback) {
+            if (in_array($type, $existingTypes, true)) {
+                continue;
+            }
+
+            $contents[] = $fallback;
+            $existingTypes[] = $type;
+        }
+
+        return $contents;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $questions
+     */
+    private function seedQuizQuestions(MaterialContent $content, array $questions): void
+    {
+        foreach ($questions as $qIndex => $qData) {
+            $quizQuestion = QuizQuestion::create([
+                'material_content_id' => $content->id,
+                'question' => $qData['q'],
+                'type' => $qData['type'],
+                'image' => null,
+                'sort_order' => $qIndex + 1,
+            ]);
+
+            if ($qData['type'] === 'multiple_choice' && isset($qData['options'])) {
+                foreach ($qData['options'] as $optData) {
+                    QuizOption::create([
+                        'quiz_question_id' => $quizQuestion->id,
+                        'option_text' => $optData['text'],
+                        'is_correct' => $optData['correct'],
+                    ]);
                 }
             }
         }

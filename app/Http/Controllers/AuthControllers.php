@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Laravel\Socialite\Facades\Socialite;
+use Throwable;
 
 class AuthControllers extends Controller
 {
@@ -36,11 +38,11 @@ class AuthControllers extends Controller
         $status = Password::sendResetLink($request->only('email'));
 
         if ($status === Password::RESET_LINK_SENT) {
-            return back()->with('success', 'Link reset password telah dikirim ke email Anda.');
+            return back()->with('success', 'A password reset link has been sent to your email.');
         }
 
-        return back()->withErrors(['email' => 'Tidak ada akun yang ditemukan dengan alamat email tersebut.'])
-            ->with('error', 'Tidak ada akun yang ditemukan dengan alamat email tersebut.');
+        return back()->withErrors(['email' => 'No account was found with that email address.'])
+            ->with('error', 'No account was found with that email address.');
     }
 
     public function showResetPassword(Request $request, ?string $token = null)
@@ -78,7 +80,7 @@ class AuthControllers extends Controller
         if ($status === Password::PASSWORD_RESET) {
             return redirect()
                 ->route('login')
-                ->with('success', 'Password berhasil direset. Silakan login kembali.');
+                ->with('success', 'Your password has been reset. Please sign in again.');
         }
 
         return back()
@@ -94,7 +96,7 @@ class AuthControllers extends Controller
             ! $user
             || ! hash_equals(sha1($user->getEmailForVerification()), (string) $hash)
         ) {
-            return redirect()->route('login')->with('error', 'Link verifikasi tidak valid.');
+            return redirect()->route('login')->with('error', 'The verification link is invalid.');
         }
 
         if (! $user->hasVerifiedEmail()) {
@@ -103,7 +105,7 @@ class AuthControllers extends Controller
 
         return redirect()
             ->route('login')
-            ->with('success', 'Email berhasil diverifikasi.');
+            ->with('success', 'Your email has been verified.');
     }
 
     public function resendVerificationEmail(Request $request): RedirectResponse
@@ -111,12 +113,12 @@ class AuthControllers extends Controller
         $user = $request->user();
 
         if ($user->hasVerifiedEmail()) {
-            return back()->with('success', 'Email Anda sudah diverifikasi.');
+            return back()->with('success', 'Your email is already verified.');
         }
 
         $user->sendEmailVerificationNotification();
 
-        return back()->with('success', 'Email verifikasi telah dikirim.');
+        return back()->with('success', 'A verification email has been sent.');
     }
 
     public function store(Request $request)
@@ -157,6 +159,77 @@ class AuthControllers extends Controller
 
         return redirect('/choose-role')
             ->with('success', 'Registration successful! Please choose your role.');
+    }
+
+    public function redirectToGoogle(): RedirectResponse
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback(Request $request): RedirectResponse
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+        } catch (Throwable $e) {
+            return redirect()
+                ->route('login')
+                ->with('error', 'Unable to authenticate with Google. Please try again.');
+        }
+
+        $email = $googleUser->getEmail();
+
+        if (! $email) {
+            return redirect()
+                ->route('login')
+                ->with('error', 'Google account did not provide an email address.');
+        }
+
+        $user = User::where('google_id', $googleUser->getId())->first();
+
+        if (! $user) {
+            $user = User::where('email', $email)->first();
+
+            if ($user) {
+                $updates = [];
+
+                if (! $user->google_id) {
+                    $updates['google_id'] = $googleUser->getId();
+                }
+
+                if (! $user->email_verified_at) {
+                    $updates['email_verified_at'] = now();
+                }
+
+                if (! $user->avatar && $googleUser->getAvatar()) {
+                    $updates['avatar'] = $googleUser->getAvatar();
+                }
+
+                if ($updates !== []) {
+                    $user->fill($updates)->save();
+                }
+            } else {
+                $user = User::create([
+                    'name' => $googleUser->getName() ?: Str::before($email, '@'),
+                    'email' => $email,
+                    'google_id' => $googleUser->getId(),
+                    'avatar' => $googleUser->getAvatar(),
+                    'email_verified_at' => now(),
+                    'role' => null,
+                    'password' => null,
+                ]);
+            }
+        }
+
+        Auth::login($user, true);
+        $request->session()->regenerate();
+
+        if ($user->role === null) {
+            return redirect('/choose-role')
+                ->with('success', 'Signed in with Google. Please choose your role.');
+        }
+
+        return redirect()->intended(route('home.redirect'))
+            ->with('success', 'Welcome back!');
     }
 
     public function logout(Request $request)

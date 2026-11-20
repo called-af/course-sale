@@ -1,19 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import {
-    Activity,
-    CheckCircle2,
-    Cpu,
-    Database,
-    KeyRound,
-    Pencil,
-    Plus,
-    RefreshCw,
-    Sparkles,
-    Star,
-    Trash2,
-    Wand2,
-    XCircle,
-} from 'lucide-react';
+import { Activity, CheckCircle2, Cpu, Database, KeyRound, Pencil, Plus, RefreshCw, Sparkles, Star, Trash2, Wand2, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { route } from 'ziggy-js';
@@ -171,7 +157,7 @@ function statusVariant(status: string): 'success' | 'danger' | 'warning' | 'defa
 }
 
 function formatNumber(value: number): string {
-    return new Intl.NumberFormat('id-ID').format(value);
+    return new Intl.NumberFormat('en-US').format(value);
 }
 
 function findPreset(catalog: CatalogProvider[], provider: Provider | null): CatalogProvider | undefined {
@@ -256,9 +242,7 @@ function ProviderFormModal({
             base_url: next.base_url ?? '',
             name: data.name || next.name,
             default_model: next.default_model ?? '',
-            config: Object.fromEntries(
-                next.config_fields.map((field) => [field.key, field.default != null ? String(field.default) : '']),
-            ),
+            config: Object.fromEntries(next.config_fields.map((field) => [field.key, field.default != null ? String(field.default) : ''])),
         }));
     };
 
@@ -277,7 +261,7 @@ function ProviderFormModal({
                 try {
                     config[field.key] = JSON.parse(raw);
                 } catch {
-                    setJsonError(`${field.label} harus berupa JSON yang valid.`);
+                    setJsonError(`${field.label} must be valid JSON.`);
                     return;
                 }
             } else {
@@ -308,14 +292,14 @@ function ProviderFormModal({
             open={open}
             onClose={onClose}
             size="xl"
-            title={provider ? `Edit provider: ${provider.name}` : 'Tambah provider AI'}
+            title={provider ? `Edit provider: ${provider.name}` : 'Add AI Provider'}
             footer={
                 <>
                     <Button variant="ghost" onClick={onClose} disabled={form.processing}>
-                        Batal
+                        Cancel
                     </Button>
                     <Button onClick={submit} isLoading={form.processing} disabled={form.processing}>
-                        {provider ? 'Simpan perubahan' : 'Tambah provider'}
+                        {provider ? 'Save changes' : 'Add provider'}
                     </Button>
                 </>
             }
@@ -323,18 +307,18 @@ function ProviderFormModal({
             <form onSubmit={submit} className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                     <SelectField
-                        label="Preset provider"
+                        label="Provider preset"
                         name="preset"
                         value={form.data.preset}
                         onChange={(event) => applyPreset(event.target.value)}
                         options={[
                             ...catalog.map((item) => ({ label: item.name, value: item.key })),
-                            { label: 'Custom (pilih driver manual)', value: '' },
+                            { label: 'Custom (select driver manually)', value: '' },
                         ]}
                     />
 
                     <SelectField
-                        label="Driver / protokol"
+                        label="Driver / protocol"
                         name="driver"
                         value={form.data.driver}
                         onChange={(event) => form.setData('driver', event.target.value)}
@@ -342,7 +326,7 @@ function ProviderFormModal({
                     />
 
                     <InputField
-                        label="Nama provider"
+                        label="Provider name"
                         name="name"
                         value={form.data.name}
                         onChange={(event) => form.setData('name', event.target.value)}
@@ -361,7 +345,7 @@ function ProviderFormModal({
                     />
 
                     <InputField
-                        label="Model default"
+                        label="Default model"
                         name="default_model"
                         value={form.data.default_model}
                         onChange={(event) => form.setData('default_model', event.target.value)}
@@ -370,7 +354,7 @@ function ProviderFormModal({
                     />
 
                     <InputField
-                        label="Timeout (detik)"
+                        label="Timeout (seconds)"
                         name="timeout"
                         type="number"
                         min={1}
@@ -381,7 +365,7 @@ function ProviderFormModal({
                     />
 
                     <InputField
-                        label="Maks. retry"
+                        label="Max retries"
                         name="max_retries"
                         type="number"
                         min={0}
@@ -392,7 +376,7 @@ function ProviderFormModal({
                     />
 
                     <InputField
-                        label="Prioritas fallback"
+                        label="Fallback priority"
                         name="fallback_priority"
                         type="number"
                         min={0}
@@ -405,7 +389,7 @@ function ProviderFormModal({
 
                 {(preset?.credential_fields.length ?? 0) > 0 && (
                     <div className="border-t border-neutral-200 pt-4 dark:border-slate-700">
-                        <p className="mb-3 text-sm font-semibold text-slate-900 dark:text-white">Kredensial</p>
+                        <p className="mb-3 text-sm font-semibold text-slate-900 dark:text-white">Credentials</p>
                         <div className="grid gap-4 sm:grid-cols-2">
                             {preset?.credential_fields.map((field) => {
                                 const existing = provider?.credentials[field.key];
@@ -424,19 +408,19 @@ function ProviderFormModal({
                                                 [field.key]: event.target.value,
                                             })
                                         }
-                                        placeholder={existing?.has_value ? `Tersimpan ${existing.hint ?? ''} — kosongkan untuk mempertahankan` : 'Masukkan nilai'}
+                                        placeholder={existing?.has_value ? `Saved ${existing.hint ?? ''} — leave blank to keep` : 'Enter value'}
                                         error={form.errors[`credentials.${field.key}`]}
                                     />
                                 );
                             })}
                         </div>
-                        <p className="mt-2 text-xs text-neutral-500">Kredensial disimpan terenkripsi dan tidak pernah dikirim kembali ke browser.</p>
+                        <p className="mt-2 text-xs text-neutral-500">Credentials are stored encrypted and are never sent back to the browser.</p>
                     </div>
                 )}
 
                 {(preset?.config_fields.length ?? 0) > 0 && (
                     <div className="border-t border-neutral-200 pt-4 dark:border-slate-700">
-                        <p className="mb-3 text-sm font-semibold text-slate-900 dark:text-white">Konfigurasi tambahan</p>
+                        <p className="mb-3 text-sm font-semibold text-slate-900 dark:text-white">Additional configuration</p>
                         <div className="grid gap-4 sm:grid-cols-2">
                             {preset?.config_fields.map((field) => (
                                 <div key={field.key} className={field.type === 'json' ? 'sm:col-span-2' : undefined}>
@@ -477,12 +461,16 @@ function ProviderFormModal({
 
                 <div className="flex flex-wrap items-center gap-6 border-t border-neutral-200 pt-4 dark:border-slate-700">
                     <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
-                        <Toggle checked={form.data.enabled} onCheckedChange={(checked) => form.setData('enabled', checked)} label="Aktifkan provider" />
-                        Aktif
+                        <Toggle checked={form.data.enabled} onCheckedChange={(checked) => form.setData('enabled', checked)} label="Enable provider" />
+                        Active
                     </label>
                     <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
-                        <Toggle checked={form.data.is_default} onCheckedChange={(checked) => form.setData('is_default', checked)} label="Jadikan provider utama" />
-                        Provider utama
+                        <Toggle
+                            checked={form.data.is_default}
+                            onCheckedChange={(checked) => form.setData('is_default', checked)}
+                            label="Set as primary provider"
+                        />
+                        Primary provider
                     </label>
                 </div>
             </form>
@@ -490,20 +478,25 @@ function ProviderFormModal({
     );
 }
 
-function ModelsModal({
-    provider,
-    onClose,
-}: {
-    provider: Provider | null;
-    onClose: () => void;
-}) {
+function ModelsModal({ provider, onClose }: { provider: Provider | null; onClose: () => void }) {
     const [modelId, setModelId] = useState('');
     const [name, setName] = useState('');
     const [contextWindow, setContextWindow] = useState('');
     const [capabilities, setCapabilities] = useState<string[]>(['text']);
     const [processing, setProcessing] = useState(false);
 
-    const capabilityOptions = ['text', 'streaming', 'vision', 'tools', 'structured_output', 'json_mode', 'embeddings', 'audio_input', 'audio_output', 'image_generation'];
+    const capabilityOptions = [
+        'text',
+        'streaming',
+        'vision',
+        'tools',
+        'structured_output',
+        'json_mode',
+        'embeddings',
+        'audio_input',
+        'audio_output',
+        'image_generation',
+    ];
 
     const addModel = () => {
         if (!provider || modelId.trim() === '') return;
@@ -541,14 +534,14 @@ function ModelsModal({
             const result = await response.json();
 
             if (!response.ok || !result.success) {
-                throw new Error(result.error ?? 'Gagal menemukan model.');
+                throw new Error(result.error ?? 'Failed to discover models.');
             }
 
-            toast.success(`${result.discovered ?? 0} model ditemukan.`);
+            toast.success(`${result.discovered ?? 0} models discovered.`);
             router.reload({ only: ['providers'] });
             onClose();
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Gagal menemukan model.');
+            toast.error(error instanceof Error ? error.message : 'Failed to discover models.');
         } finally {
             setProcessing(false);
         }
@@ -559,11 +552,11 @@ function ModelsModal({
             open={provider !== null}
             onClose={onClose}
             size="lg"
-            title={provider ? `Model — ${provider.name}` : 'Model'}
+            title={provider ? `Models — ${provider.name}` : 'Models'}
             footer={
                 <>
                     <Button variant="ghost" onClick={onClose}>
-                        Tutup
+                        Close
                     </Button>
                     <Button variant="outline" onClick={discover} isLoading={processing} leftIcon={<RefreshCw size={15} />}>
                         Discover
@@ -574,11 +567,11 @@ function ModelsModal({
             {provider && (
                 <div className="space-y-5">
                     <div className="space-y-2">
-                        {provider.models.length === 0 && <p className="text-sm text-neutral-500">Belum ada model. Lakukan discover atau tambahkan manual.</p>}
+                        {provider.models.length === 0 && <p className="text-sm text-neutral-500">No models yet. Run discover or add one manually.</p>}
                         {provider.models.map((model) => (
                             <div
                                 key={model.id}
-                                className="flex flex-col gap-2 border border-neutral-200 p-3 dark:border-slate-700 sm:flex-row sm:items-center sm:justify-between"
+                                className="flex flex-col gap-2 border border-neutral-200 p-3 sm:flex-row sm:items-center sm:justify-between dark:border-slate-700"
                             >
                                 <div className="min-w-0">
                                     <div className="flex flex-wrap items-center gap-2">
@@ -588,7 +581,10 @@ function ModelsModal({
                                     <p className="truncate text-xs text-neutral-500">{model.model_id}</p>
                                     <div className="mt-1 flex flex-wrap gap-1">
                                         {model.capabilities.map((capability) => (
-                                            <span key={capability} className="bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-600 dark:bg-slate-800 dark:text-slate-300">
+                                            <span
+                                                key={capability}
+                                                className="bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-600 dark:bg-slate-800 dark:text-slate-300"
+                                            >
                                                 {capability}
                                             </span>
                                         ))}
@@ -616,12 +612,14 @@ function ModelsModal({
                                         variant="ghost"
                                         leftIcon={<Trash2 size={14} />}
                                         onClick={() => {
-                                            if (window.confirm(`Hapus model ${model.model_id}?`)) {
-                                                router.delete(route('admin.integrations.ai.models.destroy', [provider.id, model.id]), { preserveScroll: true });
+                                            if (window.confirm(`Delete model ${model.model_id}?`)) {
+                                                router.delete(route('admin.integrations.ai.models.destroy', [provider.id, model.id]), {
+                                                    preserveScroll: true,
+                                                });
                                             }
                                         }}
                                     >
-                                        Hapus
+                                        Remove
                                     </Button>
                                 </div>
                             </div>
@@ -629,7 +627,7 @@ function ModelsModal({
                     </div>
 
                     <div className="border-t border-neutral-200 pt-4 dark:border-slate-700">
-                        <p className="mb-3 text-sm font-semibold text-slate-900 dark:text-white">Tambah model manual</p>
+                        <p className="mb-3 text-sm font-semibold text-slate-900 dark:text-white">Add model manually</p>
                         <div className="space-y-3">
                             <InputField
                                 label="Model ID"
@@ -639,7 +637,13 @@ function ModelsModal({
                                 placeholder="gpt-4o-mini"
                             />
                             <div className="grid gap-3 sm:grid-cols-2">
-                                <InputField label="Nama tampilan" name="model_name" value={name} onChange={(event) => setName(event.target.value)} placeholder="Opsional" />
+                                <InputField
+                                    label="Display name"
+                                    name="model_name"
+                                    value={name}
+                                    onChange={(event) => setName(event.target.value)}
+                                    placeholder="Optional"
+                                />
                                 <InputField
                                     label="Context window"
                                     name="context_window"
@@ -647,7 +651,7 @@ function ModelsModal({
                                     min={1}
                                     value={contextWindow}
                                     onChange={(event) => setContextWindow(event.target.value)}
-                                    placeholder="Opsional"
+                                    placeholder="Optional"
                                 />
                             </div>
                             <div className="flex flex-wrap gap-2">
@@ -675,7 +679,7 @@ function ModelsModal({
                                 })}
                             </div>
                             <Button onClick={addModel} disabled={processing || modelId.trim() === ''} leftIcon={<Plus size={15} />}>
-                                Simpan model
+                                Save model
                             </Button>
                         </div>
                     </div>
@@ -685,15 +689,7 @@ function ModelsModal({
     );
 }
 
-function ProviderCard({
-    provider,
-    onEdit,
-    onManageModels,
-}: {
-    provider: Provider;
-    onEdit: () => void;
-    onManageModels: () => void;
-}) {
+function ProviderCard({ provider, onEdit, onManageModels }: { provider: Provider; onEdit: () => void; onManageModels: () => void }) {
     const [testing, setTesting] = useState(false);
     const [discovering, setDiscovering] = useState(false);
 
@@ -705,13 +701,13 @@ function ProviderCard({
             const result = await response.json();
 
             if (!response.ok || !result.success) {
-                toast.error(result.message ?? result.error ?? 'Koneksi gagal.');
+                toast.error(result.message ?? result.error ?? 'Connection failed.');
             } else {
-                toast.success(result.message ?? 'Koneksi berhasil.');
+                toast.success(result.message ?? 'Connection successful.');
                 router.reload({ only: ['providers', 'recent_logs'] });
             }
         } catch {
-            toast.error('Tidak dapat menguji koneksi.');
+            toast.error('Unable to test connection.');
         } finally {
             setTesting(false);
         }
@@ -725,13 +721,13 @@ function ProviderCard({
             const result = await response.json();
 
             if (!response.ok || !result.success) {
-                throw new Error(result.error ?? 'Gagal menemukan model.');
+                throw new Error(result.error ?? 'Failed to discover models.');
             }
 
-            toast.success(`${result.discovered ?? 0} model ditemukan.`);
+            toast.success(`${result.discovered ?? 0} models discovered.`);
             router.reload({ only: ['providers'] });
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Gagal menemukan model.');
+            toast.error(error instanceof Error ? error.message : 'Failed to discover models.');
         } finally {
             setDiscovering(false);
         }
@@ -747,15 +743,15 @@ function ProviderCard({
                     <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                             <h3 className="font-semibold text-slate-900 dark:text-white">{provider.name}</h3>
-                            {provider.is_default && <Badge variant="purple">Utama</Badge>}
-                            <Badge variant={provider.enabled ? 'success' : 'default'}>{provider.enabled ? 'Aktif' : 'Nonaktif'}</Badge>
+                            {provider.is_default && <Badge variant="purple">Primary</Badge>}
+                            <Badge variant={provider.enabled ? 'success' : 'default'}>{provider.enabled ? 'Active' : 'Inactive'}</Badge>
                             <Badge variant={statusVariant(provider.status)}>{provider.status}</Badge>
                         </div>
                         <p className="mt-1 truncate text-xs text-neutral-500">
-                            {provider.driver} · {provider.base_url || 'base URL tidak diperlukan'}
+                            {provider.driver} · {provider.base_url || 'base URL not required'}
                         </p>
                         <p className="mt-1 text-xs text-neutral-500">
-                            Model default: <span className="font-medium text-slate-700 dark:text-slate-200">{provider.default_model || '—'}</span>
+                            Default model: <span className="font-medium text-slate-700 dark:text-slate-200">{provider.default_model || '—'}</span>
                         </p>
                         {provider.last_error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{provider.last_error}</p>}
                     </div>
@@ -767,14 +763,14 @@ function ProviderCard({
                         onCheckedChange={(checked) =>
                             router.patch(route('admin.integrations.ai.toggle', provider.id), { enabled: checked }, { preserveScroll: true })
                         }
-                        label={`Aktifkan ${provider.name}`}
+                        label={`Enable ${provider.name}`}
                     />
                 </div>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
                 <div className="border border-neutral-200 p-3 dark:border-slate-700">
-                    <p className="text-[10px] font-semibold tracking-wider text-neutral-500 uppercase">Model terdaftar</p>
+                    <p className="text-[10px] font-semibold tracking-wider text-neutral-500 uppercase">Registered models</p>
                     <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{provider.models.length}</p>
                 </div>
                 <div className="border border-neutral-200 p-3 dark:border-slate-700">
@@ -782,7 +778,7 @@ function ProviderCard({
                     <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{provider.timeout}s</p>
                 </div>
                 <div className="border border-neutral-200 p-3 dark:border-slate-700">
-                    <p className="text-[10px] font-semibold tracking-wider text-neutral-500 uppercase">Prioritas fallback</p>
+                    <p className="text-[10px] font-semibold tracking-wider text-neutral-500 uppercase">Fallback priority</p>
                     <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{provider.fallback_priority}</p>
                 </div>
             </div>
@@ -798,7 +794,7 @@ function ProviderCard({
                     Discover
                 </Button>
                 <Button size="sm" variant="outline" onClick={onManageModels} leftIcon={<Database size={14} />}>
-                    Model
+                    Models
                 </Button>
                 {!provider.is_default && (
                     <Button
@@ -807,7 +803,7 @@ function ProviderCard({
                         leftIcon={<Star size={14} />}
                         onClick={() => router.put(route('admin.integrations.ai.default', provider.id), {}, { preserveScroll: true })}
                     >
-                        Jadikan utama
+                        Set as primary
                     </Button>
                 )}
                 <Button
@@ -815,12 +811,12 @@ function ProviderCard({
                     variant="danger"
                     leftIcon={<Trash2 size={14} />}
                     onClick={() => {
-                        if (window.confirm(`Hapus provider ${provider.name}?`)) {
+                        if (window.confirm(`Delete provider ${provider.name}?`)) {
                             router.delete(route('admin.integrations.ai.destroy', provider.id), { preserveScroll: true });
                         }
                     }}
                 >
-                    Hapus
+                    Delete
                 </Button>
             </div>
         </Card>
@@ -855,23 +851,21 @@ export default function AiIntegrations({
 
     return (
         <>
-            <Head title="Integrasi AI" />
+            <Head title="AI Integration" />
             <div className="mx-auto max-w-6xl space-y-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Integrasi AI</h1>
-                        <p className="mt-1 text-sm text-neutral-500">
-                            Kelola provider, model, kredensial terenkripsi, fallback, dan pemakaian AI.
-                        </p>
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">AI Integration</h1>
+                        <p className="mt-1 text-sm text-neutral-500">Manage providers, models, encrypted credentials, fallback, and AI usage.</p>
                     </div>
                     <Button onClick={openCreate} leftIcon={<Plus size={16} />} className="w-full sm:w-auto">
-                        Tambah provider
+                        Add provider
                     </Button>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <Card className="rounded-none">
-                        <p className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">Request {usage.period_days} hari</p>
+                        <p className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">Requests ({usage.period_days} days)</p>
                         <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{formatNumber(usage.requests)}</p>
                     </Card>
                     <Card className="rounded-none">
@@ -879,14 +873,14 @@ export default function AiIntegrations({
                         <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{successRate}%</p>
                     </Card>
                     <Card className="rounded-none">
-                        <p className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">Total token</p>
+                        <p className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">Total tokens</p>
                         <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{formatNumber(usage.total_tokens)}</p>
                         <p className="mt-1 text-[11px] text-neutral-500">
                             in {formatNumber(usage.input_tokens)} · out {formatNumber(usage.output_tokens)}
                         </p>
                     </Card>
                     <Card className="rounded-none">
-                        <p className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">Rata-rata latency</p>
+                        <p className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">Average latency</p>
                         <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{formatNumber(usage.avg_latency_ms)} ms</p>
                     </Card>
                 </div>
@@ -898,8 +892,8 @@ export default function AiIntegrations({
                                 <Sparkles size={19} />
                             </span>
                             <div>
-                                <h2 className="font-semibold text-slate-900 dark:text-white">Fitur AI</h2>
-                                <p className="text-sm text-neutral-500">Aktifkan asisten AI untuk seluruh aplikasi.</p>
+                                <h2 className="font-semibold text-slate-900 dark:text-white">AI Features</h2>
+                                <p className="text-sm text-neutral-500">Enable the AI assistant across the application.</p>
                             </div>
                         </div>
                         <Toggle
@@ -907,57 +901,59 @@ export default function AiIntegrations({
                             onCheckedChange={(checked) =>
                                 router.patch(route('admin.integrations.ai.global'), { enabled: checked }, { preserveScroll: true })
                             }
-                            label="Aktifkan fitur AI"
+                            label="Enable AI features"
                         />
                     </div>
 
-                    <div className="flex flex-col gap-4 border-t border-neutral-200 pt-5 dark:border-slate-700 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-4 border-t border-neutral-200 pt-5 sm:flex-row sm:items-center sm:justify-between dark:border-slate-700">
                         <div>
-                            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Rekomendasi kursus AI</h3>
-                            <p className="text-sm text-neutral-500">Tampilkan rekomendasi kursus personal di halaman siswa.</p>
+                            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Course recommendation system</h3>
+                            <p className="text-sm text-neutral-500">Show personalized course recommendations on the student dashboard.</p>
                         </div>
                         <Toggle
                             checked={recommendation.enabled}
                             onCheckedChange={(checked) =>
                                 router.patch(route('admin.integrations.ai.recommendation'), { enabled: checked }, { preserveScroll: true })
                             }
-                            label="Aktifkan rekomendasi"
+                            label="Enable recommendations"
                         />
                     </div>
 
                     {!global.is_configured && providers.length === 0 && (
-                        <div className="flex flex-col gap-3 border-t border-neutral-200 pt-5 dark:border-slate-700 sm:flex-row sm:items-center sm:justify-between">
-                            <p className="text-sm text-neutral-500">Konfigurasi AI lama terdeteksi dan dapat diimpor ke sistem provider baru.</p>
+                        <div className="flex flex-col gap-3 border-t border-neutral-200 pt-5 sm:flex-row sm:items-center sm:justify-between dark:border-slate-700">
+                            <p className="text-sm text-neutral-500">
+                                Legacy AI configuration detected and can be imported into the new provider system.
+                            </p>
                             <Button
                                 variant="outline"
                                 onClick={() => router.post(route('admin.integrations.ai.import-legacy'), {}, { preserveScroll: true })}
                             >
-                                Import konfigurasi lama
+                                Import legacy configuration
                             </Button>
                         </div>
                     )}
 
                     {!allow_local_endpoints && (
                         <p className="border-t border-neutral-200 pt-4 text-xs text-neutral-500 dark:border-slate-700">
-                            Endpoint lokal/privat diblokir oleh proteksi SSRF. Set <code>AI_ALLOW_LOCAL_ENDPOINTS=true</code> untuk Ollama, LM
-                            Studio, vLLM, atau LiteLLM lokal.
+                            Local/private endpoints are blocked by SSRF protection. Set <code>AI_ALLOW_LOCAL_ENDPOINTS=true</code> for local Ollama,
+                            LM Studio, vLLM, or LiteLLM.
                         </p>
                     )}
                 </Card>
 
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Provider terdaftar</h2>
-                        <span className="text-sm text-neutral-500">{providers.length} provider</span>
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Registered providers</h2>
+                        <span className="text-sm text-neutral-500">{providers.length} providers</span>
                     </div>
 
                     {providers.length === 0 ? (
                         <Card className="rounded-none text-center">
                             <KeyRound className="mx-auto h-8 w-8 text-neutral-400" />
-                            <p className="mt-3 font-medium text-slate-900 dark:text-white">Belum ada provider AI</p>
-                            <p className="mt-1 text-sm text-neutral-500">Tambahkan provider pertama untuk mulai menggunakan asisten AI.</p>
+                            <p className="mt-3 font-medium text-slate-900 dark:text-white">No AI providers yet</p>
+                            <p className="mt-1 text-sm text-neutral-500">Add your first provider to start using the AI assistant.</p>
                             <Button className="mt-4" onClick={openCreate} leftIcon={<Plus size={16} />}>
-                                Tambah provider
+                                Add provider
                             </Button>
                         </Card>
                     ) : (
@@ -976,9 +972,9 @@ export default function AiIntegrations({
 
                 <div className="grid gap-4 lg:grid-cols-2">
                     <Card className="rounded-none">
-                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Pemakaian per provider</h2>
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Usage by provider</h2>
                         <div className="mt-4 space-y-3">
-                            {usage.by_provider.length === 0 && <p className="text-sm text-neutral-500">Belum ada pemakaian.</p>}
+                            {usage.by_provider.length === 0 && <p className="text-sm text-neutral-500">No usage yet.</p>}
                             {usage.by_provider.map((row) => (
                                 <div key={`${row.provider_id ?? 'legacy'}`} className="flex items-center justify-between gap-3">
                                     <span className="truncate text-sm text-slate-700 dark:text-slate-200">{row.provider_name ?? 'Legacy'}</span>
@@ -991,9 +987,9 @@ export default function AiIntegrations({
                     </Card>
 
                     <Card className="rounded-none">
-                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Log terbaru</h2>
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Recent logs</h2>
                         <div className="mt-4 space-y-3">
-                            {recent_logs.length === 0 && <p className="text-sm text-neutral-500">Belum ada aktivitas.</p>}
+                            {recent_logs.length === 0 && <p className="text-sm text-neutral-500">No activity yet.</p>}
                             {recent_logs.map((log) => (
                                 <div key={log.id} className="flex items-start gap-2">
                                     {log.status === 'success' ? (

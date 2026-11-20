@@ -36,7 +36,7 @@ class StudentProfileController extends Controller
 
         return redirect()
             ->route('student.profile')
-            ->with('success', 'Profil berhasil diperbarui.');
+            ->with('success', 'Profile updated successfully.');
     }
 
     public function settings(): Response
@@ -71,6 +71,6 @@ class StudentProfileController extends Controller
             'whatsapp_notification_enabled' => (bool) $validated['whatsapp_notification_enabled'],
         ]);
 
-        return back()->with('success', 'Pengaturan notifikasi WhatsApp berhasil disimpan.');
+        return back()->with('success', 'WhatsApp notification settings saved successfully.');
     }
 }

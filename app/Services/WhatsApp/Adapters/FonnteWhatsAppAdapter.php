@@ -38,11 +38,11 @@ class FonnteWhatsAppAdapter extends AbstractAdapter
             $json = $this->post($this->endpoint('device'), [], $this->headers())->json() ?? [];
 
             if (($json['status'] ?? false) !== true) {
-                return ConnectionResult::failed('Token Fonnte ditolak: '.($json['reason'] ?? 'unknown'));
+                return ConnectionResult::failed('Fonnte token rejected: '.($json['reason'] ?? 'unknown'));
             }
 
             return ConnectionResult::ok(
-                'Koneksi Fonnte berhasil untuk device '.($json['device'] ?? '-').'.',
+                'Fonnte connection successful for device '.($json['device'] ?? '-').'.',
                 (int) ((microtime(true) - $start) * 1000),
                 [
                     'device' => $json['device'] ?? null,
@@ -66,7 +66,7 @@ class FonnteWhatsAppAdapter extends AbstractAdapter
     public function sendMedia(WhatsAppMediaRequest $request): WhatsAppSendResult
     {
         if (! in_array($request->type, ['image', 'document', 'video', 'audio'], true)) {
-            return $this->failure('Tipe media tidak didukung Fonnte.', 'unsupported_media_type');
+            return $this->failure('Media type is not supported by Fonnte.', 'unsupported_media_type');
         }
 
         $payload = [
@@ -112,7 +112,7 @@ class FonnteWhatsAppAdapter extends AbstractAdapter
 
             if (($json['status'] ?? true) === false) {
                 return $this->failure(
-                    (string) ($json['reason'] ?? 'Fonnte menolak pesan.'),
+                    (string) ($json['reason'] ?? 'Fonnte rejected the message.'),
                     (string) ($json['reason'] ?? 'send_failed'),
                     false,
                     $json,

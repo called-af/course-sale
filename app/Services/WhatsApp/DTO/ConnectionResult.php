@@ -11,7 +11,7 @@ class ConnectionResult
         public readonly array $metadata = [],
     ) {}
 
-    public static function ok(string $message = 'Koneksi berhasil.', ?int $latencyMs = null, array $metadata = []): self
+    public static function ok(string $message = 'Connection successful.', ?int $latencyMs = null, array $metadata = []): self
     {
         return new self(true, $message, $latencyMs, $metadata);
     }

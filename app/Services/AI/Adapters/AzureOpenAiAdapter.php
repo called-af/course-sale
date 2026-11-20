@@ -56,7 +56,7 @@ class AzureOpenAiAdapter extends OpenAiCompatibleAdapter
                 'stream' => false,
             ], $this->headers());
 
-            return ConnectionResult::ok('Deployment Azure OpenAI dapat dihubungi.', (int) ((microtime(true) - $start) * 1000));
+            return ConnectionResult::ok('Azure OpenAI deployment is reachable.', (int) ((microtime(true) - $start) * 1000));
         } catch (ProviderException $exception) {
             return ConnectionResult::failed($exception->getMessage());
         }

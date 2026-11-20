@@ -80,7 +80,7 @@ const STATUS_META: Record<string, string> = {
 };
 
 function formatDate(value?: string | null): string {
-    return value ? new Date(value).toLocaleString('id-ID') : '—';
+    return value ? new Date(value).toLocaleString('en-US') : '—';
 }
 
 export default function AdminPayouts({
@@ -120,10 +120,10 @@ export default function AdminPayouts({
     };
 
     const markPaid = (payout: Payout) => {
-        const reference = window.prompt('Referensi transfer bank (opsional):', '');
-        const notes = window.prompt('Catatan transfer (opsional):', '');
+        const reference = window.prompt('Bank transfer reference (optional):', '');
+        const notes = window.prompt('Transfer notes (optional):', '');
 
-        if (!window.confirm(`Tandai payout ${formatRupiah(payout.net_amount)} ke ${payout.instructor?.name ?? 'instruktur'} sudah ditransfer?`)) {
+        if (!window.confirm(`Mark payout of ${formatRupiah(payout.net_amount)} to ${payout.instructor?.name ?? 'instructor'} as transferred?`)) {
             return;
         }
 
@@ -131,12 +131,12 @@ export default function AdminPayouts({
     };
 
     const markBatchPaid = (batch: Batch) => {
-        const reference = window.prompt('Referensi transfer bank (opsional):', '');
-        const notes = window.prompt('Catatan transfer (opsional):', '');
+        const reference = window.prompt('Bank transfer reference (optional):', '');
+        const notes = window.prompt('Transfer notes (optional):', '');
 
         if (
             !window.confirm(
-                `Tandai batch ${formatRupiah(batch.net_total)} (${batch.count} ledger) ke ${batch.instructor?.name ?? 'instruktur'} sudah ditransfer?`,
+                `Mark batch of ${formatRupiah(batch.net_total)} (${batch.count} ledger entries) to ${batch.instructor?.name ?? 'instructor'} as transferred?`,
             )
         ) {
             return;
@@ -155,45 +155,45 @@ export default function AdminPayouts({
 
     const cards = [
         {
-            label: 'Menunggu Transfer',
+            label: 'Awaiting Transfer',
             value: stats.pending,
             icon: Clock3,
             tone: 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300',
         },
         {
-            label: 'Sudah Ditransfer',
+            label: 'Transferred',
             value: stats.paid,
             icon: CircleDollarSign,
             tone: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300',
         },
-        { label: 'Dibatalkan', value: stats.cancelled, icon: XCircle, tone: 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300' },
+        { label: 'Cancelled', value: stats.cancelled, icon: XCircle, tone: 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300' },
     ];
 
     const readyBatches = batches.filter((batch) => batch.ready);
 
     return (
         <AdminLayout>
-            <Head title="Payout Instruktur" />
+            <Head title="Instructor Payouts" />
 
             <div className="mx-auto max-w-7xl space-y-6">
                 <PageHeader
-                    breadcrumbs={[{ label: 'Admin' }, { label: 'Payout Instruktur' }]}
-                    title="Payout Instruktur"
-                    description="Ledger pendapatan instruktur dan status transfer manual. Midtrans hanya mengirim dana ke rekening platform."
+                    breadcrumbs={[{ label: 'Admin' }, { label: 'Instructor Payouts' }]}
+                    title="Instructor Payouts"
+                    description="Instructor earnings ledger and manual transfer status. Midtrans only sends funds to the platform account."
                 />
 
                 <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
                     <span className="inline-flex items-center gap-1.5 border border-slate-200 bg-white px-3 py-1.5 dark:border-slate-700 dark:bg-[#1e1f24]">
-                        Fee platform {settings.fee_percent}%
+                        Platform fee {settings.fee_percent}%
                     </span>
                     <span className="inline-flex items-center gap-1.5 border border-slate-200 bg-white px-3 py-1.5 dark:border-slate-700 dark:bg-[#1e1f24]">
-                        <CalendarClock size={13} /> Hold {settings.hold_days} hari
+                        <CalendarClock size={13} /> Hold {settings.hold_days} days
                     </span>
                     <span className="inline-flex items-center gap-1.5 border border-slate-200 bg-white px-3 py-1.5 dark:border-slate-700 dark:bg-[#1e1f24]">
                         Minimum {formatRupiah(settings.minimum)}
                     </span>
                     <span className="inline-flex items-center gap-1.5 border border-slate-200 bg-white px-3 py-1.5 dark:border-slate-700 dark:bg-[#1e1f24]">
-                        <ShieldAlert size={13} /> Lock ganti rekening {settings.account_lock_hours} jam
+                        <ShieldAlert size={13} /> Bank account change lock {settings.account_lock_hours} hours
                     </span>
                 </div>
 
@@ -217,9 +217,9 @@ export default function AdminPayouts({
                 <div className="border border-slate-200/80 bg-white shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="flex flex-col justify-between gap-4 border-b border-slate-100 p-5 sm:p-6 lg:flex-row lg:items-center dark:border-slate-700">
                         <div>
-                            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Siap Ditransfer</h2>
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Ready for Transfer</h2>
                             <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                                Gabungan payout per instruktur yang sudah melewati hold period. Satu transfer per instruktur.
+                                Combined payouts per instructor that have passed the hold period. One transfer per instructor.
                             </p>
                         </div>
 
@@ -229,7 +229,7 @@ export default function AdminPayouts({
                             onClick={exportCsv}
                             disabled={readyBatches.length === 0}
                             leftIcon={<Download size={14} />}
-                            title="Export CSV batch yang siap ditransfer"
+                            title="Export CSV of batches ready for transfer"
                             className="w-full sm:w-auto"
                         >
                             Export CSV
@@ -241,9 +241,9 @@ export default function AdminPayouts({
                             <span className="flex h-12 w-12 items-center justify-center bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
                                 <Wallet size={22} />
                             </span>
-                            <p className="mt-4 text-sm font-bold text-slate-700 dark:text-slate-200">Belum ada payout yang siap ditransfer</p>
+                            <p className="mt-4 text-sm font-bold text-slate-700 dark:text-slate-200">No payouts ready for transfer</p>
                             <p className="mt-1 max-w-md text-xs text-slate-500 dark:text-slate-400">
-                                Ledger akan muncul di sini setelah order lunas dan melewati hold period {settings.hold_days} hari.
+                                Ledger entries will appear here after orders are paid and pass the {settings.hold_days}-day hold period.
                             </p>
                         </div>
                     ) : (
@@ -267,20 +267,20 @@ export default function AdminPayouts({
 
                                             {batch.ready ? (
                                                 <span className="inline-flex shrink-0 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-                                                    Siap ditransfer
+                                                    Ready for transfer
                                                 </span>
                                             ) : (
                                                 <span className="inline-flex shrink-0 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-                                                    Tertahan
+                                                    On hold
                                                 </span>
                                             )}
                                         </div>
 
                                         <div className="mt-3 grid grid-cols-2 gap-3 text-[11px]">
                                             <div className="min-w-0">
-                                                <p className="text-slate-400 dark:text-slate-500">Rekening</p>
+                                                <p className="text-slate-400 dark:text-slate-500">Bank Account</p>
                                                 <p className="mt-0.5 truncate font-semibold text-slate-600 dark:text-slate-300">
-                                                    {batch.instructor?.bank_name ?? 'Belum diatur'}
+                                                    {batch.instructor?.bank_name ?? 'Not set'}
                                                 </p>
                                                 <p className="truncate font-mono text-slate-600 dark:text-slate-300">
                                                     {batch.instructor?.account_number_masked ?? '—'}
@@ -293,14 +293,14 @@ export default function AdminPayouts({
                                                 <p className="mt-0.5 text-slate-600 dark:text-slate-300">{batch.count} ledger</p>
                                                 {batch.earliest_available_at ? (
                                                     <p className="mt-0.5 text-slate-400 dark:text-slate-500">
-                                                        Tersedia sejak {formatDate(batch.earliest_available_at)}
+                                                        Available since {formatDate(batch.earliest_available_at)}
                                                     </p>
                                                 ) : null}
                                             </div>
                                         </div>
 
                                         {!batch.ready && (
-                                            <p className="mt-2 text-[11px] text-amber-600 dark:text-amber-300">{batch.reason ?? 'Belum siap.'}</p>
+                                            <p className="mt-2 text-[11px] text-amber-600 dark:text-amber-300">{batch.reason ?? 'Not ready yet.'}</p>
                                         )}
 
                                         <div className="mt-3 flex items-end justify-between gap-2 border-t border-slate-100 pt-3 dark:border-slate-700">
@@ -313,9 +313,13 @@ export default function AdminPayouts({
                                                 onClick={() => markBatchPaid(batch)}
                                                 disabled={!batch.ready}
                                                 leftIcon={<Wallet size={14} />}
-                                                title={batch.ready ? 'Tandai semua ledger siap ini sudah ditransfer' : (batch.reason ?? 'Belum siap')}
+                                                title={
+                                                    batch.ready
+                                                        ? 'Mark all ready ledger entries in this batch as transferred'
+                                                        : (batch.reason ?? 'Not ready yet')
+                                                }
                                             >
-                                                Tandai batch
+                                                Mark batch
                                             </Button>
                                         </div>
                                     </div>
@@ -327,12 +331,12 @@ export default function AdminPayouts({
                                 <table className="w-full min-w-[900px] text-left text-sm">
                                     <thead className="border-b border-slate-100 bg-slate-50/60 dark:border-slate-700 dark:bg-slate-800/30">
                                         <tr className="text-[11px] tracking-wide text-slate-500 uppercase dark:text-slate-400">
-                                            <th className="px-5 py-3 font-semibold sm:px-6">Instruktur</th>
-                                            <th className="px-4 py-3 font-semibold">Rekening</th>
+                                            <th className="px-5 py-3 font-semibold sm:px-6">Instructor</th>
+                                            <th className="px-4 py-3 font-semibold">Bank Account</th>
                                             <th className="px-4 py-3 font-semibold">Ledger</th>
                                             <th className="px-4 py-3 text-right font-semibold">Total Net</th>
                                             <th className="px-4 py-3 font-semibold">Status</th>
-                                            <th className="px-5 py-3 text-right font-semibold sm:px-6">Aksi</th>
+                                            <th className="px-5 py-3 text-right font-semibold sm:px-6">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -345,15 +349,15 @@ export default function AdminPayouts({
                                                     <p className="text-[11px] text-slate-400 dark:text-slate-500">{batch.instructor?.email ?? '—'}</p>
                                                 </td>
                                                 <td className="px-4 py-4 align-top text-xs text-slate-600 dark:text-slate-300">
-                                                    <p className="font-semibold">{batch.instructor?.bank_name ?? 'Belum diatur'}</p>
+                                                    <p className="font-semibold">{batch.instructor?.bank_name ?? 'Not set'}</p>
                                                     <p className="font-mono">{batch.instructor?.account_number_masked ?? '—'}</p>
                                                     <p>{batch.instructor?.account_name ?? '—'}</p>
                                                 </td>
                                                 <td className="px-4 py-4 align-top text-xs text-slate-600 dark:text-slate-300">
-                                                    <p>{batch.count} ledger</p>
+                                                    <p>{batch.count} ledger entries</p>
                                                     {batch.earliest_available_at ? (
                                                         <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
-                                                            Tersedia sejak {formatDate(batch.earliest_available_at)}
+                                                            Available since {formatDate(batch.earliest_available_at)}
                                                         </p>
                                                     ) : null}
                                                 </td>
@@ -363,15 +367,15 @@ export default function AdminPayouts({
                                                 <td className="px-4 py-4 align-top">
                                                     {batch.ready ? (
                                                         <span className="inline-flex bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-                                                            Siap ditransfer
+                                                            Ready for transfer
                                                         </span>
                                                     ) : (
                                                         <div className="max-w-[220px]">
                                                             <span className="inline-flex bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-                                                                Tertahan
+                                                                On hold
                                                             </span>
                                                             <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                                                                {batch.reason ?? 'Belum siap.'}
+                                                                {batch.reason ?? 'Not ready yet.'}
                                                             </p>
                                                         </div>
                                                     )}
@@ -384,11 +388,11 @@ export default function AdminPayouts({
                                                         leftIcon={<Wallet size={14} />}
                                                         title={
                                                             batch.ready
-                                                                ? 'Tandai semua ledger siap ini sudah ditransfer'
-                                                                : (batch.reason ?? 'Belum siap')
+                                                                ? 'Mark all ready ledger entries in this batch as transferred'
+                                                                : (batch.reason ?? 'Not ready yet')
                                                         }
                                                     >
-                                                        Tandai batch
+                                                        Mark batch
                                                     </Button>
                                                 </td>
                                             </tr>
@@ -403,9 +407,9 @@ export default function AdminPayouts({
                 <div className="border border-slate-200/80 bg-white shadow-sm dark:border-slate-700 dark:bg-[#1e1f24]">
                     <div className="flex flex-col justify-between gap-4 border-b border-slate-100 p-5 sm:p-6 lg:flex-row lg:items-center dark:border-slate-700">
                         <div>
-                            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Ledger Payout</h2>
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Payout Ledger</h2>
                             <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                                Fee platform {settings.fee_percent}% dihitung otomatis saat pembayaran lunas.
+                                Platform fee {settings.fee_percent}% is calculated automatically when a payment is paid.
                             </p>
                         </div>
 
@@ -418,7 +422,7 @@ export default function AdminPayouts({
                                     setSearch(event.target.value);
                                     window.setTimeout(() => applyFilters(event.target.value, status), 300);
                                 }}
-                                placeholder="Cari instruktur, order, atau course..."
+                                placeholder="Search instructors, orders, or courses..."
                                 className="w-full border border-slate-200 bg-white py-2 pr-3 pl-9 text-sm text-slate-700 placeholder:text-slate-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 focus:outline-none dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-200"
                             />
                         </div>
@@ -426,10 +430,10 @@ export default function AdminPayouts({
 
                     <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-5 py-3 sm:px-6 dark:border-slate-700">
                         {[
-                            { value: 'all', label: 'Semua' },
+                            { value: 'all', label: 'All' },
                             { value: 'pending', label: 'Pending' },
-                            { value: 'paid', label: 'Sudah ditransfer' },
-                            { value: 'cancelled', label: 'Dibatalkan' },
+                            { value: 'paid', label: 'Transferred' },
+                            { value: 'cancelled', label: 'Cancelled' },
                         ].map((tab) => (
                             <button
                                 key={tab.value}
@@ -454,9 +458,9 @@ export default function AdminPayouts({
                             <span className="flex h-12 w-12 items-center justify-center bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
                                 <Inbox size={22} />
                             </span>
-                            <p className="mt-4 text-sm font-bold text-slate-700 dark:text-slate-200">Belum ada payout</p>
+                            <p className="mt-4 text-sm font-bold text-slate-700 dark:text-slate-200">No payouts yet</p>
                             <p className="mt-1 max-w-sm text-xs text-slate-500 dark:text-slate-400">
-                                Ledger akan terisi otomatis ketika ada order yang lunas.
+                                Ledger entries will be created automatically when orders are paid.
                             </p>
                         </div>
                     ) : (
@@ -487,9 +491,9 @@ export default function AdminPayouts({
 
                                             <div className="mt-3 grid grid-cols-2 gap-3 text-[11px]">
                                                 <div className="min-w-0">
-                                                    <p className="text-slate-400 dark:text-slate-500">Rekening</p>
+                                                    <p className="text-slate-400 dark:text-slate-500">Bank Account</p>
                                                     <p className="mt-0.5 truncate font-semibold text-slate-600 dark:text-slate-300">
-                                                        {payout.instructor?.bank_name ?? 'Belum diatur'}
+                                                        {payout.instructor?.bank_name ?? 'Not set'}
                                                     </p>
                                                     <p className="truncate font-mono text-slate-600 dark:text-slate-300">
                                                         {payout.instructor?.account_number_masked ?? '—'}
@@ -527,21 +531,21 @@ export default function AdminPayouts({
                                                             disabled={!canPay}
                                                             leftIcon={<Wallet size={14} />}
                                                             title={
-                                                                canPay ? 'Tandai sudah ditransfer' : (state?.reason ?? 'Payout belum bisa dicairkan.')
+                                                                canPay ? 'Mark as transferred' : (state?.reason ?? 'Payout cannot be disbursed yet.')
                                                             }
                                                         >
-                                                            Tandai ditransfer
+                                                            Mark transferred
                                                         </Button>
                                                     ) : payout.status === 'paid' ? (
                                                         <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
-                                                            <CheckCircle2 size={13} /> Selesai
+                                                            <CheckCircle2 size={13} /> Completed
                                                         </span>
                                                     ) : null}
                                                 </div>
 
                                                 {payout.status === 'pending' && !payout.is_available && payout.available_at ? (
                                                     <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-300">
-                                                        Tersedia {formatDate(payout.available_at)}
+                                                        Available {formatDate(payout.available_at)}
                                                     </p>
                                                 ) : null}
 
@@ -561,12 +565,12 @@ export default function AdminPayouts({
                                 <table className="w-full min-w-[960px] text-left text-sm">
                                     <thead className="border-b border-slate-100 bg-slate-50/60 dark:border-slate-700 dark:bg-slate-800/30">
                                         <tr className="text-[11px] tracking-wide text-slate-500 uppercase dark:text-slate-400">
-                                            <th className="px-5 py-3 font-semibold sm:px-6">Instruktur</th>
-                                            <th className="px-4 py-3 font-semibold">Rekening</th>
+                                            <th className="px-5 py-3 font-semibold sm:px-6">Instructor</th>
+                                            <th className="px-4 py-3 font-semibold">Bank Account</th>
                                             <th className="px-4 py-3 font-semibold">Order</th>
                                             <th className="px-4 py-3 text-right font-semibold">Net</th>
                                             <th className="px-4 py-3 font-semibold">Status</th>
-                                            <th className="px-5 py-3 text-right font-semibold sm:px-6">Aksi</th>
+                                            <th className="px-5 py-3 text-right font-semibold sm:px-6">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -585,7 +589,7 @@ export default function AdminPayouts({
                                                         </p>
                                                     </td>
                                                     <td className="px-4 py-4 align-top text-xs text-slate-600 dark:text-slate-300">
-                                                        <p className="font-semibold">{payout.instructor?.bank_name ?? 'Belum diatur'}</p>
+                                                        <p className="font-semibold">{payout.instructor?.bank_name ?? 'Not set'}</p>
                                                         <p className="font-mono">{payout.instructor?.account_number_masked ?? '—'}</p>
                                                         <p>{payout.instructor?.account_name ?? '—'}</p>
                                                     </td>
@@ -602,7 +606,7 @@ export default function AdminPayouts({
                                                         </p>
                                                         {payout.status === 'pending' && !payout.is_available && payout.available_at ? (
                                                             <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-300">
-                                                                Tersedia {formatDate(payout.available_at)}
+                                                                Available {formatDate(payout.available_at)}
                                                             </p>
                                                         ) : null}
                                                     </td>
@@ -627,15 +631,15 @@ export default function AdminPayouts({
                                                                 leftIcon={<Wallet size={14} />}
                                                                 title={
                                                                     canPay
-                                                                        ? 'Tandai sudah ditransfer'
-                                                                        : (state?.reason ?? 'Payout belum bisa dicairkan.')
+                                                                        ? 'Mark as transferred'
+                                                                        : (state?.reason ?? 'Payout cannot be disbursed yet.')
                                                                 }
                                                             >
-                                                                Tandai ditransfer
+                                                                Mark transferred
                                                             </Button>
                                                         ) : payout.status === 'paid' ? (
                                                             <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
-                                                                <CheckCircle2 size={13} /> Selesai
+                                                                <CheckCircle2 size={13} /> Completed
                                                             </span>
                                                         ) : (
                                                             <span className="text-[11px] text-slate-400">—</span>
@@ -653,10 +657,10 @@ export default function AdminPayouts({
                     {payouts.total > 0 && (
                         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-5 py-4 text-xs text-slate-500 sm:px-6 dark:border-slate-700 dark:text-slate-400">
                             <span>
-                                Menampilkan {payouts.from ?? 0}–{payouts.to ?? 0} dari {payouts.total} payout
+                                Showing {payouts.from ?? 0}–{payouts.to ?? 0} of {payouts.total} payouts
                             </span>
                             <span>
-                                Halaman {payouts.current_page} / {payouts.last_page}
+                                Page {payouts.current_page} / {payouts.last_page}
                             </span>
                         </div>
                     )}

@@ -55,7 +55,7 @@ class UpdateWhatsAppCredentialsRequest extends FormRequest
                 'string',
                 function (string $attribute, mixed $value, callable $fail): void {
                     if (! is_string($value) || ! Hash::check($value, $this->user()->getAuthPassword())) {
-                        $fail('Password yang dimasukkan salah.');
+                        $fail('The password you entered is incorrect.');
                     }
                 },
             ],
@@ -65,14 +65,14 @@ class UpdateWhatsAppCredentialsRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'base_url.required' => 'Base URL Infobip wajib diisi.',
-            'base_url.url' => 'Base URL harus berupa URL yang valid.',
-            'base_url.max' => 'Base URL terlalu panjang.',
-            'from_number.required' => 'Nomor pengirim (From Number) wajib diisi.',
-            'from_number.max' => 'Nomor pengirim terlalu panjang.',
-            'api_key.required' => 'API Key wajib diisi.',
-            'api_key.min' => 'API Key minimal 8 karakter.',
-            'current_password.required' => 'Password akun wajib diisi untuk konfirmasi keamanan.',
+            'base_url.required' => 'Infobip Base URL is required.',
+            'base_url.url' => 'Base URL must be a valid URL.',
+            'base_url.max' => 'Base URL is too long.',
+            'from_number.required' => 'Sender number (From Number) is required.',
+            'from_number.max' => 'Sender number is too long.',
+            'api_key.required' => 'API Key is required.',
+            'api_key.min' => 'API Key must be at least 8 characters.',
+            'current_password.required' => 'Account password is required for security confirmation.',
         ];
     }
 }

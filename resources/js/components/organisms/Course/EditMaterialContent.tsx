@@ -41,202 +41,218 @@ const TYPES: {
     {
         value: 'text',
         label: 'Text / Article',
-        desc: 'Rich text & documentation',
+        desc: 'Rich text & documents',
         icon: FileText,
-        colorCls: 'text-blue-600 bg-blue-50 border-blue-100 dark:text-blue-300 dark:bg-blue-950/50 dark:border-blue-900',
-        activeCls: 'border-blue-500 bg-blue-50/80 ring-2 ring-blue-500/20 text-blue-950 dark:border-blue-400 dark:bg-blue-950/60 dark:text-blue-100',
+        colorCls: 'text-blue-500',
+        activeCls: 'border-blue-500 bg-blue-50/80 ring-2 ring-blue-500/20 dark:border-blue-400 dark:bg-blue-950/60',
     },
     {
         value: 'video',
-        label: 'Video Lesson',
-        desc: 'YouTube / Vimeo / URL',
+        label: 'Video',
+        desc: 'YouTube, Vimeo, URL',
         icon: Video,
-        colorCls: 'text-violet-600 bg-violet-50 border-violet-100 dark:text-violet-300 dark:bg-violet-950/50 dark:border-violet-900',
-        activeCls:
-            'border-violet-500 bg-violet-50/80 ring-2 ring-violet-500/20 text-violet-950 dark:border-violet-400 dark:bg-violet-950/60 dark:text-violet-100',
+        colorCls: 'text-violet-500',
+        activeCls: 'border-violet-500 bg-violet-50/80 ring-2 ring-violet-500/20 dark:border-violet-400 dark:bg-violet-950/60',
     },
     {
         value: 'file',
-        label: 'File Attachment',
-        desc: 'Upload PDF / Word / ZIP',
+        label: 'Attachment',
+        desc: 'PDF, ZIP, Documents',
         icon: File,
-        colorCls: 'text-emerald-600 bg-emerald-50 border-emerald-100 dark:text-emerald-300 dark:bg-emerald-950/50 dark:border-emerald-900',
-        activeCls:
-            'border-emerald-500 bg-emerald-50/80 ring-2 ring-emerald-500/20 text-emerald-950 dark:border-emerald-400 dark:bg-emerald-950/60 dark:text-emerald-100',
+        colorCls: 'text-emerald-500',
+        activeCls: 'border-emerald-500 bg-emerald-50/80 ring-2 ring-emerald-500/20 dark:border-emerald-400 dark:bg-emerald-950/60',
     },
     {
         value: 'ppt',
         label: 'Presentation',
-        desc: 'Upload PPT / PDF or paste a link',
+        desc: 'Google Slides, PPT, PDF',
         icon: Presentation,
-        colorCls: 'text-amber-600 bg-amber-50 border-amber-100 dark:text-amber-300 dark:bg-amber-950/50 dark:border-amber-900',
-        activeCls:
-            'border-amber-500 bg-amber-50/80 ring-2 ring-amber-500/20 text-amber-950 dark:border-amber-400 dark:bg-amber-950/60 dark:text-amber-100',
+        colorCls: 'text-orange-500',
+        activeCls: 'border-orange-500 bg-orange-50/80 ring-2 ring-orange-500/20 dark:border-orange-400 dark:bg-orange-950/60',
     },
     {
         value: 'quiz',
-        label: 'Quiz & Evaluation',
-        desc: 'Multiple choice & essay',
+        label: 'Interactive Quiz',
+        desc: 'MCQ & Essays',
         icon: HelpCircle,
-        colorCls: 'text-rose-600 bg-rose-50 border-rose-100 dark:text-rose-300 dark:bg-rose-950/50 dark:border-rose-900',
-        activeCls: 'border-rose-500 bg-rose-50/80 ring-2 ring-rose-500/20 text-rose-950 dark:border-rose-400 dark:bg-rose-950/60 dark:text-rose-100',
+        colorCls: 'text-rose-500',
+        activeCls: 'border-rose-500 bg-rose-50/80 ring-2 ring-rose-500/20 dark:border-rose-400 dark:bg-rose-950/60',
     },
 ];
 
-const URL_PLACEHOLDER: Partial<Record<ContentType, string>> = {
-    video: 'https://www.youtube.com/watch?v=...',
-    file: 'https://drive.google.com/file/d/...',
-    ppt: 'https://docs.google.com/presentation/d/...',
-};
-
-const URL_LABEL: Partial<Record<ContentType, string>> = {
-    video: 'Video Lesson URL',
-    file: 'File / Documentation URL',
-    ppt: 'Presentation Slide URL',
-};
-
-const UPLOAD_ACCEPT: Partial<Record<ContentType, string>> = {
-    file: '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt,.csv,.jpg,.jpeg,.png,.webp',
-    ppt: '.pdf,.ppt,.pptx',
-};
-
-const UPLOAD_HINT: Partial<Record<ContentType, string>> = {
-    file: 'PDF, Word, PowerPoint, Excel, ZIP, text or image — max 50 MB.',
-    ppt: 'PDF, PPT or PPTX — max 50 MB. PDF/PPTX can be viewed directly in the lesson.',
-};
-
-function fileNameFromUrl(url?: string | null): string | null {
-    if (!url) return null;
-
-    const clean = url.split('?')[0].split('#')[0];
-    const name = clean.split('/').filter(Boolean).pop();
-
-    return name ? decodeURIComponent(name) : url;
-}
-
-function formatFileSize(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function formatDate(iso?: string) {
-    if (!iso) return null;
-    return new Intl.DateTimeFormat('en-US', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(new Date(iso));
-}
-
-interface Props {
+interface EditMaterialContentProps {
     courseSlug: string;
     moduleId: number;
     materialId: number;
     content: MaterialContent;
+    routePrefix: 'admin' | 'instructor';
 }
 
-export default function EditMaterialContent({ courseSlug, moduleId, materialId, content }: Props) {
-    const [splitView, setSplitView] = useState(true);
-    const { auth } = usePage<SharedPageProps>().props;
-    const routePrefix = auth?.user?.role === 'instructor' ? 'instructor' : 'admin';
+function formatDate(date?: string | null) {
+    if (!date) return '-';
+    return new Date(date).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+    });
+}
 
+function formatFileSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function fileNameFromUrl(url?: string | null): string {
+    if (!url) return '';
+    try {
+        const path = new URL(url, window.location.origin).pathname;
+        return decodeURIComponent(path.split('/').pop() || '');
+    } catch {
+        return url.split('/').pop() || '';
+    }
+}
+
+const UPLOAD_ACCEPT: Record<string, string> = {
+    file: '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt,.csv,.jpg,.jpeg,.png,.webp',
+    ppt: '.pdf,.ppt,.pptx',
+};
+
+const URL_PLACEHOLDER: Record<string, string> = {
+    video: 'https://www.youtube.com/watch?v=... or https://vimeo.com/...',
+    file: 'https://example.com/document.pdf',
+    ppt: 'https://docs.google.com/presentation/d/... or direct PDF/PPT link',
+};
+
+const URL_LABEL: Record<string, string> = {
+    video: 'Video URL',
+    file: 'File URL',
+    ppt: 'Presentation URL',
+};
+
+const UPLOAD_HINT: Record<string, string> = {
+    file: 'PDF, DOC/DOCX, PPT/PPTX, XLS/XLSX, ZIP, TXT/CSV, images — max 50 MB',
+    ppt: 'PDF, PPT, PPTX — max 50 MB',
+};
+
+export default function EditMaterialContent({ courseSlug, moduleId, materialId, content, routePrefix }: EditMaterialContentProps) {
+    const { flash } = usePage<SharedPageProps>().props;
     const form = useMaterialContents(courseSlug, moduleId, materialId, [content], routePrefix, content.id);
 
-    if (!form.editing) return null;
+    const [splitView, setSplitView] = useState(false);
+
+    const renderMeta = (label: string, value: React.ReactNode) => (
+        <div className="flex flex-col gap-1 border-b border-slate-100 py-3 last:border-0 sm:flex-row sm:items-start sm:justify-between dark:border-slate-700">
+            <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase dark:text-slate-500">{label}</span>
+            <div className="max-w-sm text-left text-sm font-medium text-slate-700 sm:text-right dark:text-slate-200">{value}</div>
+        </div>
+    );
 
     return (
-        <div className="space-y-6">
-            {/* Card 1: Main Content Settings */}
+        <div className="mx-auto w-full max-w-5xl space-y-6">
+            {flash?.success && (
+                <div className="flex items-center gap-3 border border-emerald-200 bg-emerald-50 p-4 text-emerald-700 shadow-sm dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400">
+                    <CheckCircle2 className="h-5 w-5 shrink-0" />
+                    <p className="text-sm font-medium">{flash.success}</p>
+                </div>
+            )}
+
+            {flash?.error && (
+                <div className="flex items-center gap-3 border border-rose-200 bg-rose-50 p-4 text-rose-700 shadow-sm dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-400">
+                    <X className="h-5 w-5 shrink-0" />
+                    <p className="text-sm font-medium">{flash.error}</p>
+                </div>
+            )}
+
+            {/* Card 1: Basic Settings */}
             <div className="space-y-6 border border-slate-200/80 bg-white p-4 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-[#1e1f24]">
-                <div className="flex flex-col items-start justify-between gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center dark:border-slate-700">
-                    <div className="min-w-0">
-                        <h2 className="text-lg font-bold break-words text-slate-900 dark:text-white">Main Content Settings</h2>
-                        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                            Set the title, publication status, and content type for this lesson.
-                        </p>
+                <div className="flex flex-col justify-between gap-4 border-b border-slate-100 pb-4 sm:flex-row sm:items-center dark:border-slate-700">
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
+                            <Layout className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Content Settings</h2>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Basic details, type, and publication status.</p>
+                        </div>
                     </div>
 
-                    <div className="flex shrink-0 items-center gap-2">
-                        <span
-                            className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold tracking-wider uppercase ${
-                                form.status === 'published'
-                                    ? 'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300'
-                                    : 'border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-300'
-                            }`}
-                        >
-                            <span className={`h-1.5 w-1.5 ${form.status === 'published' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                            {form.status}
-                        </span>
+                    <div
+                        className={`flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-xs font-bold tracking-wider uppercase ${
+                            form.status === 'published'
+                                ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:ring-emerald-800'
+                                : 'bg-amber-100 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:ring-amber-800'
+                        }`}
+                    >
+                        <span className={`h-2 w-2 rounded-full ${form.status === 'published' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                        {form.status === 'published' ? 'Published' : 'Draft Mode'}
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div className="md:col-span-2">
                         <InputField
-                            label="Material Content Title"
+                            label="Content Title"
                             name="title"
                             value={form.title}
                             onChange={(e) => form.setTitle(e.target.value)}
-                            placeholder="e.g., Introduction to HTML & Document Structure"
+                            placeholder="e.g. Introduction to React Hooks"
                         />
                     </div>
 
-                    <div>
-                        <SelectField
-                            label="Publication Status"
-                            value={form.status}
-                            onChange={(e) => form.setStatus(e.target.value as 'draft' | 'published')}
-                            options={[
-                                { label: 'Draft (Unpublished)', value: 'draft' },
-                                { label: 'Published (Student Accessible)', value: 'published' },
-                            ]}
-                        />
+                    <SelectField
+                        label="Publication Status"
+                        name="status"
+                        value={form.status}
+                        onChange={(e) => form.setStatus(e.target.value as 'draft' | 'published')}
+                        options={[
+                            { label: 'Draft (Hidden from students)', value: 'draft' },
+                            { label: 'Published (Visible to students)', value: 'published' },
+                        ]}
+                    />
+
+                    <div className="flex flex-col gap-1 text-xs text-slate-400 md:justify-end md:pb-2 dark:text-slate-500">
+                        {renderMeta('Created At', formatDate(content.created_at))}
                     </div>
                 </div>
 
                 {/* Content Type Selector */}
-                <div>
-                    <label className="mb-3 block text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400">
-                        Select Content Type
-                    </label>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-                        {TYPES.map((t) => {
-                            const Icon = t.icon;
-                            const isSelected = form.type === t.value;
+                <div className="space-y-3 pt-2">
+                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Content Type</label>
+                    <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+                        {TYPES.map((item) => {
+                            const Icon = item.icon;
+                            const isActive = form.type === item.value;
 
                             return (
                                 <button
-                                    key={t.value}
+                                    key={item.value}
                                     type="button"
-                                    onClick={() => {
-                                        form.setType(t.value);
-                                        if (t.value !== 'quiz') form.setDuration('');
-                                        if ((t.value === 'file' || t.value === 'ppt') && !form.contentUrl) {
-                                            form.setSourceMode('upload');
-                                        } else if (t.value === 'video') {
-                                            form.setSourceMode('url');
-                                        }
-                                    }}
-                                    className={`group relative flex flex-col items-start border p-4 text-left transition-all hover:scale-[1.01] ${
-                                        isSelected
-                                            ? t.activeCls
-                                            : 'border-slate-200/90 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50/50 dark:border-slate-700 dark:bg-[#1e1f24] dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700'
+                                    onClick={() => form.setType(item.value)}
+                                    className={`group relative flex flex-col items-center justify-center gap-2 border p-4 text-center transition-all duration-200 ${
+                                        isActive
+                                            ? item.activeCls
+                                            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-[#1e1f24] dark:hover:border-slate-600 dark:hover:bg-slate-700/60'
                                     }`}
                                 >
-                                    <div className={`mb-3 border p-2.5 transition-colors ${t.colorCls}`}>
-                                        <Icon className="h-5 w-5" />
+                                    <div
+                                        className={`transition-transform duration-200 ${isActive ? 'scale-110 ' + item.colorCls : 'text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300'}`}
+                                    >
+                                        <Icon className="h-6 w-6" />
                                     </div>
-
-                                    <span className="block text-sm leading-tight font-bold">{t.label}</span>
-                                    <span className="mt-1 text-[11px] leading-snug text-slate-400 dark:text-slate-400">{t.desc}</span>
-
-                                    {isSelected && (
-                                        <div className="absolute top-3 right-3 text-emerald-600">
-                                            <CheckCircle2 className="h-4 w-4 fill-emerald-100" />
+                                    <div>
+                                        <span
+                                            className={`block text-sm font-bold ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-200'}`}
+                                        >
+                                            {item.label}
+                                        </span>
+                                        <span className="mt-0.5 block text-[10px] text-slate-500 dark:text-slate-400">{item.desc}</span>
+                                    </div>
+                                    {isActive && (
+                                        <div className="absolute top-2 right-2 text-indigo-600 dark:text-indigo-400">
+                                            <CheckCircle2 className="h-4 w-4" />
                                         </div>
                                     )}
                                 </button>
@@ -362,7 +378,7 @@ export default function EditMaterialContent({ courseSlug, moduleId, materialId, 
                                 )}
 
                                 <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                                    Uploading a new file replaces the current file. The student can view the file and download it from the lesson.
+                                    Uploading a new file replaces the current file. Students can view and download it from the lesson.
                                 </p>
 
                                 {form.errors?.file && <p className="text-xs font-medium text-rose-600 dark:text-rose-400">{form.errors.file}</p>}
@@ -424,7 +440,7 @@ export default function EditMaterialContent({ courseSlug, moduleId, materialId, 
                                         type="number"
                                         min={1}
                                         value={form.duration}
-                                        onChange={(e) => form.setDuration(Number(e.target.value))}
+                                        onChange={(e) => form.setDuration(e.target.value ? Number(e.target.value) : '')}
                                         placeholder="30"
                                     />
                                 </div>
@@ -432,7 +448,6 @@ export default function EditMaterialContent({ courseSlug, moduleId, materialId, 
                             </div>
                         </div>
 
-                        {/* Quick Duration Presets */}
                         <div className="flex flex-wrap items-center gap-2">
                             <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase dark:text-slate-500">Quick Presets:</span>
                             {[15, 30, 45, 60, 90].map((mins) => (
@@ -450,19 +465,13 @@ export default function EditMaterialContent({ courseSlug, moduleId, materialId, 
                         </div>
 
                         <div className="pt-2">
-                            {content.id ? (
-                                <QuizBuilder
-                                    courseSlug={courseSlug}
-                                    moduleId={moduleId}
-                                    materialId={materialId}
-                                    contentId={content.id}
-                                    routePrefix={routePrefix}
-                                />
-                            ) : (
-                                <div className="border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
-                                    Save content first before adding quiz questions.
-                                </div>
-                            )}
+                            <QuizBuilder
+                                courseSlug={courseSlug}
+                                moduleId={moduleId}
+                                materialId={materialId}
+                                contentId={content.id}
+                                routePrefix={routePrefix}
+                            />
                         </div>
                     </div>
                 )}

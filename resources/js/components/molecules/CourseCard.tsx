@@ -1,5 +1,6 @@
 import { usePage, Link, router } from '@inertiajs/react';
 import { Eye, PlayCircle } from 'lucide-react';
+import { motion, useReducedMotion } from 'motion/react';
 import { useState } from 'react';
 import Badge from '@/components/atoms/Badge';
 import Button from '@/components/atoms/Button';
@@ -9,6 +10,7 @@ import ConfirmationDelete from '@/components/molecules/ConfirmationDelete';
 
 import { useCourse } from '@/hooks/useCourse';
 import { formatCoursePrice } from '@/lib/currency';
+import { EASE } from '@/lib/motion';
 import type { Course } from '@/types';
 import type { SharedPageProps } from '@/types/shared';
 
@@ -21,6 +23,7 @@ interface CourseCardProps {
 }
 
 export default function CourseCard({ course, manageable = true, enrolled = false }: CourseCardProps) {
+    const reduceMotion = useReducedMotion();
     const { destroy } = useCourse();
     const [openDelete, setOpenDelete] = useState(false);
 
@@ -39,16 +42,27 @@ export default function CourseCard({ course, manageable = true, enrolled = false
 
     return (
         <>
-            <div
+            <motion.div
+                initial="rest"
+                animate="rest"
+                whileHover={reduceMotion ? undefined : 'hover'}
                 onClick={() => router.visit(courseHref)}
-                className="group flex h-full cursor-pointer flex-col border border-neutral-100 bg-white transition-shadow duration-200 hover:shadow-md dark:border-slate-800 dark:bg-[#1e1f24] dark:hover:shadow-slate-900/50"
+                className="group relative flex h-full cursor-pointer flex-col border border-neutral-100 bg-white transition-shadow duration-200 hover:shadow-md dark:border-slate-800 dark:bg-[#1e1f24] dark:hover:shadow-slate-900/50"
             >
+                <motion.span
+                    aria-hidden
+                    variants={{ rest: { scaleX: 0 }, hover: { scaleX: 1 } }}
+                    transition={{ duration: 0.4, ease: EASE }}
+                    className="absolute inset-x-0 top-0 z-10 h-0.5 origin-left bg-purple-600"
+                />
                 {/* Thumbnail — clean, no overlay */}
                 <div className="aspect-video w-full overflow-hidden bg-neutral-100 dark:bg-[#141416]">
-                    <img
+                    <motion.img
                         src={course.thumbnail_url}
                         alt={course.title}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        variants={{ rest: { scale: 1 }, hover: { scale: 1.06 } }}
+                        transition={{ duration: 0.5, ease: EASE }}
+                        className="h-full w-full object-cover"
                     />
                 </div>
 
@@ -120,7 +134,7 @@ export default function CourseCard({ course, manageable = true, enrolled = false
                         </div>
                     )}
                 </div>
-            </div>
+            </motion.div>
 
             {manageable && (
                 <ConfirmationDelete

@@ -1,15 +1,15 @@
 import { Link } from '@inertiajs/react';
 import { ArrowRight, Play } from 'lucide-react';
-import { motion, useReducedMotion } from 'motion/react';
+import { motion, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform } from 'motion/react';
 import type { Variants } from 'motion/react';
+import { useRef } from 'react';
 import Badge from '@/components/atoms/Badge';
 import Button from '@/components/atoms/Button';
 import Title from '@/components/atoms/Title';
 import { useLanding } from '@/hooks/useLanding';
+import { EASE, entrance } from '@/lib/motion';
 
 const PHOTO_SPANS = ['col-span-2 row-span-2', 'col-span-1 row-span-1', 'col-span-1 row-span-1', 'col-span-1 row-span-1', 'col-span-2 row-span-1'];
-
-const EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
 
 const container: Variants = {
     hidden: {},
@@ -71,18 +71,37 @@ const BentoGrid = ({ rowHeight, photos }: { rowHeight: number; photos: string[] 
 };
 
 export default function HeroSection() {
+    const sectionRef = useRef<HTMLElement>(null);
     const reduceMotion = useReducedMotion();
     const { hero } = useLanding();
 
+    const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end start'] });
+    const smoothProgress = useSpring(scrollYProgress, {
+        stiffness: 90,
+        damping: 24,
+        restDelta: 0.001,
+        skipInitialAnimation: true,
+    });
+    const still = useMotionValue(0);
+    const farGlowY = useTransform(smoothProgress, [0, 1], [0, 90]);
+    const nearGlowY = useTransform(smoothProgress, [0, 1], [0, -70]);
+    const gridY = useTransform(smoothProgress, [0, 1], [0, -42]);
+
+    const farY = reduceMotion ? still : farGlowY;
+    const nearY = reduceMotion ? still : nearGlowY;
+    const bentoY = reduceMotion ? still : gridY;
+
     return (
-        <section className="relative min-h-screen overflow-hidden bg-gray-100 dark:bg-[#141416]">
+        <section ref={sectionRef} className="relative min-h-screen overflow-hidden bg-gray-100 dark:bg-[#141416]">
             {/* Ambient glows */}
-            <div
+            <motion.div
                 aria-hidden
+                style={{ y: farY }}
                 className="pointer-events-none absolute -top-32 -right-24 h-80 w-80 rounded-full bg-purple-400/10 blur-3xl dark:bg-purple-500/10"
             />
-            <div
+            <motion.div
                 aria-hidden
+                style={{ y: nearY }}
                 className="pointer-events-none absolute bottom-0 left-1/4 h-72 w-72 rounded-full bg-indigo-300/10 blur-3xl dark:bg-indigo-500/5"
             />
 
@@ -100,20 +119,32 @@ export default function HeroSection() {
                     </motion.div>
 
                     <motion.div variants={item}>
-                        <Title as="h1" className="leading-none" style={{ fontSize: 'clamp(2.8rem,6vw,5rem)', lineHeight: 1.05 }}>
-                            {hero.title_lead}
-                        </Title>
-                        <Title
-                            as="h1"
-                            className="relative isolate mt-1 inline-block bg-purple-400 px-2 leading-none"
-                            style={{ fontSize: 'clamp(2.8rem,6vw,5rem)', lineHeight: 1.1 }}
+                        <motion.div
+                            initial={entrance(reduceMotion, { clipPath: 'inset(0 0 100% 0)', y: 14 })}
+                            animate={{ clipPath: 'inset(0 0 0% 0)', y: 0 }}
+                            transition={{ duration: 0.75, delay: 0.12, ease: EASE }}
                         >
-                            <span
-                                aria-hidden
-                                className="pointer-events-none absolute -inset-x-8 -inset-y-4 -z-10 rounded-full bg-purple-400/30 blur-2xl dark:bg-purple-500/25"
-                            />
-                            {hero.title_highlight}
-                        </Title>
+                            <Title as="h1" className="leading-none" style={{ fontSize: 'clamp(2.8rem,6vw,5rem)', lineHeight: 1.05 }}>
+                                {hero.title_lead}
+                            </Title>
+                        </motion.div>
+                        <motion.div
+                            initial={entrance(reduceMotion, { clipPath: 'inset(0 0 100% 0)', y: 14 })}
+                            animate={{ clipPath: 'inset(0 0 0% 0)', y: 0 }}
+                            transition={{ duration: 0.75, delay: 0.22, ease: EASE }}
+                        >
+                            <Title
+                                as="h1"
+                                className="relative isolate mt-1 inline-block bg-purple-400 px-2 leading-none"
+                                style={{ fontSize: 'clamp(2.8rem,6vw,5rem)', lineHeight: 1.1 }}
+                            >
+                                <span
+                                    aria-hidden
+                                    className="pointer-events-none absolute -inset-x-8 -inset-y-4 -z-10 rounded-full bg-purple-400/30 blur-2xl dark:bg-purple-500/25"
+                                />
+                                {hero.title_highlight}
+                            </Title>
+                        </motion.div>
                     </motion.div>
 
                     <motion.div variants={item} className="w-full overflow-hidden lg:hidden">
@@ -186,7 +217,7 @@ export default function HeroSection() {
                     </motion.div>
                 </motion.div>
 
-                <div className="relative hidden max-w-lg flex-1 lg:block">
+                <motion.div style={{ y: bentoY }} className="relative hidden max-w-lg flex-1 lg:block">
                     <div
                         aria-hidden
                         className="pointer-events-none absolute -inset-6 -z-10 bg-[radial-gradient(60%_60%_at_60%_40%,color-mix(in_srgb,var(--color-purple-500)_14%,transparent),transparent_75%)] blur-2xl"
@@ -206,7 +237,7 @@ export default function HeroSection() {
                             and growing
                         </span>
                     </motion.div>
-                </div>
+                </motion.div>
             </div>
         </section>
     );

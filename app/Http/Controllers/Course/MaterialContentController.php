@@ -62,14 +62,11 @@ class MaterialContentController extends Controller
         return Inertia::render($view, [
             'material' => $material->load([
                 'module.course',
-                'contents',
+                'contents.quizQuestions.quizOptions',
             ]),
             'editContentId' => $content->id,
             'quizQuestions' => $content->type === 'quiz'
-                ? \App\Models\QuizQuestion::with('quizOptions')
-                    ->where('material_content_id', $content->id)
-                    ->orderBy('sort_order')
-                    ->get()
+                ? $content->load('quizQuestions.quizOptions')->quizQuestions
                 : [],
         ]);
     }
@@ -85,6 +82,7 @@ class MaterialContentController extends Controller
         return response()->json([
             'data' => $content->load([
                 'material.module.course',
+                'quizQuestions.quizOptions',
             ]),
         ]);
     }
@@ -98,11 +96,7 @@ class MaterialContentController extends Controller
     ) {
         $this->structureService->ensureContentHierarchy($course, $module, $material, $content);
 
-        try {
-            $this->service->update($content, $request->validated());
-        } catch (\DomainException $exception) {
-            return back()->with('error', $exception->getMessage());
-        }
+        $this->service->update($content, $request->validated());
 
         return back()->with('success', 'Content updated');
     }

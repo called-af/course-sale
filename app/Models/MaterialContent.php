@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MaterialContent extends Model
 {
@@ -56,8 +57,18 @@ class MaterialContent extends Model
         return $this->belongsTo(Material::class);
     }
 
-    public function quizQuestions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function quizQuestions(): HasMany
     {
         return $this->hasMany(QuizQuestion::class)->orderBy('sort_order');
+    }
+
+    public function quizAttempts(): HasMany
+    {
+        return $this->hasMany(QuizAttempt::class);
+    }
+
+    public function progress(): HasMany
+    {
+        return $this->hasMany(MaterialContentProgress::class);
     }
 }

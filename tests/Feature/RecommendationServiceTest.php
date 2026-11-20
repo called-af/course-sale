@@ -9,8 +9,8 @@ use App\Models\User;
 use App\Models\UserEvent;
 use App\Services\RecommendationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class RecommendationServiceTest extends TestCase
@@ -26,6 +26,13 @@ class RecommendationServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        Config::set('recommendation.enabled', true);
+        Config::set('cache.default', 'array');
+        Config::set('recommendation.cache_store', null);
+        Cache::flush();
+
+        RecommendationSetting::query()->delete();
 
         $this->user = User::factory()->create(['name' => 'Student Test']);
 
@@ -48,7 +55,6 @@ class RecommendationServiceTest extends TestCase
         ]);
         $this->course2->tags()->attach([$tag2->id]);
 
-        // User viewed course1
         UserEvent::create([
             'user_id' => $this->user->id,
             'course_id' => $this->course1->id,
@@ -57,125 +63,52 @@ class RecommendationServiceTest extends TestCase
         ]);
     }
 
-    public function test_recommendations_return_empty_when_disabled(): void
+    public function test_recommendations_return_empty_when_globally_disabled(): void
     {
         Config::set('recommendation.enabled', false);
 
         $service = app(RecommendationService::class);
         $result = $service->getRecommendations($this->user, 4);
 
-        $this->assertIsArray($result);
-        $this->assertEmpty($result);
+        $this->assertSame([], $result);
     }
 
-    public function test_admin_python_toggle_disables_recommendations(): void
+    public function test_recommendations_return_empty_when_admin_toggle_is_disabled(): void
     {
         RecommendationSetting::create(['id' => 1, 'enabled' => false]);
-        Config::set('recommendation.enabled', true);
-        Config::set('recommendation.driver', 'python');
 
         $service = app(RecommendationService::class);
-        $result = $service->getRecommendations($this->user, 4);
 
-        $this->assertSame([], $result);
+        $this->assertSame([], $service->getRecommendations($this->user, 4));
         $this->assertSame('DISABLED', $service->getStatus()['active_engine']);
     }
 
-    public function test_recommendations_use_laravel_driver_directly(): void
+    public function test_recommendations_compute_using_laravel_native_engine(): void
     {
-        Config::set('recommendation.enabled', true);
-        Config::set('recommendation.driver', 'laravel');
-
         $service = app(RecommendationService::class);
         $result = $service->computeRecommendations($this->user, 3);
 
-        $this->assertIsArray($result);
         $this->assertNotEmpty($result);
         $this->assertArrayHasKey('recommendation_score', $result[0]);
+        $this->assertArrayHasKey('recommendation_reason', $result[0]);
     }
 
-    public function test_recommendations_fall_back_to_laravel_when_python_service_is_down(): void
+    public function test_guest_recommendations_return_popular_courses(): void
     {
-        Config::set('recommendation.enabled', true);
-        Config::set('recommendation.driver', 'python');
-        Config::set('recommendation.python.url', 'http://127.0.0.1:9999');
-        Config::set('recommendation.python.timeout', 0.2);
-        Config::set('recommendation.python.fallback_to_laravel', true);
-
-        // Fake network failure
-        Http::fake([
-            'http://127.0.0.1:9999/*' => Http::response(null, 500),
-        ]);
-
-        $service = app(RecommendationService::class);
-        $result = $service->computeRecommendations($this->user, 3);
-
-        $this->assertIsArray($result);
-        $this->assertNotEmpty($result);
-        $this->assertArrayHasKey('recommendation_score', $result[0]);
-    }
-
-    public function test_recommendations_return_empty_when_python_fails_and_fallback_disabled(): void
-    {
-        Config::set('recommendation.enabled', true);
-        Config::set('recommendation.driver', 'python');
-        Config::set('recommendation.python.url', 'http://127.0.0.1:9999');
-        Config::set('recommendation.python.timeout', 0.2);
-        Config::set('recommendation.python.fallback_to_laravel', false);
-
-        Http::fake([
-            'http://127.0.0.1:9999/*' => Http::response(null, 500),
-        ]);
-
-        $service = app(RecommendationService::class);
-        $result = $service->computeRecommendations($this->user, 3);
-
-        $this->assertIsArray($result);
-        $this->assertEmpty($result);
-    }
-
-    public function test_recommendations_consume_python_service_when_available(): void
-    {
-        Config::set('recommendation.enabled', true);
-        Config::set('recommendation.driver', 'python');
-        Config::set('recommendation.python.url', 'http://mock-recommender.test');
-        Config::set('recommendation.python.fallback_to_laravel', true);
-
-        Http::fake([
-            'http://mock-recommender.test/*' => Http::response([
-                'user_id' => $this->user->id,
-                'recommendations' => [
-                    [
-                        'course_id' => $this->course2->id,
-                        'score' => 99.5,
-                        'reason' => 'AI Super Match from Python ML',
-                        'matching_tags' => ['Python'],
-                    ],
-                ],
-                'source' => 'python_ml',
-                'count' => 1,
-            ], 200),
-        ]);
-
-        $service = app(RecommendationService::class);
-        $result = $service->computeRecommendations($this->user, 1);
-
-        $this->assertIsArray($result);
-        $this->assertCount(1, $result);
-        $this->assertEquals($this->course2->id, $result[0]['id']);
-        $this->assertEquals(99.5, $result[0]['recommendation_score']);
-        $this->assertEquals('AI Super Match from Python ML', $result[0]['recommendation_reason']);
-    }
-
-    public function test_guest_recommendations_work(): void
-    {
-        Config::set('recommendation.enabled', true);
-        Config::set('recommendation.driver', 'laravel');
-
         $service = app(RecommendationService::class);
         $result = $service->computeRecommendations(null, 2);
 
-        $this->assertIsArray($result);
         $this->assertNotEmpty($result);
+        $this->assertArrayHasKey('id', $result[0]);
+    }
+
+    public function test_status_reports_native_engine_when_enabled(): void
+    {
+        $service = app(RecommendationService::class);
+        $status = $service->getStatus();
+
+        $this->assertTrue($status['enabled']);
+        $this->assertTrue($status['admin_enabled']);
+        $this->assertSame('LARAVEL_NATIVE', $status['active_engine']);
     }
 }

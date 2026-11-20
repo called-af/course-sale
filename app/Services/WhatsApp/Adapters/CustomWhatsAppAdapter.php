@@ -40,7 +40,7 @@ class CustomWhatsAppAdapter extends AbstractAdapter
         $base = $this->config->baseUrl();
 
         if ($base === '') {
-            throw ProviderException::configuration($this->name(), 'Base URL gateway custom wajib diisi.');
+            throw ProviderException::configuration($this->name(), 'Custom gateway Base URL is required.');
         }
 
         return $base.'/'.ltrim($path, '/');
@@ -53,7 +53,7 @@ class CustomWhatsAppAdapter extends AbstractAdapter
 
         if ($statusPath === '') {
             return ConnectionResult::ok(
-                'Konfigurasi gateway custom valid. Tidak ada health endpoint yang dikonfigurasi.',
+                'Custom gateway configuration is valid. No health endpoint is configured.',
                 null,
                 ['configuration_only' => true],
             );
@@ -62,7 +62,7 @@ class CustomWhatsAppAdapter extends AbstractAdapter
         try {
             $this->get($this->endpoint($statusPath), $this->headers());
 
-            return ConnectionResult::ok('Koneksi gateway custom berhasil.', (int) ((microtime(true) - $start) * 1000));
+            return ConnectionResult::ok('Custom gateway connection successful.', (int) ((microtime(true) - $start) * 1000));
         } catch (ProviderException $exception) {
             return ConnectionResult::failed($exception->getMessage());
         }
@@ -151,7 +151,7 @@ class CustomWhatsAppAdapter extends AbstractAdapter
 
             if ($success === false || $success === 'false') {
                 return $this->failure(
-                    (string) ($json['error'] ?? $json['message'] ?? 'Gateway menolak pesan.'),
+                    (string) ($json['error'] ?? $json['message'] ?? 'The gateway rejected the message.'),
                     (string) ($json['code'] ?? 'send_failed'),
                     false,
                     $json,

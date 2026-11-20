@@ -40,7 +40,7 @@ class CohereAdapter extends AbstractAdapter
             $models = $this->listModels();
 
             return ConnectionResult::ok(
-                'Koneksi Cohere berhasil. '.count($models).' model terdeteksi.',
+                'Cohere connection successful. '.count($models).' models detected.',
                 (int) ((microtime(true) - $start) * 1000),
                 ['models_count' => count($models)],
             );

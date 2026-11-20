@@ -56,7 +56,7 @@ export default function LogoSettingsPanel({ initialLogoUrl, hasCustomLogo }: Log
     };
 
     const restoreDefault = () => {
-        if (!window.confirm('Kembalikan logo aplikasi ke logo default?')) {
+        if (!window.confirm('Reset the application logo to the default logo?')) {
             return;
         }
 
@@ -75,10 +75,10 @@ export default function LogoSettingsPanel({ initialLogoUrl, hasCustomLogo }: Log
         <section className="space-y-5" aria-labelledby="logo-heading">
             <div>
                 <h2 id="logo-heading" className="text-lg font-semibold text-slate-900 dark:text-white">
-                    Logo aplikasi
+                    Application logo
                 </h2>
                 <p className="mt-1 text-sm text-neutral-500">
-                    Ganti logo yang tampil di landing page, dashboard, dan sidebar. Format PNG, JPG, WEBP, atau SVG maksimal 2 MB.
+                    Change the logo shown on the landing page, dashboard, and sidebar. PNG, JPG, WEBP, or SVG format, maximum 2 MB.
                 </p>
             </div>
 
@@ -87,14 +87,14 @@ export default function LogoSettingsPanel({ initialLogoUrl, hasCustomLogo }: Log
                 className="relative grid gap-5 border border-neutral-200 bg-white p-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] dark:border-slate-700 dark:bg-[#1e1f24]"
             >
                 <div className="flex min-h-32 items-center justify-center border border-dashed border-neutral-300 bg-neutral-50 p-6 dark:border-slate-600 dark:bg-[#1e1f24]">
-                    <img src={currentLogo} alt="Pratinjau logo aplikasi" className="max-h-20 w-auto max-w-full object-contain" />
+                    <img src={currentLogo} alt="Application logo preview" className="max-h-20 w-auto max-w-full object-contain" />
                 </div>
 
                 <div className="flex flex-col justify-center gap-4">
                     <div>
-                        <p className="text-sm font-medium text-slate-900 dark:text-white">{data.logo ? data.logo.name : 'Unggah logo baru'}</p>
+                        <p className="text-sm font-medium text-slate-900 dark:text-white">{data.logo ? data.logo.name : 'Upload a new logo'}</p>
                         <p className="mt-1 text-xs text-neutral-500">
-                            {hasCustomLogo ? 'Logo kustom sedang digunakan.' : 'Saat ini memakai logo default.'}
+                            {hasCustomLogo ? 'A custom logo is currently in use.' : 'Currently using the default logo.'}
                         </p>
                     </div>
 
@@ -125,7 +125,7 @@ export default function LogoSettingsPanel({ initialLogoUrl, hasCustomLogo }: Log
                             onClick={() => inputRef.current?.click()}
                             disabled={processing}
                         >
-                            Pilih file
+                            Choose file
                         </Button>
 
                         <Button
@@ -133,12 +133,12 @@ export default function LogoSettingsPanel({ initialLogoUrl, hasCustomLogo }: Log
                             leftIcon={processing ? <LoaderCircle size={16} className="animate-spin" /> : <Upload size={16} />}
                             disabled={!data.logo || processing}
                         >
-                            Simpan logo
+                            Save logo
                         </Button>
 
                         {(hasCustomLogo || previewUrl) && (
                             <Button type="button" variant="ghost" leftIcon={<RotateCcw size={16} />} onClick={restoreDefault} disabled={processing}>
-                                Logo default
+                                Default logo
                             </Button>
                         )}
                     </div>

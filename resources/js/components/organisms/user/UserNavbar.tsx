@@ -193,7 +193,7 @@ export default function UserNavbar({ title }: UserNavbarProps) {
                                   : '/student/profile'
                         }
                         className="flex items-center gap-2.5 p-1 transition-colors hover:bg-neutral-100 dark:hover:bg-slate-800"
-                        title="Lihat Profil"
+                        title="View Profile"
                     >
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden bg-purple-100 text-xs font-bold text-purple-600 dark:bg-purple-950/40 dark:text-purple-400">
                             {auth?.user?.avatar_url ? (
